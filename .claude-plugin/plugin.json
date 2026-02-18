@@ -1,0 +1,8 @@
+{
+  "name": "qdrant",
+  "description": "Skills for the Qdrant vector search platform: Python SDK, search, filtering, hybrid search, and multi-tenancy",
+  "version": "1.0.0",
+  "author": {
+    "name": "Qdrant"
+  }
+}

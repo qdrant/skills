@@ -1,0 +1,15 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "qdrant",
+  "owner": {
+    "name": "Qdrant",
+    "url": "https://qdrant.tech"
+  },
+  "plugins": [
+    {
+      "name": "qdrant",
+      "source": "./",
+      "description": "Skills for the Qdrant vector search platform"
+    }
+  ]
+}
