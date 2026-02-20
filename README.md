@@ -47,10 +47,46 @@ Commands are user-invocable slash commands that you explicitly call.
 
 ## Skills
 
-| Skill | Useful for |
-|-------|------------|
-| qdrant-python | Python SDK best practices: search, filtering, hybrid search, multi-tenancy, gotchas |
-| qdrant-rust | Rust client best practices: gRPC setup, builders, query, upsert, gotchas |
+| Skill | Language | Transport | Useful for |
+|-------|----------|-----------|------------|
+| qdrant-python | Python | REST (6333) | `qdrant-client` SDK: query_points, filtering, hybrid search, multi-tenancy, gotchas |
+| qdrant-typescript | TypeScript/JS | REST (6333) | `@qdrant/js-client-rest`: query, plain-object filters, hybrid search, named vectors |
+| qdrant-rust | Rust | gRPC (6334) | `qdrant-client` crate: builders, query, upsert, async patterns, gotchas |
+| qdrant-go | Go | gRPC (6334) | `go-client`: protobuf types, constructor helpers, PtrOf patterns, gotchas |
+| qdrant-dotnet | C# / .NET | gRPC (6334) | `Qdrant.Client` NuGet: operator overload filters, async, implicit conversions |
+| qdrant-java | Java | gRPC (6334) | `io.qdrant:client`: factory classes, ListenableFuture, builder pattern, gotchas |
+
+## References
+
+Each skill includes a `references/` directory with detailed supplemental docs that agents can load on demand:
+
+| Skill | Reference | Contents |
+|-------|-----------|----------|
+| qdrant-python | `references/filtering.md` | All filter condition types, nested filters, geo, datetime |
+| qdrant-python | `references/migration-guide.md` | Old-to-new API migration table |
+| qdrant-rust | `references/builders.md` | Comprehensive builder API reference for all operations |
+
+## Scripts
+
+| Script | Description |
+|--------|-------------|
+| `scripts/start-qdrant.sh` | Pull and run a local Qdrant Docker container |
+
+Usage:
+
+```bash
+bash scripts/start-qdrant.sh          # latest version
+bash scripts/start-qdrant.sh v1.13.0  # specific version
+```
+
+## Validation
+
+Run the Makefile targets to check skill definitions:
+
+```bash
+make validate  # run skills-ref validator (requires npm install -g skills-ref)
+make lint      # basic frontmatter checks
+```
 
 ## Resources
 

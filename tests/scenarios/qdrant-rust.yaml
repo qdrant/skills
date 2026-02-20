@@ -1,0 +1,112 @@
+skill: qdrant-rust
+scenarios:
+  - name: basic_search
+    prompt: "Search a Qdrant collection for the nearest vectors using the Rust client"
+    expected_patterns:
+      - "client.query("
+      - "QueryPointsBuilder"
+    forbidden_patterns:
+      - "search_points"
+      - "client.search("
+    tags: [basic, search]
+
+  - name: filtered_search
+    prompt: "Search 'products' with a filter for electronics category in Rust"
+    expected_patterns:
+      - "QueryPointsBuilder"
+      - "filter"
+      - "Filter::must"
+      - "Condition::matches"
+      - "electronics"
+    forbidden_patterns:
+      - "search_points"
+    tags: [search, filtering]
+
+  - name: create_collection
+    prompt: "Create a Qdrant collection with 768-dim cosine vectors in Rust"
+    expected_patterns:
+      - "CreateCollectionBuilder"
+      - "VectorParamsBuilder"
+      - "768"
+      - "Distance::Cosine"
+    forbidden_patterns:
+      - "Distance.Cosine"
+      - "Distance.COSINE"
+    tags: [basic, collection]
+
+  - name: upsert_with_payload
+    prompt: "Upsert points with JSON payload into a Qdrant collection in Rust"
+    expected_patterns:
+      - "UpsertPointsBuilder"
+      - "PointStruct::new"
+      - "json!"
+      - "try_into"
+    forbidden_patterns:
+      - "Payload::new"
+      - "HashMap.*payload"
+    notes: "Payload conversion goes through json!({}).try_into().unwrap()"
+    tags: [basic, upsert]
+
+  - name: builder_pattern
+    prompt: "Query Qdrant and return payload with vectors in Rust"
+    expected_patterns:
+      - "QueryPointsBuilder"
+      - "with_payload"
+    forbidden_patterns:
+      - "QueryPoints {"
+      - "QueryPoints{"
+    notes: "Must use builders, not direct struct construction"
+    tags: [basic, search]
+
+  - name: wait_for_consistency
+    prompt: "Upsert points and immediately query them in Rust"
+    expected_patterns:
+      - "wait(true)"
+    forbidden_patterns: []
+    notes: "Must use .wait(true) for read-after-write consistency"
+    tags: [best-practice]
+
+  - name: grpc_port
+    prompt: "Connect to a local Qdrant instance in Rust"
+    expected_patterns:
+      - "6334"
+    forbidden_patterns:
+      - "6333"
+    notes: "Rust client uses gRPC port 6334, not REST 6333"
+    tags: [basic, setup]
+
+  - name: async_runtime
+    prompt: "Set up a Qdrant client and query in Rust"
+    expected_patterns:
+      - "tokio"
+      - "await"
+    forbidden_patterns: []
+    notes: "All client methods are async, requires tokio"
+    tags: [basic, setup]
+
+  - name: hybrid_search
+    prompt: "Do a hybrid search combining dense and sparse vectors with RRF fusion in Rust"
+    expected_patterns:
+      - "prefetch"
+      - "Fusion"
+      - "Rrf"
+    forbidden_patterns:
+      - "search_points"
+    tags: [search, hybrid]
+
+  - name: named_vectors
+    prompt: "Create a collection with separate image and text vector spaces in Rust"
+    expected_patterns:
+      - "VectorParamsMap"
+      - "VectorParamsBuilder"
+    forbidden_patterns: []
+    tags: [named-vectors]
+
+  - name: multi_tenancy
+    prompt: "Set up multi-tenant search in Rust"
+    expected_patterns:
+      - "is_tenant"
+      - "CreateFieldIndexCollectionBuilder"
+    forbidden_patterns:
+      - "one collection per"
+    tags: [multi-tenancy]

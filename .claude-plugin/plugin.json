@@ -1,7 +1,10 @@
 {
   "name": "qdrant",
-  "description": "Skills for the Qdrant vector search platform: Python SDK, search, filtering, hybrid search, and multi-tenancy",
+  "description": "Skills for the Qdrant vector search platform: Python, TypeScript, Rust, Go, .NET, and Java SDKs. Covers search, filtering, hybrid search, and multi-tenancy.",
   "version": "1.0.0",
+  "license": "Apache-2.0",
+  "homepage": "https://qdrant.tech",
+  "repository": "https://github.com/qdrant/skills",
   "author": {
     "name": "Qdrant"
   }

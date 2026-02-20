@@ -1,0 +1,114 @@
+skill: qdrant-python
+scenarios:
+  - name: basic_search
+    prompt: "Search a Qdrant collection called 'products' for the nearest 10 vectors"
+    expected_patterns:
+      - "query_points"
+      - "products"
+      - "limit"
+    forbidden_patterns:
+      - "client.search("
+      - "search_points"
+      - "search_batch"
+    tags: [basic, search]
+
+  - name: filtered_search
+    prompt: "Search 'products' collection for electronics category items using a vector"
+    expected_patterns:
+      - "query_points"
+      - "query_filter"
+      - "Filter"
+      - "FieldCondition"
+      - "MatchValue"
+      - "electronics"
+    forbidden_patterns:
+      - "client.search("
+    tags: [search, filtering]
+
+  - name: create_collection
+    prompt: "Create a Qdrant collection with cosine distance vectors"
+    expected_patterns:
+      - "create_collection"
+      - "VectorParams"
+      - "size"
+      - "Distance.COSINE"
+    forbidden_patterns:
+      - "Distance.Cosine"
+      - "distance='cosine'"
+    tags: [basic, collection]
+
+  - name: hybrid_search
+    prompt: "Do a hybrid search combining dense and sparse vectors with RRF fusion"
+    expected_patterns:
+      - "query_points"
+      - "prefetch"
+      - "Prefetch"
+      - "FusionQuery"
+      - "Fusion.RRF"
+    forbidden_patterns:
+      - "client.search("
+    tags: [search, hybrid]
+
+  - name: bulk_insert
+    prompt: "Insert 50,000 points into a Qdrant collection efficiently"
+    expected_patterns:
+      - "upload_points"
+    forbidden_patterns:
+      - "for.*upsert"
+      - "upsert.*loop"
+    tags: [basic, upsert]
+
+  - name: multi_tenancy
+    prompt: "Set up multi-tenant isolation in a single Qdrant collection"
+    expected_patterns:
+      - "is_tenant"
+      - "create_payload_index"
+    forbidden_patterns:
+      - "create_collection.*user"
+      - "one collection per"
+    tags: [multi-tenancy]
+
+  - name: scroll_pagination
+    prompt: "Paginate through all points in a collection using scroll"
+    expected_patterns:
+      - "scroll"
+      - "next_offset"
+    forbidden_patterns:
+      - "offset.*skip"
+      - "page.*number"
+    tags: [basic, scroll]
+
+  - name: mmr_diversity
+    prompt: "Search with MMR to get diverse results"
+    expected_patterns:
+      - "query_points"
+      - "NearestQuery"
+      - "Mmr"
+      - "diversity"
+    forbidden_patterns:
+      - "client.search("
+    tags: [search, mmr]
+
+  - name: payload_index_before_bulk
+    prompt: "Set up a collection with payload indexes and then bulk insert data"
+    expected_patterns:
+      - "create_payload_index"
+    forbidden_patterns: []
+    notes: "Index creation should appear BEFORE upload_points/upsert calls"
+    tags: [best-practice]
+
+  - name: cloud_inference
+    prompt: "Use Qdrant cloud inference to search without a local embedding model"
+    expected_patterns:
+      - "cloud_inference"
+      - "Document"
+    forbidden_patterns: []
+    tags: [cloud]
+
+  - name: sparse_bm25
+    prompt: "Set up BM25 sparse search with proper IDF modifier"
+    expected_patterns:
+      - "Modifier"
+      - "IDF"
+    forbidden_patterns: []
+    tags: [search, sparse]

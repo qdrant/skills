@@ -1,103 +1,70 @@
----
-name: qdrant-rust
-description: "Best practices for the Qdrant Rust client (qdrant-client crate). Use when writing Rust code that uses qdrant-client. Covers client setup, query, filtering, upsert, and common gotchas."
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
----
-
 # Qdrant Rust Client
 
-You interact with Qdrant over gRPC using the `qdrant-client` crate.
+Uses gRPC (port 6334, not REST 6333) via the `qdrant-client` crate. All methods are async (tokio).
 
 ## Setup
 
-```bash
-cargo add qdrant-client anyhow tonic tokio serde-json --features tokio/rt-multi-thread
-```
-
 ```rust
 use qdrant_client::Qdrant;
-
-// Local
 let client = Qdrant::from_url("http://localhost:6334").build()?;
-
-// Cloud
-let client = Qdrant::from_url("https://xyz.cloud.qdrant.io:6334")
-    .api_key(std::env::var("QDRANT_API_KEY"))
-    .build()?;
+// cloud: .api_key(std::env::var("QDRANT_API_KEY")).build()?
 ```
 
-## Decision Table
+## Quick Reference
 
-| Want to... | Do |
-|-----------|-----|
-| Create a collection | `client.create_collection(CreateCollectionBuilder::new("col").vectors_config(VectorParamsBuilder::new(768, Distance::Cosine)))` |
-| Upsert points | `client.upsert_points(UpsertPointsBuilder::new("col", vec![PointStruct::new(1, vec![0.1, 0.2, ...], json!({"key": "val"}).try_into().unwrap())]))` |
-| Query by vector | `client.query(QueryPointsBuilder::new("col").query(vec![0.2, 0.1, 0.9]))` |
-| Query with filter | Add `.filter(Filter::must([Condition::matches("field", "value".to_string())]))` |
-| Query with payload | Add `.with_payload(true)` to `QueryPointsBuilder` |
-| List collections | `client.list_collections()` |
-| Get collection info | `client.collection_info("col")` |
-| Scroll points | `client.scroll(ScrollPointsBuilder::new("col").limit(100))` |
-| Delete points | `client.delete_points(DeletePointsBuilder::new("col").points(vec![0.into(), 1.into()]))` |
-| Create payload index | `client.create_field_index(CreateFieldIndexCollectionBuilder::new("col", "field", FieldType::Keyword))` |
+| Operation | Code |
+|-----------|------|
+| Create collection | `client.create_collection(CreateCollectionBuilder::new("col").vectors_config(VectorParamsBuilder::new(768, Distance::Cosine)))` |
+| Upsert | `client.upsert_points(UpsertPointsBuilder::new("col", points))` |
+| Query | `client.query(QueryPointsBuilder::new("col").query(vec![0.2, 0.1, 0.9]))` |
+| Filter | `.filter(Filter::must([Condition::matches("field", "value".to_string())]))` |
+| With payload | `.with_payload(true)` |
+| Scroll | `client.scroll(ScrollPointsBuilder::new("col").limit(100))` |
+| Delete | `client.delete_points(DeletePointsBuilder::new("col").points(vec![0.into()]))` |
+| Payload index | `client.create_field_index(CreateFieldIndexCollectionBuilder::new("col", "field", FieldType::Keyword))` |
 
-## Query with Filter
+Payload from JSON: `json!({"k": "v"}).try_into().unwrap()`
+
+| Recommend | `Query::new_recommend(RecommendInput { positive: vec![id.into()], negative: vec![], ..Default::default() })` |
+| Set payload | `client.set_payload(SetPayloadPointsBuilder::new("col", payload).points_selector(vec![id.into()]))` |
+| Delete payload keys | `client.delete_payload(DeletePayloadPointsBuilder::new("col", vec!["key".into()]).points_selector(...))` |
+| Snapshot | `client.create_snapshot(CreateSnapshotRequestBuilder::new("col"))`, `client.list_snapshots("col")` |
+| Alias | `client.create_alias("alias", "col")`, `client.delete_alias("alias")` |
+| Update collection | `client.update_collection(UpdateCollectionBuilder::new("col").optimizers_config(...))` |
+
+## Hybrid Search (RRF)
+
+Use `add_prefetch` with dense + sparse queries, then `Query::new_fusion(Fusion::Rrf)`:
 
 ```rust
-use qdrant_client::qdrant::{Condition, Filter, QueryPointsBuilder};
-
-let results = client
-    .query(
-        QueryPointsBuilder::new("products")
-            .query(vec![0.2, 0.1, 0.9, 0.7])
-            .filter(Filter::must([Condition::matches(
-                "category",
-                "electronics".to_string(),
-            )]))
-            .with_payload(true)
-            .limit(10),
-    )
-    .await?;
+client.query(QueryPointsBuilder::new("col")
+    .add_prefetch(PrefetchQueryBuilder::default().query(Query::new_nearest(dense_vec)).using("dense").limit(20u64))
+    .add_prefetch(PrefetchQueryBuilder::default().query(Query::new_nearest(sparse_vec)).using("sparse").limit(20u64))
+    .query(Query::new_fusion(Fusion::Rrf)).limit(10u64)
+).await?;
 ```
 
-## Upsert with Payload
+## Named Vectors
+
+Use `VectorParamsMap` for multiple vector spaces:
 
 ```rust
-use qdrant_client::qdrant::{PointStruct, UpsertPointsBuilder};
-use serde_json::json;
-
-let points = vec![
-    PointStruct::new(
-        1,
-        vec![0.1, 0.2, 0.3],
-        json!({"city": "London", "population": 9_000_000})
-            .try_into()
-            .unwrap(),
-    ),
-];
-
-client
-    .upsert_points(UpsertPointsBuilder::new("col", points).wait(true))
-    .await?;
+let mut vectors = VectorParamsMap::new();
+vectors.insert("image", VectorParamsBuilder::new(512, Distance::Euclid));
+vectors.insert("text", VectorParamsBuilder::new(768, Distance::Cosine));
+client.create_collection(CreateCollectionBuilder::new("col").vectors_config(vectors)).await?;
 ```
 
 ## Gotchas
 
-- **gRPC only**: The Rust client uses gRPC (port 6334), not REST (6333). Make sure gRPC is enabled.
-- **`query` not `search_points`**: Use `client.query(QueryPointsBuilder)` for searches. `search_points` is the older API.
-- **Payload conversion**: Use `json!({...}).try_into().unwrap()` to convert `serde_json::Value` into `Payload`.
-- **Builder pattern everywhere**: All operations use builders (`CreateCollectionBuilder`, `QueryPointsBuilder`, etc.). Don't try to construct structs directly.
-- **`.wait(true)` for consistency**: Upsert/delete return before indexing by default. Add `.wait(true)` if you need to query immediately after.
-- **Never one collection per user**: Use payload index with `is_tenant=true` and filter per query.
-- **Vector size must match**: Every upsert and query must match the collection's configured dimensions.
-- **Distance is immutable**: Delete and recreate the collection to change it.
-- **Async only**: All client methods are async. You need a tokio runtime.
+- gRPC only (port 6334). REST port 6333 won't work with this client.
+- `client.query(QueryPointsBuilder)` not `search_points` (older API).
+- Payload conversion: always `json!({...}).try_into().unwrap()`.
+- Builder pattern everywhere. Don't construct structs directly.
+- `.wait(true)` for read-after-write consistency. Default returns before indexing.
+- Never one collection per user. Use `is_tenant=true` payload index + filter.
+- Vector dims must match collection config on every upsert and query.
+- Distance is immutable. Delete and recreate collection to change.
+- All client methods are async. Requires tokio runtime.
 
-## Read More
-
-- [qdrant-client on crates.io](https://crates.io/crates/qdrant-client)
-- [API docs on docs.rs](https://docs.rs/qdrant-client)
-- [Qdrant Documentation](https://qdrant.tech/documentation/)
+For comprehensive builder API reference, see `references/builders.md`.

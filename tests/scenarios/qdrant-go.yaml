@@ -1,0 +1,110 @@
+skill: qdrant-go
+scenarios:
+  - name: basic_search
+    prompt: "Search a Qdrant collection for nearest vectors using the Go client"
+    expected_patterns:
+      - "client.Query("
+      - "qdrant.QueryPoints"
+      - "qdrant.NewQuery("
+    forbidden_patterns:
+      - "client.Search("
+      - "SearchPoints"
+    tags: [basic, search]
+
+  - name: filtered_search
+    prompt: "Search 'products' with a filter for electronics category in Go"
+    expected_patterns:
+      - "client.Query("
+      - "qdrant.Filter"
+      - "qdrant.NewMatch("
+      - "Must"
+    forbidden_patterns:
+      - "client.Search("
+    tags: [search, filtering]
+
+  - name: create_collection
+    prompt: "Create a Qdrant collection with 768-dim cosine vectors in Go"
+    expected_patterns:
+      - "client.CreateCollection("
+      - "qdrant.NewVectorsConfig"
+      - "qdrant.VectorParams"
+      - "768"
+      - "qdrant.Distance_Cosine"
+    forbidden_patterns:
+      - "Distance.Cosine"
+      - "Distance.COSINE"
+      - "qdrant.Cosine"
+    notes: "Go uses protobuf enum syntax: qdrant.Distance_Cosine"
+    tags: [basic, collection]
+
+  - name: upsert_with_payload
+    prompt: "Upsert points with payload into Qdrant using Go"
+    expected_patterns:
+      - "client.Upsert("
+      - "qdrant.UpsertPoints"
+      - "qdrant.NewIDNum"
+      - "qdrant.NewVectors("
+      - "qdrant.NewValueMap"
+    forbidden_patterns:
+      - "json.Marshal"
+    notes: "Use NewValueMap for payload, not JSON marshaling"
+    tags: [basic, upsert]
+
+  - name: pointer_api
+    prompt: "Query Qdrant with a limit of 10 results in Go"
+    expected_patterns:
+      - "qdrant.PtrOf("
+    forbidden_patterns: []
+    notes: "Optional fields require qdrant.PtrOf() for pointer conversion"
+    tags: [basic, search]
+
+  - name: scroll_with_offset
+    prompt: "Paginate through all points in a Go Qdrant collection"
+    expected_patterns:
+      - "ScrollAndOffset"
+    forbidden_patterns:
+      - "client.Scroll("
+    notes: "Must use ScrollAndOffset for pagination, plain Scroll discards offset"
+    tags: [basic, scroll]
+
+  - name: grpc_port
+    prompt: "Connect to a local Qdrant instance in Go"
+    expected_patterns:
+      - "6334"
+    forbidden_patterns:
+      - "6333"
+    notes: "Go client is gRPC-only, port 6334"
+    tags: [basic, setup]
+
+  - name: named_vector_query
+    prompt: "Query a specific named vector called 'image' in Go"
+    expected_patterns:
+      - "Using"
+      - "qdrant.PtrOf"
+    forbidden_patterns:
+      - 'Using: "image"'
+    notes: "Using is *string, needs qdrant.PtrOf(\"image\")"
+    tags: [named-vectors]
+
+  - name: hybrid_search
+    prompt: "Do hybrid search with dense and sparse vectors using RRF fusion in Go"
+    expected_patterns:
+      - "Prefetch"
+      - "PrefetchQuery"
+      - "qdrant.NewQueryFusion"
+      - "Fusion_RRF"
+    forbidden_patterns:
+      - "Fusion.RRF"
+      - "fusion: 'rrf'"
+    notes: "Go uses qdrant.Fusion_RRF protobuf enum"
+    tags: [search, hybrid]
+
+  - name: multi_tenancy
+    prompt: "Set up multi-tenant isolation in Go Qdrant client"
+    expected_patterns:
+      - "IsTenant"
+      - "qdrant.PtrOf(true)"
+      - "CreateFieldIndex"
+    forbidden_patterns:
+      - "one collection per"
+    tags: [multi-tenancy]

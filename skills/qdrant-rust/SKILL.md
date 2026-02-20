@@ -1,10 +1,11 @@
 ---
 name: qdrant-rust
 description: "Best practices for the Qdrant Rust client (qdrant-client crate). Use when writing Rust code that uses qdrant-client. Covers client setup, query, filtering, upsert, and common gotchas."
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
+allowed-tools: Read Grep Glob
+license: Apache-2.0
+metadata:
+  author: qdrant
+  version: "1.0"
 ---
 
 # Qdrant Rust Client
@@ -43,6 +44,17 @@ let client = Qdrant::from_url("https://xyz.cloud.qdrant.io:6334")
 | Scroll points | `client.scroll(ScrollPointsBuilder::new("col").limit(100))` |
 | Delete points | `client.delete_points(DeletePointsBuilder::new("col").points(vec![0.into(), 1.into()]))` |
 | Create payload index | `client.create_field_index(CreateFieldIndexCollectionBuilder::new("col", "field", FieldType::Keyword))` |
+| Recommend | `client.query(QueryPointsBuilder::new("col").query(Query::new_recommend(RecommendInput { positive: vec![id.into()], negative: vec![], ... })))` |
+| Discover | `client.query(QueryPointsBuilder::new("col").query(Query::new_discover(DiscoverInput { target, context, ... })))` |
+| Set payload | `client.set_payload(SetPayloadPointsBuilder::new("col", json!({"k": "v"}).try_into().unwrap()).points_selector(vec![0.into()]))` |
+| Delete payload keys | `client.delete_payload(DeletePayloadPointsBuilder::new("col", vec!["key".into()]).points_selector(vec![0.into()]))` |
+| Clear payload | `client.clear_payload(ClearPayloadPointsBuilder::new("col").points_selector(vec![0.into()]))` |
+| Create snapshot | `client.create_snapshot(CreateSnapshotRequestBuilder::new("col"))` |
+| List snapshots | `client.list_snapshots("col")` |
+| Full snapshot | `client.create_full_snapshot()` |
+| Create alias | `client.create_alias("alias", "col")` |
+| Delete alias | `client.delete_alias("alias")` |
+| Update collection | `client.update_collection(UpdateCollectionBuilder::new("col").optimizers_config(OptimizersConfigDiffBuilder::new().indexing_threshold(20000)))` |
 
 ## Query with Filter
 
@@ -84,6 +96,93 @@ client
     .await?;
 ```
 
+## Hybrid Search (Dense + Sparse with RRF)
+
+```rust
+use qdrant_client::qdrant::{
+    PrefetchQueryBuilder, Query, QueryPointsBuilder, Fusion,
+};
+
+let results = client
+    .query(
+        QueryPointsBuilder::new("collection")
+            .add_prefetch(
+                PrefetchQueryBuilder::default()
+                    .query(Query::new_nearest(dense_vec))
+                    .using("dense")
+                    .limit(20u64),
+            )
+            .add_prefetch(
+                PrefetchQueryBuilder::default()
+                    .query(Query::new_nearest(sparse_vec))
+                    .using("sparse")
+                    .limit(20u64),
+            )
+            .query(Query::new_fusion(Fusion::Rrf))
+            .limit(10u64),
+    )
+    .await?;
+```
+
+## Named Vectors
+
+```rust
+use qdrant_client::qdrant::{
+    CreateCollectionBuilder, VectorParamsBuilder, VectorParamsMap, Distance,
+};
+
+let mut vectors = VectorParamsMap::new();
+vectors.insert("image", VectorParamsBuilder::new(512, Distance::Euclid));
+vectors.insert("text", VectorParamsBuilder::new(768, Distance::Cosine));
+
+client
+    .create_collection(CreateCollectionBuilder::new("col").vectors_config(vectors))
+    .await?;
+```
+
+## Recommend (Find Similar)
+
+```rust
+use qdrant_client::qdrant::{Query, RecommendInput};
+
+client.query(
+    QueryPointsBuilder::new("products")
+        .query(Query::new_recommend(RecommendInput {
+            positive: vec![1.into(), 2.into()],
+            negative: vec![3.into()],
+            ..Default::default()
+        }))
+        .limit(10u64),
+).await?;
+```
+
+## Payload Mutation
+
+```rust
+use qdrant_client::qdrant::{SetPayloadPointsBuilder, DeletePayloadPointsBuilder};
+
+// Set payload (merge)
+client.set_payload(
+    SetPayloadPointsBuilder::new("col", json!({"status": "reviewed"}).try_into().unwrap())
+        .points_selector(vec![1.into(), 2.into()])
+        .wait(true),
+).await?;
+
+// Delete specific keys
+client.delete_payload(
+    DeletePayloadPointsBuilder::new("col", vec!["temp_field".into()])
+        .points_selector(vec![1.into()]),
+).await?;
+```
+
+## Collection Aliases
+
+```rust
+// Zero-downtime swap
+client.delete_alias("production").await?;
+client.create_alias("production", "products_v2").await?;
+```
+
 ## Gotchas
 
 - **gRPC only**: The Rust client uses gRPC (port 6334), not REST (6333). Make sure gRPC is enabled.
@@ -101,3 +200,8 @@ client
 - [qdrant-client on crates.io](https://crates.io/crates/qdrant-client)
 - [API docs on docs.rs](https://docs.rs/qdrant-client)
 - [Qdrant Documentation](https://qdrant.tech/documentation/)
+
+## References
+
+- `references/builders.md`: Comprehensive builder API reference
+- `references/advanced-indexing.md`: HNSW tuning, quantization, ColBERT multi-vector config

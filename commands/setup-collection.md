@@ -16,18 +16,19 @@ The user invoked this command with: $ARGUMENTS
 
 When this command is invoked:
 
-1. Read the relevant skill file (`qdrant-python/SKILL.md` or `qdrant-rust/SKILL.md`) based on the project language
-2. Ask the user:
+1. Determine the project language from its dependency files (pyproject.toml, package.json, Cargo.toml, go.mod, .csproj, pom.xml). If unclear, ask the user.
+2. Read the matching skill file (`skills/qdrant-{language}/SKILL.md`)
+3. Ask the user:
    - Collection name
    - What they're storing (to determine vector dimensions and distance metric)
    - Whether they need multi-tenancy
    - Whether they need hybrid search (dense + sparse)
-3. Generate the collection creation code with:
-   - `VectorParams` with correct size and distance
+4. Generate the collection creation code with:
+   - Vector config with correct size and distance (using the language's idiom)
    - Sparse vector config if hybrid search is needed
    - Payload indexes created BEFORE any data upload
-   - Tenant payload index with `is_tenant=True` if multi-tenant
-4. Remind the user: create payload indexes before bulk upload, not after
+   - Tenant payload index if multi-tenant
+5. Remind the user: create payload indexes before bulk upload, not after
 
 ## Common Configurations
 

@@ -1,0 +1,130 @@
+skill: qdrant-java
+scenarios:
+  - name: basic_search
+    prompt: "Search a Qdrant collection for nearest vectors using the Java client"
+    expected_patterns:
+      - "queryAsync"
+      - "QueryPoints.newBuilder"
+      - "nearest("
+    forbidden_patterns:
+      - "searchAsync"
+      - "SearchPoints"
+      - "addAllVector"
+    tags: [basic, search]
+
+  - name: filtered_search
+    prompt: "Search 'products' with a filter for electronics category in Java"
+    expected_patterns:
+      - "queryAsync"
+      - "Filter.newBuilder"
+      - "matchKeyword"
+      - "electronics"
+    forbidden_patterns:
+      - "FieldCondition"
+      - "MatchValue"
+    notes: "Uses ConditionFactory static methods, not model constructors"
+    tags: [search, filtering]
+
+  - name: create_collection
+    prompt: "Create a Qdrant collection with 768-dim cosine vectors in Java"
+    expected_patterns:
+      - "createCollectionAsync"
+      - "VectorParams.newBuilder"
+      - "setSize"
+      - "768"
+      - "Distance.Cosine"
+    forbidden_patterns:
+      - "Distance.COSINE"
+      - "Distance_Cosine"
+    tags: [basic, collection]
+
+  - name: upsert_with_payload
+    prompt: "Upsert points with payload into Qdrant using Java"
+    expected_patterns:
+      - "upsertAsync"
+      - "PointStruct.newBuilder"
+      - "setId(id("
+      - "setVectors(vectors("
+      - "putAllPayload"
+      - "value("
+    forbidden_patterns:
+      - "Payload.of"
+      - "new HashMap"
+    notes: "Must use factory methods: id(), vectors(), value()"
+    tags: [basic, upsert]
+
+  - name: factory_imports
+    prompt: "Write code that upserts a point to Qdrant in Java"
+    expected_patterns:
+      - "import static"
+      - "PointIdFactory"
+      - "VectorsFactory"
+      - "ValueFactory"
+    forbidden_patterns: []
+    notes: "Factory static imports are essential for usable code"
+    tags: [basic, setup]
+
+  - name: async_pattern
+    prompt: "Query Qdrant and get results in Java"
+    expected_patterns:
+      - ".get()"
+    forbidden_patterns:
+      - "client.query("
+    notes: "All methods return ListenableFuture, must call .get() to block. Method is queryAsync not query."
+    tags: [basic, async]
+
+  - name: builder_pattern
+    prompt: "Build a Qdrant query with filter and payload in Java"
+    expected_patterns:
+      - ".newBuilder()"
+      - ".build()"
+      - ".setQuery("
+      - ".setFilter("
+    forbidden_patterns:
+      - "new QueryPoints("
+      - "new Filter("
+    notes: "All complex types use builder pattern, no direct constructors"
+    tags: [basic, search]
+
+  - name: vectors_vs_vector
+    prompt: "Upsert a point with named vectors 'image' and 'text' in Java"
+    expected_patterns:
+      - "namedVectors("
+      - "vector("
+    forbidden_patterns:
+      - "vectors(.*Map"
+    notes: "vectors() creates Vectors wrapper for PointStruct; vector() creates Vector for named maps"
+    tags: [named-vectors]
+
+  - name: hybrid_search
+    prompt: "Do hybrid search with dense+sparse and RRF fusion in Java"
+    expected_patterns:
+      - "queryAsync"
+      - "addPrefetch"
+      - "PrefetchQuery.newBuilder"
+      - "fusion(Fusion.RRF)"
+    forbidden_patterns:
+      - "Fusion_RRF"
+      - "fusion: 'rrf'"
+    notes: "Java uses Fusion.RRF enum via QueryFactory.fusion()"
+    tags: [search, hybrid]
+
+  - name: grpc_port
+    prompt: "Connect to a local Qdrant instance in Java"
+    expected_patterns:
+      - "6334"
+      - "QdrantGrpcClient"
+    forbidden_patterns:
+      - "6333"
+      - "RestClient"
+    notes: "Java client is gRPC-only, port 6334"
+    tags: [basic, setup]
+
+  - name: multi_tenancy
+    prompt: "Set up multi-tenant isolation in Java Qdrant client"
+    expected_patterns:
+      - "IsTenant"
+      - "createPayloadIndexAsync"
+    forbidden_patterns:
+      - "one collection per"
+    tags: [multi-tenancy]

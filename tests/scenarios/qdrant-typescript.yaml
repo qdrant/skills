@@ -1,0 +1,118 @@
+skill: qdrant-typescript
+scenarios:
+  - name: basic_search
+    prompt: "Search a Qdrant collection for the nearest 10 vectors"
+    expected_patterns:
+      - "client.query("
+      - "limit"
+    forbidden_patterns:
+      - "query_points"
+      - "client.search_points("
+    tags: [basic, search]
+
+  - name: filtered_search
+    prompt: "Search 'products' collection filtering by category equals 'electronics'"
+    expected_patterns:
+      - "client.query("
+      - "filter"
+      - "must"
+      - "key.*category"
+      - "match"
+      - "value.*electronics"
+    forbidden_patterns:
+      - "Filter("
+      - "FieldCondition("
+      - "MatchValue("
+    notes: "TS uses plain objects for filters, not model classes"
+    tags: [search, filtering]
+
+  - name: create_collection
+    prompt: "Create a Qdrant collection with 768-dimensional cosine vectors"
+    expected_patterns:
+      - "createCollection"
+      - "vectors"
+      - "768"
+      - "'Cosine'"
+    forbidden_patterns:
+      - "Distance.COSINE"
+      - "Distance.Cosine"
+      - "distance: Distance"
+    notes: "Distance values are strings in JS, not enums"
+    tags: [basic, collection]
+
+  - name: hybrid_search
+    prompt: "Do a hybrid search combining dense and sparse vectors with RRF fusion"
+    expected_patterns:
+      - "client.query("
+      - "prefetch"
+      - "fusion"
+      - "rrf"
+    forbidden_patterns:
+      - "FusionQuery"
+      - "Fusion.RRF"
+    notes: "TS uses plain string 'rrf', not enum Fusion.RRF"
+    tags: [search, hybrid]
+
+  - name: client_setup
+    prompt: "Connect to a Qdrant Cloud instance"
+    expected_patterns:
+      - "QdrantClient"
+      - "url"
+      - "apiKey"
+    forbidden_patterns:
+      - "host.*url"
+    notes: "Cannot provide both url and host"
+    tags: [basic, setup]
+
+  - name: named_vectors
+    prompt: "Create a collection with separate image and text vector spaces"
+    expected_patterns:
+      - "createCollection"
+      - "vectors"
+      - "image"
+      - "text"
+    forbidden_patterns:
+      - "VectorParams"
+      - "VectorParamsBuilder"
+    notes: "TS uses plain config objects, not builder/param classes"
+    tags: [named-vectors]
+
+  - name: multi_tenancy
+    prompt: "Set up multi-tenant isolation in a Qdrant collection"
+    expected_patterns:
+      - "createPayloadIndex"
+      - "is_tenant"
+      - "true"
+    forbidden_patterns:
+      - "one collection per"
+    tags: [multi-tenancy]
+
+  - name: scroll_pagination
+    prompt: "Paginate through all points in a collection"
+    expected_patterns:
+      - "scroll"
+      - "next_page_offset"
+    forbidden_patterns:
+      - "next_offset"
+    notes: "TS uses next_page_offset, not next_offset like Python"
+    tags: [basic, scroll]
+
+  - name: upsert_points
+    prompt: "Insert points with payload into a collection"
+    expected_patterns:
+      - "client.upsert("
+      - "points"
+      - "payload"
+    forbidden_patterns:
+      - "upload_points"
+    notes: "TS has no upload_points, only upsert"
+    tags: [basic, upsert]
+
+  - name: rest_port
+    prompt: "Connect to a local Qdrant instance"
+    expected_patterns:
+      - "6333"
+    forbidden_patterns:
+      - "6334"
+    notes: "TS REST client uses port 6333, not gRPC 6334"
+    tags: [basic, setup]

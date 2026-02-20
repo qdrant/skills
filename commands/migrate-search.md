@@ -16,19 +16,17 @@ The user invoked this command with: $ARGUMENTS
 
 When this command is invoked:
 
-1. Search the codebase for deprecated search methods:
-   - `client.search(` (Python)
-   - `client.search_points(` (Python/Rust)
-   - `client.search_batch(` (Python)
-   - `SearchRequest` (Python)
-2. For each occurrence, rewrite to use `query_points` / `QueryPointsBuilder`:
-   - `client.search("col", query_vector=vec)` becomes `client.query_points("col", query=vec)`
-   - `search_params` stays as-is
-   - `query_filter` stays as-is
-   - `with_payload` stays as-is
-   - `limit` stays as-is
-3. Show a diff of each change before applying
-4. After migration, verify no deprecated methods remain
+1. Determine the project language from its dependency files (pyproject.toml, package.json, Cargo.toml, go.mod, .csproj, pom.xml). If unclear, ask the user.
+2. Search the codebase for deprecated search methods based on the language:
+   - **Python**: `client.search(`, `client.search_points(`, `client.search_batch(`, `SearchRequest`
+   - **TypeScript**: `client.search(` (still works but `client.query(` is preferred)
+   - **Rust**: `client.search_points(`, `SearchPointsBuilder`
+   - **Go**: No legacy methods (Go client launched with the unified query API)
+   - **.NET**: `client.SearchAsync(` (still works but `client.QueryAsync(` is preferred)
+   - **Java**: `client.searchAsync(`, `SearchPoints.newBuilder`, `addAllVector(`
+3. For each occurrence, rewrite to the modern query API
+4. Show a diff of each change before applying
+5. After migration, verify no deprecated methods remain
 
 ## Migration Map (Python)
 
@@ -37,6 +35,32 @@ When this command is invoked:
 | `client.search(collection, query_vector=v)` | `client.query_points(collection, query=v)` |
 | `client.search_batch(collection, requests)` | `client.query_batch_points(collection, requests)` |
 | `SearchRequest(vector=v, ...)` | `QueryRequest(query=v, ...)` |
+
+## Migration Map (TypeScript)
+
+| Old | New |
+|-----|-----|
+| `client.search('col', { vector: v })` | `client.query('col', { query: v })` |
+
+## Migration Map (Rust)
+
+| Old | New |
+|-----|-----|
+| `SearchPointsBuilder::new("col")` | `QueryPointsBuilder::new("col")` |
+| `client.search_points(req)` | `client.query(req)` |
+
+## Migration Map (.NET)
+
+| Old | New |
+|-----|-----|
+| `client.SearchAsync("col", vec)` | `client.QueryAsync("col", query: vec)` |
+
+## Migration Map (Java)
+
+| Old | New |
+|-----|-----|
+| `client.searchAsync(SearchPoints.newBuilder()...)` | `client.queryAsync(QueryPoints.newBuilder()...)` |
+| `addAllVector(List.of(...))` | `setQuery(nearest(...))` |
 
 ## Example Usage
 

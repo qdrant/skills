@@ -1,0 +1,106 @@
+skill: qdrant-dotnet
+scenarios:
+  - name: basic_search
+    prompt: "Search a Qdrant collection for nearest vectors using the .NET client"
+    expected_patterns:
+      - "QueryAsync"
+      - "query:"
+    forbidden_patterns:
+      - "SearchAsync"
+      - "query_points"
+    tags: [basic, search]
+
+  - name: filtered_search
+    prompt: "Search 'products' with a filter for electronics category in C#"
+    expected_patterns:
+      - "QueryAsync"
+      - "MatchKeyword"
+      - "electronics"
+    forbidden_patterns:
+      - "Filter("
+      - "FieldCondition"
+    notes: "Uses static Conditions helpers, not model constructors"
+    tags: [search, filtering]
+
+  - name: filter_composition
+    prompt: "Filter Qdrant results where type is 'doc' AND archived is NOT true in C#"
+    expected_patterns:
+      - "&"
+      - "!"
+    forbidden_patterns:
+      - "&&"
+      - "||"
+      - "Must.Add"
+    notes: "C# uses & | ! operators for filter composition, not && ||"
+    tags: [filtering]
+
+  - name: create_collection
+    prompt: "Create a Qdrant collection with 768-dim cosine vectors in C#"
+    expected_patterns:
+      - "CreateCollectionAsync"
+      - "VectorParams"
+      - "768"
+      - "Distance.Cosine"
+    forbidden_patterns:
+      - "Distance.COSINE"
+      - "Distance_Cosine"
+    tags: [basic, collection]
+
+  - name: upsert_with_payload
+    prompt: "Upsert points with string and integer payload into Qdrant in C#"
+    expected_patterns:
+      - "UpsertAsync"
+      - "PointStruct"
+      - "Payload"
+    forbidden_patterns:
+      - "json!"
+      - "Map.of"
+    tags: [basic, upsert]
+
+  - name: point_id_type
+    prompt: "Create a point with numeric ID 42 in Qdrant .NET"
+    expected_patterns:
+      - "ul"
+    forbidden_patterns: []
+    notes: "Must use ulong suffix (42ul), not bare int literal"
+    tags: [basic, gotcha]
+
+  - name: client_setup
+    prompt: "Connect to a local Qdrant instance in C#"
+    expected_patterns:
+      - "QdrantClient"
+      - "localhost"
+    forbidden_patterns:
+      - "6333"
+    notes: ".NET uses gRPC port 6334 (default), not REST 6333"
+    tags: [basic, setup]
+
+  - name: disposable_pattern
+    prompt: "Set up a Qdrant client in C#"
+    expected_patterns:
+      - "using"
+      - "QdrantClient"
+    forbidden_patterns: []
+    notes: "QdrantClient is IDisposable, should use 'using' pattern"
+    tags: [basic, setup]
+
+  - name: static_import
+    prompt: "Write a filtered Qdrant query in C#"
+    expected_patterns:
+      - "using static"
+      - "Conditions"
+    forbidden_patterns: []
+    notes: "Must import static Qdrant.Client.Grpc.Conditions for filter helpers"
+    tags: [filtering]
+
+  - name: hybrid_search
+    prompt: "Do hybrid search with RRF fusion in C# Qdrant"
+    expected_patterns:
+      - "QueryAsync"
+      - "Fusion.Rrf"
+      - "PrefetchQuery"
+    forbidden_patterns:
+      - "Fusion.RRF"
+      - "fusion: 'rrf'"
+    notes: ".NET uses Fusion.Rrf (PascalCase), not Fusion.RRF"
+    tags: [search, hybrid]
