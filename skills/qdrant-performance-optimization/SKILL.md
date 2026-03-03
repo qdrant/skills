@@ -15,7 +15,7 @@ There are different aspects of Qdrant performance, this document serves as a nav
 
 ## Search Speed Optimization
 
-There are two different criterias for search speed: latency and throughput. 
+There are two different criteria for search speed: latency and throughput. 
 Latency is the time it takes to get a response for a single query, while throughput is the number of queries that can be processed in a given time frame.
 Depending on your use case, you may want to optimize for one or both of these metrics.
 

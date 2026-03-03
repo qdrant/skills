@@ -31,7 +31,7 @@ For more details on Docker deployment, see [Quick Start -Download and Run](https
 ## Cloud-Based Deployment
 
 Cloud-based deployment is another version of the client-server deployment, where Qdrant is hosted on a Qdrant Cloud platform.
-On top of the features of the self-hosted deployment, Qdrant Cloud also provides additional features such as zero-downtime updates, resahrding, automatic backups, and more. 
+On top of the features of the self-hosted deployment, Qdrant Cloud also provides additional features such as zero-downtime updates, resharding, automatic backups, and more. 
 
 <!-- ToDo: here CLI examples needed -->
 For more details on Qdrant Cloud, see [Qdrant Cloud](https://qdrant.tech/documentation/cloud-quickstart/)
@@ -59,7 +59,7 @@ Qdrant local mode data format is not compatible with the server version of Qdran
 ## Qdrant EDGE
 
 Qdrant EDGE is in-process version of Qdrant. It used direct bindings to Qdrant Shard-level function, and can perform same operations as single-node Qdrant deployment, but without the overhead of network communication.
-Qdrant EDGE uses the same data format as the server version of Qdrant, and can be syncronized with the server by using shard snapshots. This allows you to use Qdrant EDGE for latency-sensitive applications, while still benefiting from the scalability and reliability of a server deployment.
+Qdrant EDGE uses the same data format as the server version of Qdrant, and can be synchronized with the server by using shard snapshots. This allows you to use Qdrant EDGE for latency-sensitive applications, while still benefiting from the scalability and reliability of a server deployment.
 
 More details on Qdrant EDGE can be found in the [Qdrant EDGE docs](https://qdrant.tech/documentation/edge/edge-quickstart/).
 

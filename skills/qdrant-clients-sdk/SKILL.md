@@ -34,10 +34,10 @@ prototype.
 To obtain code examples for a specific client and use-case, you can make a search request to library of curated code snippets for Qdrant client.
 
 ```bash
-curl -X GET "https://snippets.qdrant.tech/search?client=python&query=how+to+upsert+vectors""
+curl -X GET "https://snippets.qdrant.tech/search?client=python&query=how+to+upsert+vectors"
 ```
 
-Response examlpe:
+Response example:
 
 ```json
 TODO

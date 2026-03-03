@@ -28,14 +28,14 @@ Choice of the right technique depends on the specific use case and requirements 
 
 <!-- ToDo -->
 
-## Wheather to use hybrid search
+## Whether to use hybrid search
 
 <!-- ToDo -->
 
-## Wheather to use reranking
+## Whether to use reranking
 
 <!-- ToDo -->
 
-## Wheather to use relevance feedback
+## Whether to use relevance feedback
 
 <!-- ToDo -->
