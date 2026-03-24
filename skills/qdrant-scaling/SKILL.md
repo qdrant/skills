@@ -9,10 +9,11 @@ allowed-tools:
 
 # Qdrant Scaling
 
-First determine what you're scaling for: data volume, query throughput (QPS), query latency, tenant count, or IOPS. Each pulls toward different strategies. Scaling for throughput and latency are opposite tuning directions.
+First, determine what you're scaling for: data volume, query throughput (QPS), query latency, tenant count, or IOPS. Note that **throughput** and **latency** optimizations often conflict -— improving one typically requires trade-offs with the other.
 
+More information on trade-offs can be found here:
 - Understand the tradeoff [Latency vs throughput](https://qdrant.tech/documentation/guides/optimize/#balancing-latency-and-throughput)
-
+- High speed vs high precision vs low memory: [qdrant performance](https://qdrant.tech/documentation/operations/optimize/)
 
 ## Horizontal Scaling
 
@@ -23,7 +24,7 @@ More on horizontal scaling can be found in the [Horizontal Scaling](horizontal-s
 
 ## Performance Scaling
 
-Throughput (QPS), latency, IOPS limitations, and memory pressure. Different dimensions that pull in different directions.
+Throughput (queries per second, QPS), latency, IOPS limitations, and memory pressure. Different dimensions that pull in different directions.
 
 More on performance scaling can be found in the [Performance Scaling](performance-scaling/SKILL.md) skill.
 

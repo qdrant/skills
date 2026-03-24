@@ -5,14 +5,23 @@ description: "Diagnoses and guides Qdrant horizontal scaling decisions. Use when
 
 # What to Do When Qdrant Needs More Capacity
 
+There are typical two types of scaling: vertical (bigger nodes) and horizontal (more nodes). Each has trade-offs. Vertical is simpler but limited by single node capacity. Horizontal is more complex but can scale indefinitely with enough nodes. When should you choose one over the other?
+
 Vertical first: simpler operations, no network overhead, good up to ~100M vectors per node depending on dimensions and quantization. Horizontal when: data exceeds single node capacity, need fault tolerance, need to isolate tenants, or IOPS-bound (more nodes = more independent IOPS).
 
-- Estimate memory needs: `num_vectors * dimensions * 4 bytes * 1.5` plus payload and index overhead. Reserve 20% headroom for optimizations. [Capacity planning](https://qdrant.tech/documentation/guides/capacity-planning/)
+- Estimate memory needs: `num_vectors * dimensions * 4 bytes * 1.5` plus payload and index overhead. Reserve 20% headroom for optimizations. **Use the Bash tool to calculate this with the user's actual values — do not compute mentally.** [Capacity planning](https://qdrant.tech/documentation/guides/capacity-planning/)
+  ```bash
+  python3 -c "
+  num_vectors = 1_000_000  # replace with actual value
+  dimensions = 1536        # replace with actual value
+  print(f'{num_vectors * dimensions * 4 * 1.5 * 1.2 / 1e9:.2f} GB required')
+  "
+  ```
 
 
 ## Not Ready to Scale Yet
 
-Use when: planning to scale but haven't started. Get these right first.
+Use when: planning to scale but haven't started. Cover these prerequisites before proceeding.
 
 - Minimum 3 nodes with `replication_factor: 2` for zero-downtime scaling
 - Set up monitoring (Grafana/Prometheus) BEFORE scaling
@@ -33,7 +42,7 @@ Most people jump to horizontal too early. Exhaust vertical options first.
 
 ## Need to Change Shard Count
 
-Use when: existing shard count doesn't match node count, or need to rebalance.
+Use when: shard count isn't evenly divisible by node count, causing uneven distribution, or need to rebalance.
 
 Resharding is expensive and time-consuming. Hours to weeks depending on data size. Locks segments during transfer, queries may timeout under high concurrency.
 
