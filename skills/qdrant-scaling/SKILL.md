@@ -14,14 +14,10 @@ First determine what you're scaling for: data volume, query throughput (QPS), qu
 - Understand the tradeoff [Latency vs throughput](https://qdrant.tech/documentation/guides/optimize/#balancing-latency-and-throughput)
 - High speed vs high precision vs low memory: [qdrant performance](https://qdrant.tech/documentation/operations/optimize/)
 
-## Horizontal Scaling
 
-Sharding, resharding, shard planning, vertical vs horizontal decision, and prerequisites for zero-downtime scaling. [Horizontal Scaling](horizontal-scaling/SKILL.md)
+## Performance & Capacity Scaling
 
-
-## Performance Scaling
-
-Throughput (queries per second, QPS), latency, IOPS limitations, and memory pressure. Different dimensions that pull in different directions. [Performance Scaling](performance-scaling/SKILL.md)
+Vertical scaling, horizontal scaling, throughput, latency, IOPS, and memory pressure. Start vertical, go horizontal only when necessary -- horizontal scaling is effectively a one-way street. [Performance Scaling](performance-scaling/SKILL.md)
 
 
 ## Tenant Scaling
