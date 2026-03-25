@@ -1,43 +1,24 @@
 ---
 name: qdrant-monitoring
-description: "Qdrant provides monitoring and observability tools available for both self-hosted and cloud deployments. This document provides an overview of monitoring options and best practices for monitoring Qdrant performance and health."
+description: "Guides Qdrant monitoring and observability setup. Use when someone asks 'how to monitor Qdrant', 'what metrics to track', 'is Qdrant healthy', 'optimizer stuck', 'why is memory growing', 'requests are slow', or needs to set up Prometheus, Grafana, or health checks. Also use when debugging production issues that require metric analysis."
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-
-
 # Qdrant Monitoring
 
-Qdrant monitoring allows to track the performance and health of your Qdrant deployment, and to identify and troubleshoot issues.
-Monitoring is available for both self-hosted and cloud deployments of Qdrant, though Cloud deployment provides more advanced monitoring features out of the box.
+Qdrant monitoring allows tracking performance and health of your deployment, and identifying issues before they become outages. First determine whether you need to set up monitoring or diagnose an active issue.
+
+- Understand available metrics [Monitoring docs](https://qdrant.tech/documentation/guides/monitoring/)
 
 
-## Prometheus Metrics
+## Monitoring Setup
 
-Qdrant exposes internal metrics in Prometheus format, which can be scraped by Prometheus server from `/metrics` endpoint.
-In addition to Qdrant instance-level metrics, Qdrant cluster also provides cluster-level metrics, available on `/sys_metrics` endpoint.
-
-Example of self-hosted monitoring of Qdrant Cloud cluster can be found in [repository](https://github.com/qdrant/prometheus-monitoring)
+Prometheus scraping, health probes, Hybrid Cloud specifics, alerting, and log centralization. [Monitoring Setup](setup/SKILL.md)
 
 
-## Liveness and Readiness Probes
+## Debugging with Metrics
 
-<!-- ToDo: Improve docs about `/readyz` -->
-
-Read about liveness and readiness probes [here](https://qdrant.tech/documentation/guides/monitoring/#kubernetes-health-endpoints)
-
-## Optimization process observability
-
-<!-- ToDo -->
-
-## Memory usage observability
-
-<!-- ToDo -->
-
-## Slow requests observability
-
-<!-- ToDo -->
-
+Optimizer stuck, memory growth, slow requests. Using metrics to diagnose active production issues. [Debugging with Metrics](debugging/SKILL.md)
