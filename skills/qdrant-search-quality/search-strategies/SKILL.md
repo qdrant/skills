@@ -37,18 +37,12 @@ A feedback model is anything producing a relevance score per document: a bi-enco
 
 Skip when: RF if the retriever already has strong recall, or if retriever and feedback model agree on relevance.
 
-<<<<<<< search-relevance-fixes
 - RF Query is currently based on a [3-parameter naive formula](https://qdrant.tech/documentation/concepts/search-relevance/#naive-strategy) with no universal defaults — must be tuned per dataset, retriever, and feedback model
 - Use [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) to tune parameters, evaluate impact, and check retriever-feedback agreement. See README for setup instructions. No GPUs needed for running & framework has predefined retriever & feedback model options.
 - Check configuration of [Relevance Feedback Query API](https://qdrant.tech/documentation/search/search-relevance/#relevance-feedback)
 - Use as a helper end-to-end text retrieval example with parameter tuning and evals to understand on how to use the API & run the `qdrant-relevance-feedback` framework: [RF tutorial](https://qdrant.tech/documentation/tutorials-search-engineering/using-relevance-feedback/)
 
 ## Results Too Similar
-=======
-## Results Don't Improve Between Iterations
-
-Use when: you have a retrieval pipeline in place but results aren't getting better across search iterations.
->>>>>>> main
 
 Use when: top results are redundant, near-duplicates, or lack diversity. Common in dense content domains (academic papers, product catalogs).
 
@@ -58,11 +52,7 @@ Use when: top results are redundant, near-duplicates, or lack diversity. Common 
 
 ## Know What Good Results Look Like But Can't Get Them
 
-<<<<<<< search-relevance-fixes
 Use when: you can provide positive and negative example points to steer search closer to positive and further from negative.
-=======
-Use when: you can provide positive and negative example points but don't have a feedback model.
->>>>>>> main
 
 - Recommendation API: positive/negative examples to recommend fitting vectors [Recommendation API](https://qdrant.tech/documentation/concepts/explore/#recommendation-api)
   - Best score strategy: better for diverse examples, supports negative-only [Best score](https://qdrant.tech/documentation/concepts/explore/#best-score-strategy)
