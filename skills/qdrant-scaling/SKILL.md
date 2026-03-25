@@ -1,44 +1,29 @@
 ---
 name: qdrant-scaling
-description: "How to handle scaling of Qdrant, including horizontal and vertical scaling strategies, sharding, replication, and load balancing. Use when you want to scale your Qdrant deployment to handle increased load or larger datasets."
+description: "Guides Qdrant scaling decisions. Use when someone asks 'how many nodes do I need', 'data doesn't fit on one node', 'need more throughput', 'cluster is slow', 'too many tenants', 'vertical or horizontal', 'how to shard', or 'need to add capacity'."
 allowed-tools:
   - Read
   - Grep
   - Glob
 ---
 
-
 # Qdrant Scaling
 
-Qdrant is designed to handle both large datasets and high query loads, and provides different scaling options to meet the needs of different use cases.
-This document navigates through different scenarios of scaling Qdrant, required in different use cases.
+First determine what you're scaling for: data volume, query throughput (QPS), query latency, tenant count, or IOPS. Each pulls toward different strategies. Scaling for throughput and latency are opposite tuning directions.
+
+- Understand the tradeoff [Latency vs throughput](https://qdrant.tech/documentation/guides/optimize/#balancing-latency-and-throughput)
+- High speed vs high precision vs low memory: [qdrant performance](https://qdrant.tech/documentation/operations/optimize/)
+
+## Horizontal Scaling
+
+Sharding, resharding, shard planning, vertical vs horizontal decision, and prerequisites for zero-downtime scaling. [Horizontal Scaling](horizontal-scaling/SKILL.md)
 
 
-## Scaling for larger data volume
+## Performance Scaling
 
-<!-- ToDo -->
-
-## Vertical vs Horizontal Scaling
-
-<!-- ToDO -->
-
-### Resharding
-
-<!-- ToDO -->
-
-## Scaling for higher RPS
-
-<!-- ToDO -->
-
-## Scaling for lower latency
+Throughput (queries per second, QPS), latency, IOPS limitations, and memory pressure. Different dimensions that pull in different directions. [Performance Scaling](performance-scaling/SKILL.md)
 
 
-<!-- ToDO -->
+## Tenant Scaling
 
-## Scaling tenants
-
-<!-- ToDO -->
-
-## Scaling for time window rotation
-
-<!-- ToDO -->
+Multi-tenant workloads with payload partitioning, per-tenant indexes, and tiered multitenancy. [Tenant Scaling](tenant-scaling/SKILL.md)
