@@ -1,0 +1,71 @@
+---
+name: qdrant-monitoring-setup
+description: "Guides Qdrant monitoring setup including Prometheus scraping, health probes, Hybrid Cloud metrics, alerting, and log centralization. Use when someone asks 'how to set up monitoring', 'Prometheus config', 'Grafana dashboard', 'health check endpoints', 'how to scrape Hybrid Cloud', 'what alerts to set', 'how to centralize logs', or 'audit logging'."
+---
+
+# How to Set Up Qdrant Monitoring
+
+Get Prometheus scraping working first, then health probes, then alerting. Do not skip monitoring setup before going to production.
+
+
+## Prometheus Metrics
+
+Use when: setting up metric collection for the first time or adding a new deployment.
+
+- Node metrics at `/metrics` endpoint [Monitoring docs](https://qdrant.tech/documentation/guides/monitoring/)
+- Cluster metrics at `/sys_metrics` (Qdrant Cloud only)
+- Prefix customization via `service.metrics_prefix` config or `QDRANT__SERVICE__METRICS_PREFIX` env var
+- Example self-hosted setup with Prometheus + Grafana [prometheus-monitoring repo](https://github.com/qdrant/prometheus-monitoring)
+
+Key metric categories:
+- **Collection**: point counts, vector counts, replica status, pending optimizations
+- **API response**: `rest_responses_avg_duration_seconds`, `rest_responses_duration_seconds` (histogram, v1.8+), failure rates. `grpc_responses_` prefix for gRPC
+- **Process**: memory allocation, threads, file descriptors, page faults
+- **Cluster**: Raft consensus state (distributed mode only)
+- **Snapshot**: creation and recovery progress
+
+
+## Hybrid Cloud Scraping
+
+Use when: running Qdrant Hybrid Cloud and need cluster-level visibility.
+
+Do not just scrape Qdrant nodes. In Hybrid Cloud, you manage the Kubernetes data plane. You must also scrape the cluster-exporter and operator pods for full cluster visibility and operator state.
+
+- Hybrid Cloud Prometheus setup tutorial [Hybrid Cloud Prometheus](https://qdrant.tech/documentation/tutorials-and-examples/hybrid-cloud-prometheus/)
+- Official Grafana dashboards [Grafana dashboard repo](https://github.com/qdrant/qdrant-cloud-grafana-dashboard)
+
+
+## Liveness and Readiness Probes
+
+Use when: configuring Kubernetes health checks.
+
+- `/healthz` for basic status
+- `/livez` for liveness probe (is the process alive)
+- `/readyz` for readiness probe (is the node ready to serve traffic)
+- Full list of health endpoints [Kubernetes health endpoints](https://qdrant.tech/documentation/guides/monitoring/#kubernetes-health-endpoints)
+
+
+## Alerting
+
+Use when: setting up alerts for production or Hybrid Cloud deployments.
+
+- Hybrid Cloud provides ~11 pre-configured Prometheus alerts out of the box [Cloud cluster monitoring](https://qdrant.tech/documentation/cloud/cluster-monitoring/)
+- Use AlertmanagerConfig to route alerts to Slack, PagerDuty, or other targets based on labels
+- At minimum, alert on: optimizer errors, node not ready, replication factor below target, disk usage >80%
+
+
+## Log Centralization and Audit Logging
+
+Use when: enterprise compliance requires centralized logs or audit trails.
+
+- Enable JSON log format for structured analysis: set `logger.format` to `json` in config [Configuration](https://qdrant.tech/documentation/guides/configuration/)
+- Use FluentD/OpenSearch for log aggregation
+- Audit logs (v1.17+) write to local filesystem (`/qdrant/storage/audit/`), not stdout. Mount a Persistent Volume and deploy a sidecar container to tail these files to stdout so DaemonSets can pick them up. [Audit logging](https://qdrant.tech/documentation/operations/security/#audit-logging)
+
+
+## What NOT to Do
+
+- Scrape `/sys_metrics` on self-hosted (only available on Qdrant Cloud)
+- Scrape only Qdrant nodes in Hybrid Cloud (miss cluster-exporter and operator metrics)
+- Skip monitoring setup before going to production (you will regret it)
+- Alert on page cache memory usage (it's supposed to fill available RAM, normal OS behavior)
