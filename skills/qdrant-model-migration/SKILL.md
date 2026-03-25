@@ -5,68 +5,81 @@ description: "Guides embedding model migration in Qdrant without downtime. Use w
 
 # What to Do When Changing Embedding Models
 
-Vectors from different models are incompatible. You cannot mix old and new embeddings in the same vector space. The migration strategy depends on whether you can afford re-embedding time and whether you need zero downtime.
+Vectors from different models are incompatible. You cannot mix old and new embeddings in the same vector space. You also cannot add new named vector fields to an existing collection. All named vectors must be defined at collection creation time. Both migration strategies below require creating a new collection.
+
+- Understand collection aliases before choosing a strategy [Collection aliases](https://qdrant.tech/documentation/concepts/collections/#collection-aliases)
 
 
-## Strategy 1: Collection Alias Swap (Zero Downtime)
+## Can I Avoid Re-embedding?
 
-Use when: production must stay available during migration. This is the recommended approach.
+Use when: looking for shortcuts before committing to full migration.
 
-1. Create a new collection with the new model's dimensions and config
-2. Re-embed all data into the new collection in the background
-3. Point your application at a collection alias instead of a direct collection name
-4. Atomically swap the alias to the new collection [Collection aliases](https://qdrant.tech/documentation/concepts/collections/#collection-aliases)
-5. Verify results, then delete the old collection
+You MUST re-embed if: changing model provider (OpenAI to Cohere), changing architecture (CLIP to BGE), incompatible dimension counts across different models, or adding sparse vectors to dense-only collection.
 
-The alias swap is atomic. No requests are affected during the switch. [Switch collection](https://qdrant.tech/documentation/concepts/collections/#switch-collection)
+You CAN avoid re-embedding if: using Matryoshka models (use `dimensions` parameter to output lower-dimensional embeddings, learn linear transformation from sample data, some recall loss, good for 100M+ datasets). Or changing quantization (binary to scalar): Qdrant re-quantizes automatically. [Quantization](https://qdrant.tech/documentation/guides/quantization/)
 
 
-## Strategy 2: Named Vectors (Side-by-Side)
+## Need Zero Downtime (Alias Swap)
 
-Use when: you want to keep both old and new embeddings on the same points, or A/B test models.
+Use when: production must stay available. Recommended for model replacement at scale.
 
-- Add a new named vector field to the existing collection with the new model's dimensions [Named vectors](https://qdrant.tech/documentation/concepts/vectors/#named-vectors)
-- Each named vector can have its own distance metric, HNSW config, and quantization config [Collection with multiple vectors](https://qdrant.tech/documentation/concepts/collections/#collection-with-multiple-vectors)
-- Re-embed data into the new vector field while old field remains searchable
-- Switch queries to use the new vector name once migration is complete
-- Optionally delete the old vector field to reclaim storage
+- Create a new collection with the new model's dimensions and distance metric
+- Re-embed all data into the new collection in the background
+- Point your application at a collection alias instead of a direct collection name
+- Atomically swap the alias to the new collection [Switch collection](https://qdrant.tech/documentation/concepts/collections/#switch-collection)
+- Verify search quality, then delete the old collection
 
-Trade-off: doubles storage during migration since both vector sets coexist.
-
-
-## Strategy 3: Recreate In-Place (With Downtime)
-
-Use when: downtime is acceptable, dataset is small, or this is a dev/staging environment.
-
-- Delete the collection and recreate with new dimensions
-- Re-embed and re-upload all data
-- Simplest approach but causes full service interruption
+Careful, the alias swap only redirects queries. Payloads must be re-uploaded separately.
 
 
-## Handling Dimension Changes
+## Need Both Models Live (Side-by-Side)
 
-Use when: new model has different vector dimensions than the old one.
+Use when: A/B testing models, multi-modal (dense + sparse), or evaluating a new model before committing.
 
-- Collection alias swap handles this naturally (new collection has new dimensions)
-- Named vectors also support different dimensions per vector field
-- If using Matryoshka models, you can test at smaller dimensions before committing to full size [Matryoshka / MRL](https://qdrant.tech/documentation/concepts/inference/#reduce-vector-dimensionality-with-matryoshka-models)
-- Consider float16 or uint8 datatypes for the new vectors to reduce memory [Datatypes](https://qdrant.tech/documentation/concepts/vectors/#datatypes)
+You cannot add a named vector to an existing collection. Create a new collection with both vector fields defined upfront:
+
+- Create new collection with old and new named vectors both defined [Collection with multiple vectors](https://qdrant.tech/documentation/concepts/collections/#collection-with-multiple-vectors)
+- Migrate data from old collection, preserving existing vectors in the old named field
+- Backfill new model embeddings incrementally using `UpdateVectors` [Update vectors](https://qdrant.tech/documentation/concepts/points/#update-vectors)
+- Compare quality by querying with `using: "old_model"` vs `using: "new_model"`
+- Swap alias to new collection once satisfied
+
+Co-locating large multi-vectors (especially ColBERT) with dense vectors degrades ALL queries, even those only using dense. At millions of points, users report 13s latency dropping to 2s after removing ColBERT. Put large vectors on disk during side-by-side migration.
+
+If you anticipate future model migrations, define both vector fields upfront at collection creation.
 
 
-## Re-embedding at Scale
+## Dense to Hybrid Search Migration
+
+Use when: adding sparse/BM25 vectors to an existing dense-only collection. Most common migration pattern.
+
+You cannot add sparse vectors to an existing dense-only collection. Must recreate:
+
+- Create new collection with both dense and sparse vector configs defined
+- Re-embed all data with both dense and sparse models
+- Migrate payloads, swap alias
+
+Sparse vectors at chunk level have different TF-IDF characteristics than document level. Test retrieval quality after migration, especially for non-English text without stop-word removal.
+
+
+## Re-embedding Is Too Slow
 
 Use when: dataset is large and re-embedding is the bottleneck.
 
-- Use batch embedding APIs from your model provider to maximize throughput
+- Use `update_mode: insert` (v1.17+) for safe idempotent migration [Update mode](https://qdrant.tech/documentation/concepts/points/#update-mode)
+- Scroll the old collection with `with_vectors=False`, re-embed in batches, upsert into new collection
 - Upload in parallel batches (64-256 points per request, 2-4 parallel streams) [Bulk upload](https://qdrant.tech/documentation/tutorials-develop/bulk-upload/)
-- Disable HNSW during bulk load (set `indexing_threshold_kb` very high, restore after) [Collection params](https://qdrant.tech/documentation/concepts/collections/#update-collection-parameters)
-- For Qdrant Cloud inference models, embedding is handled server-side [Inference docs](https://qdrant.tech/documentation/concepts/inference/)
+- Disable HNSW during bulk load (set `indexing_threshold_kb` very high, restore after)
+- For Qdrant Cloud inference, switching models is a config change, not a pipeline change [Inference docs](https://qdrant.tech/documentation/concepts/inference/)
+
+For 400GB+ datasets, expect days. For small datasets (<25MB), re-indexing from source is faster than using the migration tool.
 
 
 ## What NOT to Do
 
-- Mix vectors from different models in the same vector field (results will be meaningless)
-- Delete the old collection before verifying the new one works correctly
-- Forget to update the query embedding model in your application code (must match the collection's model)
-- Skip payload migration when using the alias swap strategy (payloads must be re-uploaded to the new collection)
-- Use in-place recreation for production workloads when alias swap is available
+- Assume you can add named vectors to an existing collection (must be defined at creation time)
+- Delete the old collection before verifying the new one
+- Forget to update the query embedding model in your application code
+- Skip payload migration when using alias swap (aliases redirect queries, they do not copy data)
+- Keep ColBERT vectors co-located with dense vectors during a long migration (I/O cost degrades all queries)
+- Migrate to hybrid search without testing BM25 quality at chunk level
