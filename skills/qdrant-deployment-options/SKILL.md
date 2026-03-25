@@ -1,6 +1,6 @@
 ---
 name: qdrant-deployment-options
-description: "There are multiple ways to deploy Qdrant, this document navigates through different deployment options and provides guidance on how to choose the right one for your use case."
+description: "Guides Qdrant deployment selection. Use when someone asks 'how to deploy Qdrant', 'Docker vs Cloud', 'local mode', 'embedded Qdrant', 'Qdrant EDGE', 'which deployment option', or 'self-hosted vs cloud'. Also use when choosing between deployment types for a new project."
 allowed-tools:
   - Read
   - Grep
@@ -33,7 +33,6 @@ For more details on Docker deployment, see [Quick Start -Download and Run](https
 Cloud-based deployment is another version of the client-server deployment, where Qdrant is hosted on a Qdrant Cloud platform.
 On top of the features of the self-hosted deployment, Qdrant Cloud also provides additional features such as zero-downtime updates, resharding, automatic backups, and more. 
 
-<!-- ToDo: here CLI examples needed -->
 For more details on Qdrant Cloud, see [Qdrant Cloud](https://qdrant.tech/documentation/cloud-quickstart/)
 
 
