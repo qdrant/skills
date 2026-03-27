@@ -47,10 +47,18 @@ Commands are user-invocable slash commands that you explicitly call.
 
 ## Skills
 
+Skills are triggered automatically when your question matches their description.
+
 | Skill | Useful for |
 |-------|------------|
-| qdrant-python | Python SDK best practices: search, filtering, hybrid search, multi-tenancy, gotchas |
-| qdrant-rust | Rust client best practices: gRPC setup, builders, query, upsert, gotchas |
+| qdrant-clients-sdk | SDK setup, code examples, snippet search across Python, TypeScript, Rust, Go, .NET, Java |
+| qdrant-scaling | Scaling decisions: data volume, QPS, latency, query volume, horizontal vs vertical |
+| qdrant-performance-optimization | Search speed, memory usage, indexing performance |
+| qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
+| qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
+| qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
+| qdrant-model-migration | Switching embedding models without downtime |
+| qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
 
 ## Resources
 
