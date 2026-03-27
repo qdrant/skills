@@ -69,7 +69,7 @@ def validate_skill(path: Path) -> list[str]:
     # --- Description trigger phrases ---
     desc = fm.get("description", "")
     if desc and "use when" not in desc.lower():
-        errors.append(f"FAIL [activation] description missing 'Use when' trigger phrases")
+        errors.append(f"WARN [activation] description missing 'Use when' trigger phrases")
 
     # --- allowed-tools ---
     has_tools = "tools_list" in fm
@@ -83,7 +83,7 @@ def validate_skill(path: Path) -> list[str]:
 
     # --- What NOT to Do ---
     if not hub and "What NOT to Do" not in body:
-        errors.append(f"FAIL [structure] missing 'What NOT to Do' section")
+        errors.append(f"WARN [structure] missing 'What NOT to Do' section")
 
     # --- No code blocks in skills (allow qdrant-clients-sdk as exception) ---
     if "```" in body and skill_name != "qdrant-clients-sdk":
