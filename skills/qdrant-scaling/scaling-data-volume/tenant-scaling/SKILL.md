@@ -9,27 +9,24 @@ Do not create one collection per tenant. Does not scale past a few hundred and w
 
 - Understand multitenancy patterns [Multitenancy](https://qdrant.tech/documentation/guides/multitenancy/)
 
+Here is a short summary of the patterns:
 
-## Tenants Are Small (< 20k points)
+## Number of Tenants is around 10k
 
-Use when: many tenants with small datasets sharing one deployment.
+Use default strategy of multitenancy via payload filtering.
 
-- Use a tenant ID field with keyword index [Partition by payload](https://qdrant.tech/documentation/guides/multitenancy/#partition-by-payload)
-- Set `is_tenant=true` to co-locate tenant data for sequential reads [Calibrate performance](https://qdrant.tech/documentation/guides/multitenancy/#calibrate-performance)
-- Disable global HNSW (`m: 0`) and use `payload_m: 16` for per-tenant indexes, dramatically faster ingestion [Calibrate performance](https://qdrant.tech/documentation/guides/multitenancy/#calibrate-performance)
-- ACORN (v1.16+) significantly improves multi-tenant filter accuracy at scale [ACORN](https://qdrant.tech/documentation/concepts/search/#acorn-search-algorithm)
-
-Hundreds of millions of points per collection is fine. Split by `org_id % N` only if filter complexity becomes a bottleneck, not for data volume.
+Read about [Partition by payload](https://qdrant.tech/documentation/manage-data/multitenancy/#partition-by-payload) and [Calibrate performance](https://qdrant.tech/documentation/manage-data/multitenancy/#calibrate-performance) for best practices on indexing and query performance.
 
 
-## Tenants Are Outgrowing Shared Shards
+## Number of Tenants is around 100k and more
 
-Use when: some tenants have 20k+ points and need dedicated resources.
+At this scale, clsuter may consist or several peers.
+To localize tenant data and improve performance, use [custom sharding](https://qdrant.tech/documentation/operations/distributed_deployment/#user-defined-sharding) to assign tenants to specific shards based on tenant ID hash.
+This will lcoalize tenant request to only specific nodes instread of broadcasting to all nodes, improving performance and reducing load on each node.
 
-- Promote tenants from fallback shard to dedicated shard via tenant promotion (v1.16+) [Tiered multitenancy](https://qdrant.tech/documentation/guides/multitenancy/#tiered-multitenancy)
-- Small tenants stay on fallback shards, large tenants get promoted automatically
-- Use dedicated shards via user-defined sharding for full isolation [User-defined sharding](https://qdrant.tech/documentation/guides/distributed_deployment/#user-defined-sharding)
+## If tenants are unevenly sized
 
+If some tenants are much larger than others, use [tiered multitenancy](https://qdrant.tech/documentation/guides/multitenancy/#tiered-multitenancy) to promote large tenants to dedicated shards while keeping small tenants on shared shards. This optimizes resource allocation and performance for tenants of varying sizes.
 
 ## Need Strict Tenant Isolation
 
@@ -45,4 +42,3 @@ Use when: legal/compliance requirements demand per-tenant encryption or strict i
 - Do not create one collection per tenant without compliance justification (does not scale past hundreds)
 - Do not skip `is_tenant=true` on the tenant index (kills sequential read performance)
 - Do not build global HNSW for multi-tenant collections (wasteful, use `payload_m` instead)
-- Do not store ColBERT multi-vectors in RAM alongside dense vectors at scale (degrades all queries)
