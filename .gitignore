@@ -3,6 +3,7 @@
 
 # Eval workspace (generated outputs, not source)
 skills-eval-workspace/
+eval-results.json
 
 # Editor
 .vscode/
