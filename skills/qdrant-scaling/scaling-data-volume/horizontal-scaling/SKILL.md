@@ -7,51 +7,34 @@ description: "Diagnoses and guides Qdrant horizontal scaling decisions. Use when
 
 Vertical first: simpler operations, no network overhead, good up to ~100M vectors per node depending on dimensions and quantization. Horizontal when: data exceeds single node capacity, need fault tolerance, need to isolate tenants, or IOPS-bound (more nodes = more independent IOPS).
 
-- Estimate memory needs: `num_vectors * dimensions * 4 bytes * 1.5` plus payload and index overhead. Reserve 20% headroom for optimizations. [Capacity planning](https://qdrant.tech/documentation/guides/capacity-planning/)
+## Most basic distributed configuration
 
+- 3 nodes, 3 shards with `replication_factor: 2` for zero-downtime scaling
 
-## Not Ready to Scale Yet
+Minimum of 3 nodes is important for consensus and fault tolerance. With 3 nodes, you can lose 1 node without downtime. With 2 nodes, losing 1 node causes downtime for collection operations.
+Replication factor of 2 means each shard has 1 replica, so you have 2 copies of data. This allows for zero-downtime scaling and maintenance. With `replication_factor: 1`, zero-downtime is not guaranteed even for point-level operations, and cluster maintenance requires downtime.
 
-Use when: planning to scale but haven't started. Cover these prerequisites before proceeding.
+## Choosing number of shards
 
-- Minimum 3 nodes with `replication_factor: 2` for zero-downtime scaling
-- Set up monitoring (Grafana/Prometheus) BEFORE scaling
+Shards are the unit of data distribution. 
+More shards allows more nodes and better distribution, but adds overhead. Fewer shards reduces overhead but limits horizontal scaling.
 
-See [Prerequisites](https://qdrant.tech/documentation/guides/distributed_deployment/#enabling-distributed-mode-in-self-hosted-qdrant)
+For cluster of 3-6 nodes the recommended shard count is 6-12. 
+This allows for 2-4 shards per node, which balances distribution and overhead. 
 
-
-## Data Doesn't Fit on One Node
-
-Use when: approaching memory or disk limits on a single node.
-
-- Use quantization to reduce vector memory by 4x (scalar) or 32x (binary) [Quantization](https://qdrant.tech/documentation/guides/quantization/)
-- Use mmap storage to keep vectors on disk with RAM as cache [Choosing disk over RAM](https://qdrant.tech/documentation/guides/capacity-planning/#choosing-disk-over-ram)
-- If still not enough, add nodes with sharding [Sharding](https://qdrant.tech/documentation/guides/distributed_deployment/#sharding)
-
-Most people jump to horizontal too early. Exhaust vertical options first.
-
-
-## Need to Change Shard Count
+## Changing number of shards
 
 Use when: shard count isn't evenly divisible by node count, causing uneven distribution, or need to rebalance.
 
-Resharding is expensive and time-consuming. Hours to weeks depending on data size. Locks segments during transfer, queries may timeout under high concurrency.
+Resharding is expensive and time-consuming, it should be used as a last resort if regular data distribution is not possible.
+Resharding is designed to be transparent for user operations, updates and searches should still work during resharding with some small performance impact.
 
-- Available in Qdrant Cloud (v1.13+) [Resharding](https://qdrant.tech/documentation/guides/distributed_deployment/#resharding)
-- For self-hosted, requires recreating the collection with the new shard count
-- Move shards between nodes to rebalance load [Moving shards](https://qdrant.tech/documentation/guides/distributed_deployment/#moving-shards)
-- List existing shard keys via API (v1.17+) [User-defined sharding](https://qdrant.tech/documentation/guides/distributed_deployment/#user-defined-sharding)
+But resharding operation itself is time-consuming and requires to move large amounts of data between nodes.
+
+- Available in Qdrant Cloud [Resharding](https://qdrant.tech/documentation/guides/distributed_deployment/#resharding)
+- Resahrding is not available for self-hosted deployments.
 
 Better alternatives: over-provision shards initially, or spin up new cluster with correct config and migrate data.
-
-
-## Planning for Future Growth
-
-Use when: setting up a new cluster and want to avoid resharding later.
-
-- Estimate data growth to 2-3 year projection
-- Choose LCM shard count: 48 shards works for 12, 16, or 24 nodes. 24 shards works for 6, 8, 12, or 24 nodes.
-- `shard_number` should be 1-2x current node count (allows 2x growth)
 
 
 ## What NOT to Do
