@@ -1,0 +1,32 @@
+name: bug report
+description: skill gives wrong or outdated advice
+labels: ["bug"]
+body:
+  - type: input
+    id: skill
+    attributes:
+      label: skill name
+      placeholder: "e.g., qdrant-scaling, qdrant-search-quality"
+    validations:
+      required: true
+  - type: textarea
+    id: prompt
+    attributes:
+      label: what did you ask?
+      description: paste the prompt you gave the agent
+    validations:
+      required: true
+  - type: textarea
+    id: wrong-advice
+    attributes:
+      label: what did the agent recommend?
+      description: what was wrong or misleading about the response?
+    validations:
+      required: true
+  - type: textarea
+    id: correct-advice
+    attributes:
+      label: what should it recommend instead?
+      description: the correct advice, with links to docs if possible
+    validations:
+      required: true
