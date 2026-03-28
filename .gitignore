@@ -1,0 +1,17 @@
+# OS
+.DS_Store
+
+# Eval workspace (generated outputs, not source)
+skills-eval-workspace/
+eval-results.json
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+.venv/
