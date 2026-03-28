@@ -1,0 +1,24 @@
+name: close stale PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-stale: 14
+          days-before-close: 7
+          stale-pr-message: >
+            this PR has been inactive for 14 days. it will be closed in 7 days
+            unless there is new activity. if you're still working on it, push
+            an update or leave a comment.
+          stale-pr-label: stale
+          exempt-pr-labels: pinned,wip
