@@ -1,0 +1,38 @@
+name: skill request
+description: request a new skill or improvement to an existing one
+labels: ["skill-request"]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: scenario
+      description: what production question or situation should the skill handle?
+      placeholder: "e.g., 'my qdrant cluster memory keeps growing after bulk uploads'"
+    validations:
+      required: true
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: what does the agent do today?
+      description: without the skill, what does the agent recommend? what's wrong with it?
+      placeholder: "e.g., 'suggests generic quantization without checking what's actually using memory'"
+    validations:
+      required: false
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: what should the agent recommend?
+      description: what would a solutions architect say? include specific config values or diagnostic steps if you know them.
+      placeholder: "e.g., 'check /telemetry for per-segment breakdown first, distinguish RSSAnon from page cache'"
+    validations:
+      required: true
+  - type: dropdown
+    id: existing-skill
+    attributes:
+      label: does a related skill already exist?
+      options:
+        - "no, this is a new topic"
+        - "yes, but it's missing this case"
+        - "not sure"
+    validations:
+      required: true
