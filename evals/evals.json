@@ -1,0 +1,77 @@
+{
+  "skill_name": "qdrant-scaling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "hey so we have about 50M vectors with 768 dimensions in qdrant and we're running on a single 64gb ram node. searches are getting slow, like 200ms p99, and we need to get that under 50ms. should we add more nodes or what?",
+      "expected_output": "Should recommend vertical scaling first (quantization, RAM check, HNSW tuning), explain latency vs throughput tradeoff, suggest segment count increase for latency, mention quantization to reduce memory footprint",
+      "expectations": [
+        "Mentions quantization as a way to reduce memory usage",
+        "Distinguishes between latency and throughput optimization",
+        "Recommends checking RAM utilization before adding nodes",
+        "Suggests increasing segment count for lower latency",
+        "Does not immediately jump to horizontal scaling"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "we're building a multi-tenant SaaS and currently have about 5000 tenants each with maybe 10k-100k vectors. we've been creating one collection per tenant but we're hitting limits. what's the right architecture?",
+      "expected_output": "Should strongly recommend payload partitioning over collection-per-tenant, mention is_tenant=true index, explain that collection-per-tenant doesn't scale past hundreds",
+      "expectations": [
+        "Recommends against one collection per tenant",
+        "Suggests payload partitioning as the primary approach",
+        "Mentions is_tenant=true for the tenant index",
+        "References the multitenancy documentation",
+        "Mentions that collection-per-tenant doesn't scale past a few hundred"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "we index social media posts for semantic search and only care about the last 3 months. right now we just delete old posts with a cron job but the cluster performance keeps degrading after deletes. any better approach?",
+      "expected_output": "Should recommend shard rotation over filter-and-delete, explain that deletes create tombstones that degrade search, mention shard key per time period with instant resource reclamation",
+      "expectations": [
+        "Recommends shard rotation as the preferred approach",
+        "Explains why filter-and-delete causes performance degradation (tombstones)",
+        "Mentions that deleting a shard key reclaims resources instantly",
+        "Describes the shard rotation workflow (create shard key per period, delete oldest)",
+        "References the user-defined sharding documentation"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "our qdrant cluster has 3 nodes with 2 shards and we want to add 2 more nodes for capacity. but after adding the nodes the data is still on the original nodes. how do we redistribute?",
+      "expected_output": "Should explain that shards don't auto-redistribute, mention shard move API, recommend 6 shards for a 5-node cluster, warn about resharding cost",
+      "expectations": [
+        "Explains that adding nodes doesn't automatically redistribute data",
+        "Mentions the shard move API for redistribution",
+        "Recommends a shard count that's a multiple of node count",
+        "Warns that resharding is expensive and time-consuming",
+        "Mentions that resharding is only available in Qdrant Cloud"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "we're running qdrant 1.14 and want to upgrade to 1.17. our cluster has replication factor 1 and 2 nodes. what's the safest upgrade path?",
+      "expected_output": "Should warn about step-by-step upgrade requirement (1.14->1.15->1.16->1.17), warn that replication_factor:1 means downtime during upgrade, recommend upgrading SDK first",
+      "expectations": [
+        "States that storage compatibility is only guaranteed for one minor version",
+        "Recommends upgrading step by step: 1.14 to 1.15 to 1.16 to 1.17",
+        "Warns that replication_factor:1 cannot guarantee zero-downtime upgrade",
+        "Recommends upgrading SDK before server",
+        "Mentions Qdrant Cloud can automate multi-version jumps"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "we need to handle about 500 QPS on our qdrant instance but currently maxing out at around 150. single node, 32gb ram, 8 cpu cores, 20M vectors at 384 dims. what should we tune?",
+      "expected_output": "Should recommend fewer larger segments, quantization with always_ram, batch search API, and if still not enough then read replicas",
+      "expectations": [
+        "Recommends reducing segment count (default_segment_number: 2)",
+        "Suggests quantization with always_ram=true",
+        "Mentions batch search API to amortize overhead",
+        "Suggests limiting optimizer CPU budget to reserve cores for queries",
+        "Only recommends horizontal scaling (replicas) after tuning is exhausted"
+      ]
+    }
+  ]
+}
