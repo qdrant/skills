@@ -12,20 +12,20 @@ If user wants to use weak embedding model (small but fast and cheap), you can us
 
 Use when: pure vector search misses results that contain obvious keyword matches. Domain terminology not in embedding training data, exact keyword matching critical (brand names, SKUs), acronyms common. Skip when: pure semantic queries, all data in training set, latency budget very tight.
 
-- Dense + sparse with `prefetch` and fusion [Hybrid search](https://qdrant.tech/documentation/concepts/hybrid-queries/#hybrid-search)
-- Prefer learned sparse ([miniCOIL](https://qdrant.tech/documentation/fastembed/fastembed-minicoil/, SPLADE, GTE) over raw BM25 if applicable (when user needs smart keywords matching and learned sparse models know the vocabulary of the domain)
-- For non-English languages, [configure sparse BM25 parameters accordingly](https://qdrant.tech/documentation/search/text-search/#language-specific-settings)
-- RRF: good default, supports weighted (v1.17+) [RRF](https://qdrant.tech/documentation/concepts/hybrid-queries/#reciprocal-rank-fusion-rrf)
-- DBSF with asymmetric limits (sparse_limit=250, dense_limit=100) can outperform RRF for technical docs [DBSF](https://qdrant.tech/documentation/concepts/hybrid-queries/#distribution-based-score-fusion-dbsf)
+- Dense + sparse with `prefetch` and fusion [Hybrid search](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=hybrid-search)
+- Prefer learned sparse ([miniCOIL](https://search.qdrant.tech/md/documentation/fastembed/fastembed-minicoil/), SPLADE, GTE) over raw BM25 if applicable (when user needs smart keywords matching and learned sparse models know the vocabulary of the domain)
+- For non-English languages, [configure sparse BM25 parameters accordingly](https://search.qdrant.tech/md/documentation/search/text-search/?s=language-specific-settings)
+- RRF: good default, supports weighted (v1.17+) [RRF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=reciprocal-rank-fusion-rrf)
+- DBSF with asymmetric limits (sparse_limit=250, dense_limit=100) can outperform RRF for technical docs [DBSF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)
 - Fusion can be also done through reranking
 
 ## Right Documents Found But Wrong Order
 
 Use when: good recall but poor precision (right docs in top-100, not top-10).
 
-- Cross-encoder rerankers via FastEmbed [Rerankers](https://qdrant.tech/documentation/fastembed/fastembed-rerankers/)
-- Check on how to do [Multistage queries](https://qdrant.tech/documentation/concepts/hybrid-queries/#multi-stage-queries) in Qdrant
-- ColBERT and ColPali/ColQwen reranking is especially precise due to late interaction mechanisms, however, heavy. It's important to configure & store multivectors without building HNSW for them, to save on resources, see more [Multivector-representation](https://qdrant.tech/documentation/tutorials-search-engineering/using-multivector-representations/)
+- Cross-encoder rerankers via FastEmbed [Rerankers](https://search.qdrant.tech/md/documentation/fastembed/fastembed-rerankers/)
+- Check on how to do [Multistage queries](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=multi-stage-queries) in Qdrant
+- ColBERT and ColPali/ColQwen reranking is especially precise due to late interaction mechanisms, however, heavy. It's important to configure & store multivectors without building HNSW for them, to save on resources, see more [Multivector-representation](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/using-multivector-representations/)
 
 ## Right Documents Not Found But They Are There
 
@@ -37,16 +37,16 @@ A feedback model is anything producing a relevance score per document: a bi-enco
 
 Skip when: if the retriever already has strong recall, or if retriever and feedback model strongly agree on relevance.
 
-- RF Query is currently based on a [3-parameter naive formula](https://qdrant.tech/documentation/concepts/search-relevance/#naive-strategy) with no universal defaults, so it must be tuned per dataset, retriever, and feedback model
+- RF Query is currently based on a [3-parameter naive formula](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=naive-strategy) with no universal defaults, so it must be tuned per dataset, retriever, and feedback model
 - Use [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) to tune parameters, evaluate impact with Evaluator, and check retriever-feedback agreement. See README for setup instructions. No GPUs needed for running & framework also provides predefined retriever & feedback model options.
-- Check configuration of [Relevance Feedback Query API](https://qdrant.tech/documentation/search/search-relevance/#relevance-feedback)
-- Use as a helper end-to-end text retrieval example with parameter tuning and evals to understand on how to use the API & run the `qdrant-relevance-feedback` framework: [RF tutorial](https://qdrant.tech/documentation/tutorials-search-engineering/using-relevance-feedback/)
+- Check configuration of [Relevance Feedback Query API](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback)
+- Use as a helper end-to-end text retrieval example with parameter tuning and evals to understand on how to use the API & run the `qdrant-relevance-feedback` framework: [RF tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/using-relevance-feedback/)
 
 ## Results Too Similar
 
 Use when: top results are redundant, near-duplicates, or lack diversity. Common in dense content domains (academic papers, product catalogs).
 
-- Use MMR (v1.15+) as a query parameter with `diversity` to balance relevance and diversity [MMR](https://qdrant.tech/documentation/search/search-relevance/#maximal-marginal-relevance-mmr)
+- Use MMR (v1.15+) as a query parameter with `diversity` to balance relevance and diversity [MMR](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=maximal-marginal-relevance-mmr)
 - Start with `diversity=0.5`, lower for more precision, higher for more exploration
 - MMR is slower than standard search. Only use when redundancy is an actual problem.
 
@@ -54,14 +54,14 @@ Use when: top results are redundant, near-duplicates, or lack diversity. Common 
 
 Use when: you can provide positive and negative example points to steer search closer to positive and further from negative.
 
-- Recommendation API: positive/negative examples to recommend fitting vectors [Recommendation API](https://qdrant.tech/documentation/concepts/explore/#recommendation-api)
-  - Best score strategy: better for diverse examples, supports negative-only [Best score](https://qdrant.tech/documentation/concepts/explore/#best-score-strategy)
-- Discovery API: context pairs (positive/negative) to constrain search regions without a request target [Discovery](https://qdrant.tech/documentation/concepts/explore/#discovery-api)
+- Recommendation API: positive/negative examples to recommend fitting vectors [Recommendation API](https://search.qdrant.tech/md/documentation/search/explore/?s=recommendation-api)
+  - Best score strategy: better for diverse examples, supports negative-only [Best score](https://search.qdrant.tech/md/documentation/search/explore/?s=best-score-strategy)
+- Discovery API: context pairs (positive/negative) to constrain search regions without a request target [Discovery](https://search.qdrant.tech/md/documentation/search/explore/?s=discovery-api)
 
 ## Have Business Logic Behind Relevance
 Use when: results should be additionally ranked according to some business logic based on data, like recency or distance.
 
-Check how to set up in [Score Boosting docs](https://qdrant.tech/documentation/search/search-relevance/#score-boosting)
+Check how to set up in [Score Boosting docs](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=score-boosting)
 
 ## What NOT to Do
 

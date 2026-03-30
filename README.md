@@ -50,6 +50,6 @@ Skills are triggered automatically when your question matches their description.
 
 ## Resources
 
-- [Qdrant Documentation](https://qdrant.tech/documentation/)
+- [Qdrant Documentation](https://search.qdrant.tech/md/documentation/)
 - [mcp-code-snippets](https://github.com/qdrant/mcp-code-snippets) - MCP server for searching Qdrant docs and code examples
 - [mcp-server-qdrant](https://github.com/qdrant/mcp-server-qdrant) - Official Qdrant MCP server

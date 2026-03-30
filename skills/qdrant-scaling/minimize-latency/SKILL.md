@@ -11,9 +11,9 @@ Low latency optimization is aimed at utilising maximum resource saturation for a
 
 ## Performance Tuning for Lower Latency
 
-- Increase segment count to match CPU cores (`default_segment_number: 16`) [Minimizing latency](https://qdrant.tech/documentation/guides/optimize/#minimizing-latency)
+- Increase segment count to match CPU cores (`default_segment_number: 16`) [Minimizing latency](https://search.qdrant.tech/md/documentation/operations/optimize/?s=minimizing-latency)
 - Keep quantized vectors and HNSW in RAM (`always_ram=true`)
-- Reduce `hnsw_ef` at query time (trade recall for speed) [Search params](https://qdrant.tech/documentation/guides/optimize/#fine-tuning-search-parameters)
+- Reduce `hnsw_ef` at query time (trade recall for speed) [Search params](https://search.qdrant.tech/md/documentation/operations/optimize/?s=fine-tuning-search-parameters)
 - Use local NVMe, avoid network-attached storage
 
 ## Memory Pressure and Latency
@@ -21,8 +21,8 @@ Low latency optimization is aimed at utilising maximum resource saturation for a
 RAM is the most critical resource for latency. If working set exceeds available RAM, OS cache eviction causes severe, sustained latency degradation.
 
 - Vertical scale RAM first. Critical if working set >80%.
-- Use quantization: scalar (4x reduction) or binary (16x reduction) [Quantization](https://qdrant.tech/documentation/guides/quantization/)
-- Move payload indexes to disk if filtering is infrequent [On-disk payload index](https://qdrant.tech/documentation/concepts/indexing/#on-disk-payload-index)
+- Use quantization: scalar (4x reduction) or binary (16x reduction) [Quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/)
+- Move payload indexes to disk if filtering is infrequent [On-disk payload index](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
 - Set `optimizer_cpu_budget` to limit background optimization CPUs
 - Schedule indexing: set high `indexing_threshold` during peak hours
 

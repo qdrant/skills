@@ -7,7 +7,7 @@ description: "Guides Qdrant multi-tenant scaling. Use when someone asks 'how to 
 
 Do not create one collection per tenant. Does not scale past a few hundred and wastes resources. One company hit the 1000 collection limit after a year of collection-per-repo and had to migrate to payload partitioning. Use a shared collection with a tenant key.
 
-- Understand multitenancy patterns [Multitenancy](https://qdrant.tech/documentation/guides/multitenancy/)
+- Understand multitenancy patterns [Multitenancy](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/)
 
 Here is a short summary of the patterns:
 
@@ -15,18 +15,18 @@ Here is a short summary of the patterns:
 
 Use default strategy of multitenancy via payload filtering.
 
-Read about [Partition by payload](https://qdrant.tech/documentation/manage-data/multitenancy/#partition-by-payload) and [Calibrate performance](https://qdrant.tech/documentation/manage-data/multitenancy/#calibrate-performance) for best practices on indexing and query performance.
+Read about [Partition by payload](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/?s=partition-by-payload) and [Calibrate performance](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance) for best practices on indexing and query performance.
 
 
 ## Number of Tenants is around 100k and more
 
 At this scale, cluster may consist of several peers.
-To localize tenant data and improve performance, use [custom sharding](https://qdrant.tech/documentation/operations/distributed_deployment/#user-defined-sharding) to assign tenants to specific shards based on tenant ID hash.
+To localize tenant data and improve performance, use [custom sharding](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=user-defined-sharding) to assign tenants to specific shards based on tenant ID hash.
 This will localize tenant request to only specific nodes instead of broadcasting to all nodes, improving performance and reducing load on each node.
 
 ## If tenants are unevenly sized
 
-If some tenants are much larger than others, use [tiered multitenancy](https://qdrant.tech/documentation/guides/multitenancy/#tiered-multitenancy) to promote large tenants to dedicated shards while keeping small tenants on shared shards. This optimizes resource allocation and performance for tenants of varying sizes.
+If some tenants are much larger than others, use [tiered multitenancy](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/?s=tiered-multitenancy) to promote large tenants to dedicated shards while keeping small tenants on shared shards. This optimizes resource allocation and performance for tenants of varying sizes.
 
 ## Need Strict Tenant Isolation
 

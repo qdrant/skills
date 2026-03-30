@@ -12,26 +12,26 @@ Start with what you need: managed ops or full control? Network latency acceptabl
 
 Use when: building a prototype, running tests, CI/CD pipelines, or learning Qdrant.
 
-- Use local mode (Python only): zero-dependency, in-memory or disk-persisted, no server needed [Local mode](https://qdrant.tech/documentation/quickstart/)
+- Use local mode (Python only): zero-dependency, in-memory or disk-persisted, no server needed [Local mode](https://search.qdrant.tech/md/documentation/quickstart/)
 - Local mode data format is NOT compatible with server. Do not use for production or benchmarking.
-- For a real server locally, use Docker [Quick start](https://qdrant.tech/documentation/quickstart/#download-and-run)
+- For a real server locally, use Docker [Quick start](https://search.qdrant.tech/md/documentation/quickstart/?s=download-and-run)
 
 
 ## Going to Production (Self-Hosted)
 
 Use when: you need full control over infrastructure, data residency, or custom configuration.
 
-- Docker is the default deployment. Full Qdrant Open Source feature set, minimal setup. [Quick start](https://qdrant.tech/documentation/quickstart/#download-and-run)
+- Docker is the default deployment. Full Qdrant Open Source feature set, minimal setup. [Quick start](https://search.qdrant.tech/md/documentation/quickstart/?s=download-and-run)
 - You own operations: upgrades, backups, scaling, monitoring
-- Must set up distributed mode manually for multi-node clusters [Distributed deployment](https://qdrant.tech/documentation/guides/distributed_deployment/)
-- Consider Hybrid Cloud if you want Qdrant Cloud management on your infrastructure [Hybrid Cloud](https://qdrant.tech/documentation/hybrid-cloud/)
+- Must set up distributed mode manually for multi-node clusters [Distributed deployment](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/)
+- Consider Hybrid Cloud if you want Qdrant Cloud management on your infrastructure [Hybrid Cloud](https://search.qdrant.tech/md/documentation/hybrid-cloud/)
 
 
 ## Going to Production (Zero-Ops)
 
 Use when: you want managed infrastructure with zero-downtime updates, automatic backups, and resharding without operating clusters yourself.
 
-- Qdrant Cloud handles upgrades, scaling, backups, and monitoring [Qdrant Cloud](https://qdrant.tech/documentation/cloud-quickstart/)
+- Qdrant Cloud handles upgrades, scaling, backups, and monitoring [Qdrant Cloud](https://search.qdrant.tech/md/documentation/cloud-quickstart/)
 - Supports multi-version upgrades automatically
 - Provides features not available in self-hosted: `/sys_metrics`, managed resharding, pre-configured alerts
 
@@ -40,7 +40,7 @@ Use when: you want managed infrastructure with zero-downtime updates, automatic 
 
 Use when: network round-trip to a server is unacceptable. Edge devices, in-process search, or latency-critical applications.
 
-- Qdrant EDGE: in-process bindings to Qdrant shard-level functions, no network overhead [Qdrant EDGE](https://qdrant.tech/documentation/edge/edge-quickstart/)
+- Qdrant EDGE: in-process bindings to Qdrant shard-level functions, no network overhead [Qdrant EDGE](https://search.qdrant.tech/md/documentation/edge/edge-quickstart/)
 - Same data format as server. Can sync with server via shard snapshots.
 - Single-node feature set only. No distributed mode.
 

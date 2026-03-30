@@ -25,10 +25,10 @@ Use when: individual queries take too long regardless of load.
 
 ### Common fixes:
 
-- Tune HNSW parameters: [Fine-tuning search](https://qdrant.tech/documentation/guides/optimize/#fine-tuning-search-parameters)
-- Enable in-memory quantization: [Scalar quantization](https://qdrant.tech/documentation/guides/quantization/#scalar-quantization)
-- Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://qdrant.tech/documentation/inference/#reduce-vector-dimensionality-with-matryoshka-models)
-- Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://qdrant.tech/documentation/guides/quantization/#searching-with-quantization)
+- Tune HNSW parameters: [Fine-tuning search](https://search.qdrant.tech/md/documentation/operations/optimize/?s=fine-tuning-search-parameters)
+- Enable in-memory quantization: [Scalar quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
+- Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://search.qdrant.tech/md/documentation/inference/?s=reduce-vector-dimensionality-with-matryoshka-models)
+- Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
 - Enable io_uring for disk-heavy workloads on Linux [io_uring](https://qdrant.tech/articles/io_uring/)
 
 
@@ -36,19 +36,19 @@ Use when: individual queries take too long regardless of load.
 
 Use when: system can't serve enough queries per second under load.
 
-- Reduce segment count (`default_segment_number` to 2) [Maximizing throughput](https://qdrant.tech/documentation/guides/optimize/#maximizing-throughput)
-- Use batch search API instead of single queries [Batch search](https://qdrant.tech/documentation/concepts/search/#batch-search-api)
-- Enable quantization to reduce CPU cost [Scalar quantization](https://qdrant.tech/documentation/guides/quantization/#scalar-quantization)
-- Add replicas to distribute read load [Replication](https://qdrant.tech/documentation/guides/distributed_deployment/#replication)
+- Reduce segment count (`default_segment_number` to 2) [Maximizing throughput](https://search.qdrant.tech/md/documentation/operations/optimize/?s=maximizing-throughput)
+- Use batch search API instead of single queries [Batch search](https://search.qdrant.tech/md/documentation/search/search/?s=batch-search-api)
+- Enable quantization to reduce CPU cost [Scalar quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
+- Add replicas to distribute read load [Replication](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=replication)
 
 
 ## Filtered Search Is Slow
 
 Use when: filtered search is significantly slower than unfiltered. Most common SA complaint after memory.
 
-- Create payload index on the filtered field [Payload index](https://qdrant.tech/documentation/concepts/indexing/#payload-index)
-- Use `is_tenant=true` for primary filtering condition: [Tenant index](https://qdrant.tech/documentation/concepts/indexing/#tenant-index)
-- Try ACORN algorithm for complex filters: [ACORN](https://qdrant.tech/documentation/search/search/?q=acorn#acorn-search-algorithm)
+- Create payload index on the filtered field [Payload index](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
+- Use `is_tenant=true` for primary filtering condition: [Tenant index](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=tenant-index)
+- Try ACORN algorithm for complex filters: [ACORN](https://search.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm)
 - Avoid using `nested` filtering conditions as a primary filter. It might force qdrant to read raw payload values instead of using index.
 - If payload index was added after HNSW build, trigger re-index to create filterable subgraph links
 
@@ -65,7 +65,7 @@ Use when: filtered search is significantly slower than unfiltered. Most common S
 - reduce `optimizer_cpu_budget` to reserve more CPU for queries
 - Use `prevent_unoptimized=true` to prevent creating segments with a large amount of unindexed data for searches. Instead, once a segment reaches the so called indexing_threshold, all additional points will be added in ‘deferred state’. 
 
-Learn more [here](https://qdrant.tech/documentation/search/low-latency-search/#query-indexed-data-only)
+Learn more [here](https://search.qdrant.tech/md/documentation/search/low-latency-search/?s=query-indexed-data-only)
 
 
 ## What NOT to Do

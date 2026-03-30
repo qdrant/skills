@@ -39,8 +39,8 @@ Vertical scaling is managed through the Qdrant Cloud Console.
 RAM is the most critical resource for Qdrant performance. Use these guidelines to right-size.
 
 - Exact estimation of RAM usage is difficult; use this simple approximate formula: `num_vectors * dimensions * 4 bytes * 1.5` for full-precision vectors in RAM
-- With scalar quantization: divide by 4 (INT8 reduces each float32 to 1 byte) [Quantization](https://qdrant.tech/documentation/guides/quantization/)
-- With binary quantization: divide by 32 [Binary quantization](https://qdrant.tech/documentation/guides/quantization/#binary-quantization)
+- With scalar quantization: divide by 4 (INT8 reduces each float32 to 1 byte) [Quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/)
+- With binary quantization: divide by 32 [Binary quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=binary-quantization)
 - Add overhead for HNSW index (~20-30% of vector data), payload indexes, and WAL
 - Reserve 20% headroom for optimizer operations and OS cache
 - Monitor actual usage via Grafana/Prometheus before and after resizing [Monitoring](../../../qdrant-monitoring/SKILL.md)

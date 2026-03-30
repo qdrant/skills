@@ -11,11 +11,11 @@ Before tuning, establish baselines. Use exact KNN as ground truth, compare again
 
 Use when: results are irrelevant or missing expected matches and you need to isolate the cause.
 
-- Test with `exact=true` to bypass HNSW approximation [Search API](https://qdrant.tech/documentation/concepts/search/#nearest-neighbors-search)
+- Test with `exact=true` to bypass HNSW approximation [Search API](https://search.qdrant.tech/md/documentation/search/search/?s=nearest-neighbors-search)
 - Exact search bad = model or search pipeline problem. Exact good, approximate bad = tune HNSW.
 - Check if quantization degrades quality (compare with and without)
 - Check if filters are too restrictive (then you might need to use ACORN)
-- If duplicate results from chunked documents, use Grouping API to deduplicate [Grouping](https://qdrant.tech/documentation/concepts/search/#grouping-api)
+- If duplicate results from chunked documents, use Grouping API to deduplicate [Grouping](https://search.qdrant.tech/md/documentation/search/search/?s=grouping-api)
 
 Payload filtering and sparse vector search are different things. Metadata (dates, categories, tags) goes in payload for filtering. Text content goes in sparse vectors for search.
 
@@ -23,19 +23,19 @@ Payload filtering and sparse vector search are different things. Metadata (dates
 
 Use when: exact search returns good results but HNSW approximation misses them.
 
-- Increase `hnsw_ef` at query time [Search params](https://qdrant.tech/documentation/guides/optimize/#fine-tuning-search-parameters)
-- Increase `ef_construct` (200+ for high quality) [HNSW config](https://qdrant.tech/documentation/concepts/indexing/#vector-index)
-- Increase `m` (16 default, 32 for high recall) [HNSW config](https://qdrant.tech/documentation/concepts/indexing/#vector-index)
-- Enable oversampling + rescore with quantization [Search with quantization](https://qdrant.tech/documentation/guides/quantization/#searching-with-quantization)
-- ACORN for filtered queries (v1.16+) [ACORN](https://qdrant.tech/documentation/concepts/search/#acorn-search-algorithm)
+- Increase `hnsw_ef` at query time [Search params](https://search.qdrant.tech/md/documentation/operations/optimize/?s=fine-tuning-search-parameters)
+- Increase `ef_construct` (200+ for high quality) [HNSW config](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
+- Increase `m` (16 default, 32 for high recall) [HNSW config](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
+- Enable oversampling + rescore with quantization [Search with quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
+- ACORN for filtered queries (v1.16+) [ACORN](https://search.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm)
 
-Binary quantization requires rescore. Without it, quality loss is severe. Use oversampling (3-5x minimum for binary) to recover recall. Always test quantization impact on your data before production. [Quantization](https://qdrant.tech/documentation/guides/quantization/)
+Binary quantization requires rescore. Without it, quality loss is severe. Use oversampling (3-5x minimum for binary) to recover recall. Always test quantization impact on your data before production. [Quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/)
 
 ## Wrong Embedding Model
 
 Use when: exact search also returns bad results.
 
-Test top 3 MTEB models on 100-1000 sample queries, measure recall@10. Domain-specific models often outperform general models. [Hosted inference](https://qdrant.tech/documentation/concepts/inference/)
+Test top 3 MTEB models on 100-1000 sample queries, measure recall@10. Domain-specific models often outperform general models. [Hosted inference](https://search.qdrant.tech/md/documentation/inference/)
 
 ## Unoptimized Search Pipeline
 
