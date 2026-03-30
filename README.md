@@ -33,18 +33,6 @@ Clone this repo and copy the skill folders into the appropriate directory for yo
 | OpenAI Codex | `~/.codex/skills/` | [docs](https://developers.openai.com/codex/skills/) |
 | Pi | `~/.pi/agent/skills/` | [docs](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#skills) |
 
-## Commands
-
-Commands are user-invocable slash commands that you explicitly call.
-
-| Command | Description |
-|---------|-------------|
-| `/qdrant:setup-collection` | Create a collection with proper vector config, distance, and payload indexes |
-| `/qdrant:hybrid-search` | Scaffold a dense+sparse prefetch query with RRF fusion |
-| `/qdrant:add-multitenancy` | Add tenant isolation to an existing collection |
-| `/qdrant:migrate-search` | Migrate deprecated `client.search()` calls to `query_points` |
-| `/qdrant:connect` | Set up client connection for local or cloud |
-
 ## Skills
 
 | Skill | Useful for |
