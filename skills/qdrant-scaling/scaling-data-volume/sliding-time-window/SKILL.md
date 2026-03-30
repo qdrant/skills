@@ -18,7 +18,7 @@ Use when: data has natural time boundaries (daily, weekly, monthly). Preferred b
 2. Create one shard key per time period (e.g., `2025-01`, `2025-02`, ..., `2025-06`)
 3. Ingest data into the current period's shard key
 4. When a new period starts, create a new shard key and redirect writes
-5. Delete the oldest shard key outside the retention window [Delete shard key](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=delete-shard-key)
+5. Delete the oldest shard key outside the retention window
 
 - Deleting a shard key reclaims all resources instantly (no fragmentation, no optimizer overhead)
 - Pre-create the next period's shard key before rotation to avoid write disruption

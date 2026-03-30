@@ -11,7 +11,7 @@ Before tuning, establish baselines. Use exact KNN as ground truth, compare again
 
 Use when: results are irrelevant or missing expected matches and you need to isolate the cause.
 
-- Test with `exact=true` to bypass HNSW approximation [Search API](https://search.qdrant.tech/md/documentation/search/search/?s=nearest-neighbors-search)
+- Test with `exact=true` to bypass HNSW approximation [Search API](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/retrieval-quality/?s=standard-mode-vs-exact-search)
 - Exact search bad = model or search pipeline problem. Exact good, approximate bad = tune HNSW.
 - Check if quantization degrades quality (compare with and without)
 - Check if filters are too restrictive (then you might need to use ACORN)
