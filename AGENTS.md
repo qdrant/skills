@@ -6,7 +6,7 @@ Agent skills for [Qdrant](https://qdrant.tech) vector search, built on the [Agen
 
 - **Repository:** `github.com/qdrant/skills`
 - **Format:** Markdown SKILL.md files with YAML frontmatter
-- **Compatible agents:** Claude Code, OpenCode, OpenAI Codex, Pi
+- **Compatible agents:** Claude Code, Cursor, OpenCode, OpenAI Codex, Pi
 
 ## Project structure
 
@@ -31,30 +31,11 @@ skills/
   qdrant-deployment-options/
   qdrant-model-migration/
   qdrant-version-upgrade/
-commands/
-  setup-collection.md
-  hybrid-search.md
-  add-multitenancy.md
-  migrate-search.md
-  connect.md
-scripts/
-  validate_skills.py           # skill linter
-```
-
-## Verification
-
-Run the skill linter:
-
-```bash
-python3 scripts/validate_skills.py
 ```
 
 ## Conventions
 
-### Skills vs commands
-
 - **Skills** are passive knowledge. Hub skills declare `allowed-tools: [Read, Grep, Glob]`. Leaf skills omit `allowed-tools`.
-- **Commands** are user-invoked actions with `allowed-tools: [Read, Glob, Grep, Bash, Write, Edit]`.
 
 ### Skill anatomy
 

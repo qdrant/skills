@@ -11,15 +11,9 @@ skills/
     SKILL.md              # skill definition (frontmatter + guidance)
     <sub-skill>/
       SKILL.md            # sub-skill for a specific topic
-commands/
-  <command-name>.md       # user-invoked slash commands
-scripts/
-  validate_skills.py      # skill linter
 ```
 
 **Skills** (`skills/`): passive knowledge triggered by description matching. Diagnosis and guidance. Read-only tools.
-
-**Commands** (`commands/`): user-invoked slash commands. Have `$ARGUMENTS`, `## Instructions`, write tools (`Write`, `Edit`, `Bash`).
 
 
 ## Writing a skill
@@ -43,20 +37,9 @@ Leaf skills contain the guidance an agent uses to help users.
 - Each section starts with `Use when:` one-liner
 - Bullets are imperative with inline doc links at the end
 - Ends with `## What NOT to Do` section
-- No code blocks (code lives in commands/, not skills/)
+- No code blocks in skills
 - Links go to `qdrant.tech/documentation/`, not raw GitHub
 - Target 40-80 lines; if over 80, consider splitting into hub + sub-skills
-
-
-## Validation
-
-Run the linter before opening a PR:
-
-```bash
-python3 scripts/validate_skills.py
-```
-
-This checks frontmatter, trigger phrases, section structure, permissions, and formatting.
 
 
 ## Conventions

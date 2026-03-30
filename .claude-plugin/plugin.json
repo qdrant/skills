@@ -1,6 +1,6 @@
 {
   "name": "qdrant",
-  "description": "Skills for the Qdrant vector search platform: Python SDK, search, filtering, hybrid search, and multi-tenancy",
+  "description": "Agent skills for Qdrant vector search: scaling, performance optimization, search quality, monitoring, deployment, model migration, version upgrades, and SDK usage",
   "version": "1.0.0",
   "author": {
     "name": "Qdrant"

@@ -9,7 +9,7 @@
     {
       "name": "qdrant",
       "source": "./",
-      "description": "Skills for the Qdrant vector search platform"
+      "description": "Agent skills for Qdrant vector search"
     }
   ]
 }
