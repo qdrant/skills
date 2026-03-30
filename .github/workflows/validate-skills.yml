@@ -1,6 +1,12 @@
 name: validate skills
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'commands/**'
+      - 'scripts/validate_skills.py'
   pull_request:
     paths:
       - 'skills/**'
