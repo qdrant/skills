@@ -24,7 +24,7 @@ Use when: pure vector search misses results that contain obvious keyword matches
 Use when: good recall but poor precision (right docs in top-100, not top-10).
 
 - Cross-encoder rerankers via FastEmbed [Rerankers](https://qdrant.tech/documentation/fastembed/fastembed-rerankers/)
-- Check on how to do [Multi-sate queries](https://qdrant.tech/documentation/concepts/hybrid-queries/#multi-stage-queries) in Qdrant
+- Check on how to do [Multistage queries](https://qdrant.tech/documentation/concepts/hybrid-queries/#multi-stage-queries) in Qdrant
 - ColBERT and ColPali/ColQwen reranking is especially precise due to late interaction mechanisms, however, heavy. It's important to configure & store multivectors without building HNSW for them, to save on resources, see more [Multivector-representation](https://qdrant.tech/documentation/tutorials-search-engineering/using-multivector-representations/)
 
 ## Right Documents Not Found But They Are There
@@ -33,12 +33,12 @@ Use when: basic retrieval is in place but the retriever misses relevant items yo
 
 Relevance Feedback (RF) Query uses a feedback model's scores on retrieved results to steer the retriever through the full vector space on subsequent iterations, like reranking the entire collection through the retriever. Complementary to reranking: a reranker sees a limited subset, RF leverages feedback signals collection-wide. Even 3–5 feedback scores are enough. Can run multiple iterations.
 
-A feedback model is anything producing a relevance score per document: a bi-encoder, cross-encoder, late-interaction model, LLM-as-judge. Fuzzy relevance scores work, not just binary (good/bad, relevant/irrelevant).
+A feedback model is anything producing a relevance score per document: a bi-encoder, cross-encoder, late-interaction model, LLM-as-judge. Fuzzy relevance scores work, not just binary (good/bad, relevant/irrelevant), due to the fact that feedback is expressed as a graded relevance score (higher = more relevant).
 
-Skip when: RF if the retriever already has strong recall, or if retriever and feedback model agree on relevance.
+Skip when: if the retriever already has strong recall, or if retriever and feedback model strongly agree on relevance.
 
-- RF Query is currently based on a [3-parameter naive formula](https://qdrant.tech/documentation/concepts/search-relevance/#naive-strategy) with no universal defaults — must be tuned per dataset, retriever, and feedback model
-- Use [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) to tune parameters, evaluate impact, and check retriever-feedback agreement. See README for setup instructions. No GPUs needed for running & framework has predefined retriever & feedback model options.
+- RF Query is currently based on a [3-parameter naive formula](https://qdrant.tech/documentation/concepts/search-relevance/#naive-strategy) with no universal defaults, so it must be tuned per dataset, retriever, and feedback model
+- Use [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) to tune parameters, evaluate impact with Evaluator, and check retriever-feedback agreement. See README for setup instructions. No GPUs needed for running & framework also provides predefined retriever & feedback model options.
 - Check configuration of [Relevance Feedback Query API](https://qdrant.tech/documentation/search/search-relevance/#relevance-feedback)
 - Use as a helper end-to-end text retrieval example with parameter tuning and evals to understand on how to use the API & run the `qdrant-relevance-feedback` framework: [RF tutorial](https://qdrant.tech/documentation/tutorials-search-engineering/using-relevance-feedback/)
 
@@ -50,13 +50,13 @@ Use when: top results are redundant, near-duplicates, or lack diversity. Common 
 - Start with `diversity=0.5`, lower for more precision, higher for more exploration
 - MMR is slower than standard search. Only use when redundancy is an actual problem.
 
-## Know What Good Results Look Like But Can't Get Them
+## Know What Good Results Could Look Like But Can't Get Them
 
 Use when: you can provide positive and negative example points to steer search closer to positive and further from negative.
 
 - Recommendation API: positive/negative examples to recommend fitting vectors [Recommendation API](https://qdrant.tech/documentation/concepts/explore/#recommendation-api)
   - Best score strategy: better for diverse examples, supports negative-only [Best score](https://qdrant.tech/documentation/concepts/explore/#best-score-strategy)
-- Discovery API: context pairs to constrain search regions without a target [Discovery](https://qdrant.tech/documentation/concepts/explore/#discovery-api)
+- Discovery API: context pairs (positive/negative) to constrain search regions without a request target [Discovery](https://qdrant.tech/documentation/concepts/explore/#discovery-api)
 
 ## Have Business Logic Behind Relevance
 Use when: results should be additionally ranked according to some business logic based on data, like recency or distance.
@@ -66,5 +66,5 @@ Check how to set up in [Score Boosting docs](https://qdrant.tech/documentation/s
 ## What NOT to Do
 
 - Use hybrid search before verifying pure vector quality (adds complexity, may mask model issues)
-- Use BM25 on non-English text without configuring stop-word removal (severely degraded results)
+- Use BM25 on non-English text without correctly configuring language-specific stop-word removal (severely degraded results)
 - Skip evaluation when adding relevance feedback (it's good to check on real queries that it actually could help)
