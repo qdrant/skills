@@ -5,13 +5,14 @@ on:
     branches: [main]
     paths:
       - 'skills/**'
-      - 'commands/**'
       - 'scripts/validate_skills.py'
   pull_request:
     paths:
       - 'skills/**'
-      - 'commands/**'
       - 'scripts/validate_skills.py'
+
+permissions:
+  contents: read
 
 jobs:
   lint:
