@@ -71,4 +71,4 @@ client.upload_points(
 )
 ```
 
-If snippet output is required in JSON format, you can add `&format=json` to the query string.
+Default response format is markdown, if snippet output is required in JSON format, you can add `&format=json` to the query string.
