@@ -8,6 +8,9 @@ on:
       - 'evals/**'
       - 'scripts/run_eval.py'
 
+permissions:
+  contents: read
+
 jobs:
   eval:
     runs-on: ubuntu-latest
