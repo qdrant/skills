@@ -62,30 +62,42 @@ def run_claude(prompt: str) -> str:
 
 
 def grade_response(response: str, expectations: list[str]) -> list[dict]:
-    grade_prompt = f"""Grade this response against each assertion. For each, output exactly one line:
-PASS|<assertion>|<brief evidence>
+    numbered = "\n".join(f"{i+1}. {e}" for i, e in enumerate(expectations))
+    grade_prompt = f"""Grade this response against each numbered assertion. For each, output exactly one line in this format:
+<number>|PASS|<brief evidence>
 or
-FAIL|<assertion>|<brief reason>
+<number>|FAIL|<brief reason>
 
 Response to grade:
 {response}
 
 Assertions:
-{chr(10).join(f'- {e}' for e in expectations)}
+{numbered}
 
-Output only the PASS/FAIL lines, nothing else."""
+Output only the numbered PASS/FAIL lines, nothing else."""
 
     output = run_claude(grade_prompt)
     results = []
-    for exp in expectations:
-        passed = False
-        evidence = "no grading output"
-        for line in output.strip().split("\n"):
-            if exp.lower()[:40] in line.lower():
-                passed = line.upper().startswith("PASS")
-                parts = line.split("|", 2)
+    # parse by assertion number
+    graded = {}
+    for line in output.strip().split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("|", 2)
+        if len(parts) >= 2:
+            try:
+                idx = int(parts[0].strip().rstrip("."))
+                verdict = parts[1].strip().upper()
                 evidence = parts[2].strip() if len(parts) > 2 else ""
-                break
+                graded[idx] = (verdict == "PASS", evidence)
+            except (ValueError, IndexError):
+                continue
+    for i, exp in enumerate(expectations):
+        if (i + 1) in graded:
+            passed, evidence = graded[i + 1]
+        else:
+            passed, evidence = False, "no grading output for this assertion"
         results.append({"text": exp, "passed": passed, "evidence": evidence})
     return results
 
