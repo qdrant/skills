@@ -6,7 +6,7 @@ description: "Guides Qdrant search strategy selection. Use when someone asks 'sh
 # How to Improve Search Results with Advanced Strategies
 
 These strategies complement basic vector search. Use them after confirming the embedding model is fitting the task and HNSW config is correct. If exact search returns bad results, verify the selection of the embedding model (retriever) first.
-If user wants to use weak embedding model (small but fast and cheap), you can use reranking or relevance feedback to increase its search quality.
+If the user wants to use a weaker embedding model because it is small, fast, and cheap, use reranking or relevance feedback to improve search quality.
 
 ## Missing Obvious Keyword Matches
 
@@ -17,15 +17,15 @@ Use when: pure vector search misses results that contain obvious keyword matches
 - For non-English languages, [configure sparse BM25 parameters accordingly](https://search.qdrant.tech/md/documentation/search/text-search/?s=language-specific-settings)
 - RRF: good default, supports weighted (v1.17+) [RRF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=reciprocal-rank-fusion-rrf)
 - DBSF with asymmetric limits (sparse_limit=250, dense_limit=100) can outperform RRF for technical docs [DBSF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)
-- Fusion can be also done through reranking
+- Fusion can also be done through reranking
 
 ## Right Documents Found But Wrong Order
 
 Use when: good recall but poor precision (right docs in top-100, not top-10).
 
 - Cross-encoder rerankers via FastEmbed [Rerankers](https://search.qdrant.tech/md/documentation/fastembed/fastembed-rerankers/)
-- Check on how to do [Multistage queries](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=multi-stage-queries) in Qdrant
-- ColBERT and ColPali/ColQwen reranking is especially precise due to late interaction mechanisms, however, heavy. It's important to configure & store multivectors without building HNSW for them, to save on resources, see more [Multivector-representation](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/using-multivector-representations/)
+- See how to use [Multistage queries](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=multi-stage-queries) in Qdrant
+- ColBERT and ColPali/ColQwen reranking is especially precise due to late interaction mechanisms, but it is heavy. It is important to configure and store multivectors without building HNSW for them to save resources. See [Multivector representation](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/using-multivector-representations/)
 
 ## Right Documents Not Found But They Are There
 
@@ -38,9 +38,9 @@ A feedback model is anything producing a relevance score per document: a bi-enco
 Skip when: if the retriever already has strong recall, or if retriever and feedback model strongly agree on relevance.
 
 - RF Query is currently based on a [3-parameter naive formula](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=naive-strategy) with no universal defaults, so it must be tuned per dataset, retriever, and feedback model
-- Use [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) to tune parameters, evaluate impact with Evaluator, and check retriever-feedback agreement. See README for setup instructions. No GPUs needed for running & framework also provides predefined retriever & feedback model options.
-- Check configuration of [Relevance Feedback Query API](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback)
-- Use as a helper end-to-end text retrieval example with parameter tuning and evals to understand on how to use the API & run the `qdrant-relevance-feedback` framework: [RF tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/using-relevance-feedback/)
+- Use [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) to tune parameters, evaluate impact with Evaluator, and check retriever-feedback agreement. See README for setup instructions. No GPUs are needed, and the framework also provides predefined retriever and feedback model options.
+- Check the configuration of the [Relevance Feedback Query API](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback)
+- Use this as a helper end-to-end text retrieval example with parameter tuning and evals to understand how to use the API and run the `qdrant-relevance-feedback` framework: [RF tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/using-relevance-feedback/)
 
 ## Results Too Similar
 

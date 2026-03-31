@@ -13,16 +13,16 @@ Here is a short summary of the patterns:
 
 ## Number of Tenants is around 10k
 
-Use default strategy of multitenancy via payload filtering.
+Use the default multitenancy strategy via payload filtering.
 
 Read about [Partition by payload](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/?s=partition-by-payload) and [Calibrate performance](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance) for best practices on indexing and query performance.
 
 
 ## Number of Tenants is around 100k and more
 
-At this scale, cluster may consist of several peers.
+At this scale, the cluster may consist of several peers.
 To localize tenant data and improve performance, use [custom sharding](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=user-defined-sharding) to assign tenants to specific shards based on tenant ID hash.
-This will localize tenant request to only specific nodes instead of broadcasting to all nodes, improving performance and reducing load on each node.
+This will localize tenant requests to specific nodes instead of broadcasting them to all nodes, improving performance and reducing load on each node.
 
 ## If tenants are unevenly sized
 

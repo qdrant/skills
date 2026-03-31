@@ -56,16 +56,15 @@ Use when: HNSW index build dominates total indexing time.
 
 ## HNSW index for multi-tenant collections
 
-If you have a multi-tenant use-case, where all data is split by some payload field (e.g. `tenant_id`), you can avoid building global HNSW index and instead rely on `payload_m` value to only build HNSW index for subsets of data.
+If you have a multi-tenant use case where all data is split by some payload field (e.g. `tenant_id`), you can avoid building a global HNSW index and instead rely on `payload_m` to build HNSW index only for subsets of data.
 Skipping global HNSW index can significantly reduce indexing time.
 
 See [Multi-tenant collections](https://search.qdrant.tech/md/documentation/manage-data/multitenancy/) for details.
 
-## Additional payload indexes is too slow
+## Additional Payload Indexes Are Too Slow
 
 Qdrant builds extra HNSW links for all payload indexes to ensure that quality of filtered vector search does not degrade.
-Some payload indexes (e.g. `text` type with long texts) can have very high number or 
-unique values per point, which can lead to long HNSW build time.
+Some payload indexes (e.g. `text` fields with long texts) can have a very high number of unique values per point, which can lead to long HNSW build time.
 
 You can disable building extra HNSW links for specific payload index and instead rely on slightly slower query-time strategies like ACORN.
 
@@ -77,5 +76,5 @@ Read more about ACORN in [documentation](https://search.qdrant.tech/md/documenta
 ## What NOT to Do
 
 - Do not create payload indexes AFTER HNSW is built (breaks filterable vector index)
-- Do not use `m=0` for bulk uploads into existing collection, it might drop existing HNSW and cause long reindexing 
+- Do not use `m=0` for bulk uploads into an existing collection, it might drop the existing HNSW and cause long reindexing 
 - Do not upload one point at a time (per-request overhead dominates)

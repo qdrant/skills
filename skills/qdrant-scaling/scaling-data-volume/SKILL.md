@@ -9,12 +9,12 @@ allowed-tools:
 
 # Scaling Data Volume
 
-This document covers scenarios of scaling for data volume,
- where the total size of the dataset exceeds the capacity of a single node.
+This document covers data volume scaling scenarios,
+where the total size of the dataset exceeds the capacity of a single node.
 
 ## Tenant Scaling
 
-If the use-case is multi-tenant, meaning that the single user only have access to a subset of the data, 
+If the use case is multi-tenant, meaning that each user only has access to a subset of the data,
 and we never need to query across all the data, then we can use multi-tenancy patterns to scale.
 
 The recommended way is to use multi-tenant workloads with payload partitioning, per-tenant indexes, and tiered multitenancy.
@@ -31,7 +31,7 @@ Learn more [Sliding Time Window](sliding-time-window/SKILL.md)
 ## Global Search
 
 Most general use-cases require global search across all data.
-In this situations, we might need to fallback to vertical scaling,
+In these situations, we might need to fall back to vertical scaling,
 and then horizontal scaling when we reach the limits of vertical scaling.
 
 

@@ -24,7 +24,7 @@ More on search speed optimization can be found in the [Search Speed Optimization
 
 ## Indexing Performance Optimization
 
-Qdrant needs to build vector index in order to perform efficient similarity search. The time it takes to build the index can vary depending on the size of your dataset, hardware or configuration.
+Qdrant needs to build a vector index to perform efficient similarity search. The time it takes to build the index can vary depending on the size of your dataset, hardware, and configuration.
 
 More on indexing performance optimization can be found in the [Indexing Performance Optimization](indexing-performance-optimization/SKILL.md) skill.
 
@@ -32,6 +32,6 @@ More on indexing performance optimization can be found in the [Indexing Performa
 ## Memory Usage Optimization
 
 Vector search can be memory intensive, especially when dealing with large datasets.
-Qdrant have a flexible memory management system, which allows you to precisely control which part of the storage is kept in memory and which part is stored on disk. This can help you optimize memory usage without sacrificing performance.
+Qdrant has a flexible memory management system, which allows you to precisely control which parts of storage are kept in memory and which are stored on disk. This can help you optimize memory usage without sacrificing performance.
 
 More on memory usage optimization can be found in the [Memory Usage Optimization](memory-usage-optimization/SKILL.md) skill.

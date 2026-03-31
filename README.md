@@ -32,7 +32,7 @@ Install using the [plugin marketplace](https://code.claude.com/docs/en/discover-
 
 ### Cursor
 
-Install from the Cursor Marketplace or add manually via **Settings > Rules > Add Rule > Remote Rule (Github)** with `qdrant/skills`.
+Install from the Cursor Marketplace or add manually via **Settings > Rules > Add Rule > Remote Rule (GitHub)** with `qdrant/skills`.
 
 ### npx skills
 
@@ -108,4 +108,4 @@ Found a bug or wrong advice in a skill? [Open an issue](https://github.com/qdran
 
 ## Contributing
 
-If you are interested in contributing follow the instructions in [CONTRIBUTING.md](./CONTRIBUTING.md).
+If you are interested in contributing, follow the instructions in [CONTRIBUTING.md](./CONTRIBUTING.md).

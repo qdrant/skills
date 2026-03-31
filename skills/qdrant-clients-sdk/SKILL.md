@@ -22,15 +22,14 @@ Qdrant has the following officially supported client SDKs:
 
 ## API Reference
 
-All interaction with Qdrant takes place via the REST API. We recommend using REST API if you are using Qdrant for the first time or if you are working on a 
-prototype.
+All interaction with Qdrant can happen through the REST API or gRPC API. We recommend using the REST API if you are using Qdrant for the first time or working on a prototype.
 
 * REST API - [OpenAPI Reference](https://api.qdrant.tech/api-reference) - [GitHub](https://github.com/qdrant/qdrant/blob/master/docs/redoc/master/openapi.json)
 * gRPC API - [gRPC protobuf definitions](https://github.com/qdrant/qdrant/tree/master/lib/api/src/grpc/proto)
 
 ## Code examples
 
-To obtain code examples for a specific client and use-case, you can make a search request to library of curated code snippets for Qdrant client.
+To obtain code examples for a specific client and use case, you can send a search request to the library of curated code snippets for the Qdrant client.
 
 ```bash
 curl -X GET "https://snippets.qdrant.tech/search?language=python&query=how+to+upload+points"
@@ -72,4 +71,4 @@ client.upload_points(
 )
 ```
 
-If snippet output is required in json format, you can add `&format=json` to the query string
+If snippet output is required in JSON format, you can add `&format=json` to the query string.
