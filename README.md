@@ -15,6 +15,17 @@
 Skills encode deep Qdrant knowledge so coding agents can make the engineering decisions that determine whether vector search works well: quantization, sharding, tenant isolation, hybrid search, model migration, and more.
 
 
+## Philosophy
+
+Skills are not documentation. Qdrant already has docs in markdown. Skills
+answer "when?" and "why?", not "how?"
+
+They are structured as the handbook of a Solutions Architect working on Qdrant:
+given a problem, navigate to the exact place in the documentation where the
+answer lives. No tutorials, no concept explanations. Only references and
+minimal snippets where absolutely necessary.
+
+
 ## Disclaimer
 
 These skills are under active development. Skill content and structure may change between versions as Qdrant evolves.
