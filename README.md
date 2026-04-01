@@ -33,25 +33,26 @@ These skills are under active development. Skill content and structure may chang
 
 ## Installation
 
+### npx skills
+
+Install using the [`npx skills`](https://skills.sh) CLI:
+
+```bash
+npx skills add qdrant/skills
+```
+
 ### Claude Code
 
-Install using the [plugin marketplace](https://code.claude.com/docs/en/discover-plugins#add-from-github):
+Add the marketplace, then install the skills you need:
 
 ```
 /plugin marketplace add qdrant/skills
+/plugin install qdrant-scaling@qdrant
 ```
 
 ### Cursor
 
 Install from the Cursor Marketplace or add manually via **Settings > Rules > Add Rule > Remote Rule (GitHub)** with `qdrant/skills`.
-
-### npx skills
-
-Install using the [`npx skills`](https://skills.sh) CLI:
-
-```
-npx skills add https://github.com/qdrant/skills
-```
 
 ### Clone / Copy
 
