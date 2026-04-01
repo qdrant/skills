@@ -43,6 +43,9 @@ Qdrant at scale.
 The first is a tutorial. The second is an integration guide. Neither is a
 skill, because neither requires operational judgment to write.
 
+Skills should not create maintenance obligations across external frameworks
+or SDKs. Reference the docs, don't replicate them.
+
 
 ## Structure
 
@@ -78,7 +81,7 @@ Leaf skills contain the guidance an agent uses to help users.
 - Each section starts with `Use when:` one-liner
 - Bullets are imperative with inline doc links at the end
 - Ends with `## What NOT to Do` section
-- No code blocks in skills beyond absolutely minimal snippets (substantial examples belong in framework docs, Qdrant docs, or [mcp-code-snippets](https://github.com/qdrant/mcp-code-snippets))
+- No code blocks in skills beyond absolutely minimal snippets (reference the docs instead)
 - Links go to `qdrant.tech/documentation/`, not raw GitHub
 - Target 40-80 lines; if over 80, consider splitting into hub + sub-skills
 
