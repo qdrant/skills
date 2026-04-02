@@ -1,5 +1,4 @@
 {
-  "$schema": "https://code.claude.com/schemas/marketplace.json",
   "name": "qdrant",
   "owner": {
     "name": "Qdrant",
