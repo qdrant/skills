@@ -43,11 +43,11 @@ npx skills add qdrant/skills
 
 ### Claude Code
 
-Add the marketplace, then install the skills you need:
+Add the marketplace, then install all Qdrant skills:
 
 ```
 /plugin marketplace add qdrant/skills
-/plugin install qdrant-scaling@qdrant
+/plugin install qdrant@qdrant
 ```
 
 ### Cursor
