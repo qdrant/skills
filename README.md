@@ -15,6 +15,17 @@
 Skills encode deep Qdrant knowledge so coding agents can make the engineering decisions that determine whether vector search works well: quantization, sharding, tenant isolation, hybrid search, model migration, and more.
 
 
+## Philosophy
+
+Skills are not documentation. Qdrant already has docs in markdown. Skills
+answer "when?" and "why?", not "how?"
+
+They are structured as the handbook of a Solutions Architect working on Qdrant:
+given a problem, navigate to the exact place in the documentation where the
+answer lives. No tutorials, no concept explanations. Only references and
+minimal snippets where absolutely necessary.
+
+
 ## Disclaimer
 
 These skills are under active development. Skill content and structure may change between versions as Qdrant evolves.
@@ -22,25 +33,26 @@ These skills are under active development. Skill content and structure may chang
 
 ## Installation
 
+### npx skills
+
+Install using the [`npx skills`](https://skills.sh) CLI:
+
+```bash
+npx skills add qdrant/skills
+```
+
 ### Claude Code
 
-Install using the [plugin marketplace](https://code.claude.com/docs/en/discover-plugins#add-from-github):
+Add the marketplace, then install all Qdrant skills:
 
 ```
 /plugin marketplace add qdrant/skills
+/plugin install qdrant@qdrant
 ```
 
 ### Cursor
 
 Install from the Cursor Marketplace or add manually via **Settings > Rules > Add Rule > Remote Rule (GitHub)** with `qdrant/skills`.
-
-### npx skills
-
-Install using the [`npx skills`](https://skills.sh) CLI:
-
-```
-npx skills add https://github.com/qdrant/skills
-```
 
 ### Clone / Copy
 

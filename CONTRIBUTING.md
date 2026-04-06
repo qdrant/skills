@@ -3,6 +3,50 @@
 Skills encode solutions architect knowledge for AI agents. Familiarity with [Qdrant documentation](https://qdrant.tech/documentation/) and the [Agent Skills standard](https://agentskills.io/) is recommended before contributing.
 
 
+## Philosophy
+
+Skills are not a different form of documentation or tutorials.
+
+Documentation answers "how?" Skills answer "when?" and "why?"
+
+Skills serve as agentic-friendly navigation to Qdrant documentation, not a
+replacement for it. They encode the judgment of a Solutions Architect: given a
+symptom, which part of the docs matters, what order to try things, and what to
+avoid. If the guidance could be written by reading a getting-started page for
+10 minutes, it's not a skill. Skills encode judgment that comes from operating
+Qdrant at scale.
+
+### Good skill
+
+```
+## What to do if memory usage is too high?
+- Check collection parameters [link to docs]
+- Apply quantization [link to choosing quantization]
+- Monitor memory usage in prod [link to grafana dashboard]
+```
+
+### Bad skill
+
+```
+## Multimodal RAG: Building Document Search
+- Build a RAG system using embeddings and Ollama for generation
+- Implement basic retrieval from a collection
+```
+
+```
+## Integrating Qdrant with Framework X
+- Install the framework package
+- Configure the vector store
+- Run a similarity search
+```
+
+The first is a tutorial. The second is an integration guide. Neither is a
+skill, because neither requires operational judgment to write.
+
+Skills should not create maintenance obligations across external frameworks
+or SDKs. Reference the docs, don't replicate them.
+
+
 ## Structure
 
 ```
@@ -37,7 +81,7 @@ Leaf skills contain the guidance an agent uses to help users.
 - Each section starts with `Use when:` one-liner
 - Bullets are imperative with inline doc links at the end
 - Ends with `## What NOT to Do` section
-- No code blocks in skills
+- No code blocks in skills beyond absolutely minimal snippets (reference the docs instead)
 - Links go to `qdrant.tech/documentation/`, not raw GitHub
 - Target 40-80 lines; if over 80, consider splitting into hub + sub-skills
 

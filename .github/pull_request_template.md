@@ -8,7 +8,6 @@
 <!-- check one -->
 - [ ] new skill
 - [ ] skill improvement
-- [ ] new command
 - [ ] bug fix
 - [ ] repo hygiene
 
@@ -16,10 +15,12 @@
 
 <!-- for new/improved skills, check all that apply -->
 - [ ] `python3 scripts/validate_skills.py` passes
+- [ ] skill answers "when?" or "why?", not "how?"
+- [ ] skill navigates to docs, does not duplicate or replace them
 - [ ] description has `Use when` with 5+ trigger phrases
 - [ ] leaf skills omit `allowed-tools`, hub skills declare them
 - [ ] ends with `## What NOT to Do` section
-- [ ] no code blocks in skills (code belongs in commands/)
+- [ ] no code blocks except minimal snippets when absolutely required (reference the docs instead)
 - [ ] all doc links go to `qdrant.tech/documentation/`
 - [ ] tested with a realistic prompt (paste below or link to eval)
 
