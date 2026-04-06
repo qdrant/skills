@@ -43,8 +43,8 @@ Every SKILL.md has YAML frontmatter (`name`, `description`) and a markdown body.
 
 ### Documentation links
 
-All links point to `qdrant.tech/documentation/`, inline at the end of bullets:
+All links point to `search.qdrant.tech/md/documentation/`, inline at the end of bullets:
 
 ```
-- Enable scalar quantization with `always_ram=true` [Scalar quantization](https://qdrant.tech/documentation/guides/quantization/#scalar-quantization)
+- Enable scalar quantization with `always_ram=true` [Scalar quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
 ```
