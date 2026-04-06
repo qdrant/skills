@@ -21,7 +21,7 @@
 - [ ] leaf skills omit `allowed-tools`, hub skills declare them
 - [ ] ends with `## What NOT to Do` section
 - [ ] no code blocks except minimal snippets when absolutely required (reference the docs instead)
-- [ ] all doc links go to `qdrant.tech/documentation/`
+- [ ] all doc links go to `search.qdrant.tech/md/documentation/`
 - [ ] tested with a realistic prompt (paste below or link to eval)
 
 ## Test prompt
