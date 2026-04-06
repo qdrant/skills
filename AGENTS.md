@@ -25,8 +25,18 @@ skills/
     scaling-qps/
     scaling-query-volume/
   qdrant-performance-optimization/
+    SKILL.md
+    indexing-performance-optimization/
+    memory-usage-optimization/
+    search-speed-optimization/
   qdrant-search-quality/
+    SKILL.md
+    diagnosis/
+    search-strategies/
   qdrant-monitoring/
+    SKILL.md
+    debugging/
+    setup/
   qdrant-clients-sdk/
   qdrant-deployment-options/
   qdrant-model-migration/
