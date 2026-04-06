@@ -82,7 +82,7 @@ Leaf skills contain the guidance an agent uses to help users.
 - Bullets are imperative with inline doc links at the end
 - Ends with `## What NOT to Do` section
 - No code blocks in skills beyond absolutely minimal snippets (reference the docs instead)
-- Links go to `qdrant.tech/documentation/`, not raw GitHub
+- Links go to `search.qdrant.tech/md/documentation/`, not raw GitHub
 - Target 40-80 lines; if over 80, consider splitting into hub + sub-skills
 
 
