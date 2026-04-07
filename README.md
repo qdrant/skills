@@ -94,6 +94,7 @@ Skills are triggered automatically when your question matches their description.
 | qdrant-performance-optimization | Search speed, memory usage, indexing performance |
 | qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
+| qdrant-agent-memory | Agent memory architecture: storage selection, admission control, retrieval scoring, isolation, provenance |
 | qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
 | qdrant-model-migration | Switching embedding models without downtime |
 | qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
