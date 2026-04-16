@@ -33,6 +33,9 @@ skills/
     SKILL.md
     diagnosis/
     search-strategies/
+      hybrid-search/
+        search-types/
+        combining-searches/
   qdrant-monitoring/
     SKILL.md
     debugging/
