@@ -1,6 +1,10 @@
 ---
 name: qdrant-hybrid-search
 description: "Explains hybrid search in Qdrant. Use when someone asks 'how do I setup hybrid search?', 'how to combine keyword and semantic search?', 'sparse plus dense vectors?', 'missing keyword matches', 'how to combine results from multiple searches?' and 'combining multiple representations'"
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
 ---
 
 # Hybrid Search in Qdrant
