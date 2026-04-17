@@ -33,7 +33,7 @@ What to remember when using sparse vectors for lexical search:
 
 What to remember when using Qdrant BM25 and miniCOIL (based on BM25):
 - avg_len in formula is not computed server-side, it is a user responsibility and passed as a parameter
-- Qdrant BM25 vectors might be not good for small chunks of text, as BM25 algorithm was initially created for search on long documents; consider adjusting document statistics in sparse vectors (TF & IDF, k, b).
+- BM25 might be not good for small chunks of text, as BM25 algorithm was initially created for search on long documents; consider adjusting document statistics in sparse vectors (TF & IDF, k, b).
 - Qdrant BM25 vectors are configured per language, so consider customizing stop words, stemming & tokenization when users documents mix several languages or carefully configure vectors per point when they are monolingual.
 
 More on [Sparse Vectors for Text Search](https://search.qdrant.tech/md/course/essentials/day-3/sparse-retrieval-demo/)
@@ -50,7 +50,7 @@ You can also search directly on [multivectors](https://search.qdrant.tech/md/doc
 
 However, it comes with several considerations, as multivectors were designed to support late interaction models using max similarity metric, so it's impossible to retrieve the list of individual max similarity scores for each query vector.
 
-Moreover, multivectors are rarely a good pick for retrieval:
+Moreover, multivectors are rarely a good pick for prefetch:
 - max similarity metric is not symmetric, so [using HNSW index with it could be problematic](https://search.qdrant.tech/md/course/multi-vector-search/module-1/maxsim-distance/#the-hnsw-challenge)
 - [multivector representations are very heavy, as search process on them](https://search.qdrant.tech/md/course/multi-vector-search/module-1/problems-multi-vector). 
 

@@ -31,9 +31,9 @@ If user wants to isolate/share hybrid search pipelines between tenants, consider
 
 - Indexes (sparse, payload and dense) and [IDF modifier](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=idf-modifier) for sparse vectors are computed independently **per shard**, not per **tenant**.
 - Prefetch runs independently per shard to retrieve #limit results, so for collection-level prefetches if collection has several shards, Qdrant will always prefetch under the hood #limit * #shard results. Final results are merged based on scores.
-- In nested prefetches (deeper than 1 level), methods described in "Combining Searches" will be done on a shard level first, then per-shards results once again will be merged based on scores.
+- In nested prefetches (deeper than 1 level), methods described in "Combining Searches" might be done on a shard level first, then per-shards results once again will be merged based on scores.
 
 ## What NOT to Do
 
 - Choose a hybrid search pattern based on "vibes" without any [hybrid search quality evaluation](https://search.qdrant.tech/md/articles/hybrid-search/?s=how-effective-is-your-search-system) in-place.
-- Create too many named vectors without a need. An unfilled named vector takes as many resources as a filled one.
+- Create too many named vectors without a need. An unfilled named vector might take as much resources as a filled one.

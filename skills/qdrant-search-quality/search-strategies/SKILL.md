@@ -48,7 +48,7 @@ Use when: top results are redundant, near-duplicates, or lack diversity. Common 
 - Start with `diversity=0.5`, lower for more precision, higher for more exploration
 - MMR is slower than standard search. Only use when redundancy is an actual problem.
 
-## Have Good (and Bad) Examples of Results, and Want Them to Affect Search
+## Want to improve search results based on examples (positive and negative)
 
 Use when: you can provide positive and negative example points to steer search closer to positive and further from negative.
 
