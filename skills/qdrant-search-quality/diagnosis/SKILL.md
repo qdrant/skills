@@ -35,7 +35,9 @@ Binary quantization requires rescore. Without it, quality loss is severe. Use ov
 
 Use when: exact search also returns bad results.
 
-Test top 3 MTEB models on 100-1000 sample queries, measure recall@10. Domain-specific models often outperform general models. [Hosted inference](https://search.qdrant.tech/md/documentation/inference/)
+Check [Qdrant team recommendations on how to choose an embedding model](https://search.qdrant.tech/md/articles/how-to-choose-an-embedding-model/).
+
+Test top 3 MTEB models on 100-1000 sample queries. [Hosted Qdrant inference](https://search.qdrant.tech/md/documentation/inference/)
 
 ## Unoptimized Search Pipeline
 
