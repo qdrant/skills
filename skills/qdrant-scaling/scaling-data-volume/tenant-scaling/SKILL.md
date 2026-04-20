@@ -21,7 +21,7 @@ Read about [Partition by payload](https://search.qdrant.tech/md/documentation/ma
 ## Number of Tenants is around 100k and more
 
 At this scale, the cluster may consist of several peers.
-To localize tenant data and improve performance, use [custom sharding](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=user-defined-sharding) to assign tenants to specific shards based on tenant ID hash.
+To localize tenant data and improve performance, use [custom sharding](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=user-defined-sharding) to assign tenants to specific shards based on tenant ID hash.
 This will localize tenant requests to specific nodes instead of broadcasting them to all nodes, improving performance and reducing load on each node.
 
 ## If tenants are unevenly sized

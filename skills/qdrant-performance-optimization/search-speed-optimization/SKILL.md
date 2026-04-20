@@ -25,7 +25,7 @@ Use when: individual queries take too long regardless of load.
 
 ### Common fixes:
 
-- Tune HNSW parameters: [Fine-tuning search](https://search.qdrant.tech/md/documentation/operations/optimize/?s=fine-tuning-search-parameters)
+- Tune HNSW parameters: [Fine-tuning search](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Enable in-memory quantization: [Scalar quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://search.qdrant.tech/md/documentation/inference/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
@@ -36,10 +36,10 @@ Use when: individual queries take too long regardless of load.
 
 Use when: system can't serve enough queries per second under load.
 
-- Reduce segment count (`default_segment_number` to 2) [Maximizing throughput](https://search.qdrant.tech/md/documentation/operations/optimize/?s=maximizing-throughput)
+- Reduce segment count (`default_segment_number` to 2) [Maximizing throughput](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=maximizing-throughput)
 - Use batch search API instead of single queries [Batch search](https://search.qdrant.tech/md/documentation/search/search/?s=batch-search-api)
 - Enable quantization to reduce CPU cost [Scalar quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
-- Add replicas to distribute read load [Replication](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=replication)
+- Add replicas to distribute read load [Replication](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=replication)
 
 
 ## Filtered Search Is Slow
