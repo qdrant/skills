@@ -11,9 +11,9 @@ Low latency optimization is aimed at utilising maximum resource saturation for a
 
 ## Performance Tuning for Lower Latency
 
-- Increase segment count to match CPU cores (`default_segment_number: 16`) [Minimizing latency](https://search.qdrant.tech/md/documentation/operations/optimize/?s=minimizing-latency)
+- Increase segment count to match CPU cores (`default_segment_number: 16`) [Minimizing latency](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=minimizing-latency)
 - Keep quantized vectors and HNSW in RAM (`always_ram=true`)
-- Reduce `hnsw_ef` at query time (trade recall for speed) [Search params](https://search.qdrant.tech/md/documentation/operations/optimize/?s=fine-tuning-search-parameters)
+- Reduce `hnsw_ef` at query time (trade recall for speed) [Search params](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Use local NVMe, avoid network-attached storage
 
 ## Memory Pressure and Latency

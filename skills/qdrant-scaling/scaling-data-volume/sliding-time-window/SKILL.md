@@ -12,7 +12,7 @@ Three strategies: **shard rotation** (recommended), **collection rotation** (whe
 
 ## Shard Rotation (Recommended)
 
-Use when: data has natural time boundaries (daily, weekly, monthly). Preferred because queries span all time periods in one request without application-level fan-out. [User-defined sharding](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=user-defined-sharding)
+Use when: data has natural time boundaries (daily, weekly, monthly). Preferred because queries span all time periods in one request without application-level fan-out. [User-defined sharding](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=user-defined-sharding)
 
 1. Create a collection with user-defined sharding enabled
 2. Create one shard key per time period (e.g., `2025-01`, `2025-02`, ..., `2025-06`)

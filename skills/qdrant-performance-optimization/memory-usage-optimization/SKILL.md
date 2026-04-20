@@ -15,7 +15,7 @@ It is normal for the OS page cache to occupy all available RAM, but if resident 
 
 ## Memory usage monitoring
 
-- Qdrant exposes memory usage through the `/metrics` endpoint. See [Monitoring docs](https://search.qdrant.tech/md/documentation/operations/monitoring/).
+- Qdrant exposes memory usage through the `/metrics` endpoint. See [Monitoring docs](https://search.qdrant.tech/md/documentation/ops-monitoring/monitoring/).
 
 <!-- ToDo: Talk about memory usage of each components once API is available -->
 
@@ -24,7 +24,7 @@ It is normal for the OS page cache to occupy all available RAM, but if resident 
 
 Optimal memory usage depends on the use case.
 
-- For regular search scenarios, general guidelines are provided in the [Capacity planning docs](https://search.qdrant.tech/md/documentation/operations/capacity-planning/).
+- For regular search scenarios, general guidelines are provided in the [Capacity planning docs](https://search.qdrant.tech/md/documentation/capacity-planning/).
 
 For a detailed breakdown of memory usage at large scale, see [Large scale memory usage example](https://search.qdrant.tech/md/documentation/tutorials-operations/large-scale-search/?s=memory-usage).
 
@@ -41,7 +41,7 @@ There are some scenarios, however, when it can be a good option:
 
 - Deployments with low latency disks - local NVMe or similar.
 - Multi-tenant deployments, where only a subset of tenants is frequently accessed, so that only a fraction of data & index is loaded in RAM at a time.
-- For deployments with [inline storage](https://search.qdrant.tech/md/documentation/operations/optimize/?s=inline-storage-in-hnsw-index) enabled.
+- For deployments with [inline storage](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=inline-storage-in-hnsw-index) enabled.
 
 
 ## How to minimize memory footprint
