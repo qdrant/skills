@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${SITE_URL:-https://qdrant-skills.netlify.app}"
+BASE_URL="${SITE_URL:-https://skills.qdrant.tech}"
 PUBLIC_DIR="${1:-public}"
 OUTPUT="${PUBLIC_DIR}/sitemap.xml"
 TODAY=$(date -u +"%Y-%m-%d")
