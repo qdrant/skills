@@ -8,7 +8,13 @@
   status = 200
 
 [[headers]]
-  for = "/*"
+  for = "/*.md"
   [headers.values]
     Content-Type = "text/markdown; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
     Access-Control-Allow-Origin = "*"
