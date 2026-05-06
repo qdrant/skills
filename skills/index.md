@@ -12,3 +12,6 @@ Agent skills encoding deep Qdrant knowledge for coding agents.
 - [qdrant-scaling](qdrant-scaling/SKILL.md) — Scaling decisions: data volume, QPS, latency, horizontal vs vertical.
 - [qdrant-search-quality](qdrant-search-quality/SKILL.md) — Diagnosing bad results, search strategies, hybrid search, and reranking.
 - [qdrant-version-upgrade](qdrant-version-upgrade/SKILL.md) — Safe upgrade paths, compatibility guarantees, and rolling upgrades.
+
+Skills strucure is hierarchical.
+You can use search: https://skills.qdrant.tech/search?query=your+query+here
