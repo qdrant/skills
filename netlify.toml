@@ -13,6 +13,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/md/*"
+  to = "https://search.qdrant.tech/md/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*.md"
   [headers.values]
