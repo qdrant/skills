@@ -7,6 +7,12 @@
   to = "/index.md"
   status = 200
 
+[[redirects]]
+  from = "/search/*"
+  to = "https://search.qdrant.tech/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*.md"
   [headers.values]
