@@ -18,5 +18,5 @@ jobs:
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --verbose --no-progress '**/*.md'
+          args: --verbose --no-progress --remap '^/md/(.*)$ https://search.qdrant.tech/md/$1' '**/*.md'
           fail: true
