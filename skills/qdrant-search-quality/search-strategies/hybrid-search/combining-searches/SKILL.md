@@ -30,6 +30,11 @@ If you want to implement custom fusion on `score` of each prefetch:
 - Parameters of these expressions should be based on the collection & retriever score distributions (for example, adjusting these parameters on a subsample of real queries). 
 - Formula query is unable to provide ranks for custom fusions 
 
+When using `FormulaQuery` over multiple prefetches (e.g. per-representation weighting):
+- `$score[i]` indexes prefetches in declaration order. Reordering the `prefetch=` list silently shifts which weight applies to which retriever.
+- Provide `defaults` for every `$score[i]` so the formula still evaluates for candidates that surfaced from only a subset of prefetches.
+- Start with RRF when scores are on incomparable scales (e.g. BM25 + cosine). Reach for `FormulaQuery` only when explicit per-representation weighting or payload-driven boosts are required, and normalize each `$score[i]` (decay or min-max on a sampled distribution) before combining linearly.
+
 ## Need Good Ranking of Fused Candidates and Ready To Spend More Resources
 
 Use when: you want to use similarity between query and candidates' vector representations as the prefetches combiner and simultaneously ranker. 

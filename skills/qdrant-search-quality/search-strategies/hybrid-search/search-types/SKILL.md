@@ -32,7 +32,7 @@ What to remember when using sparse vectors for lexical search:
 - tokenization and stemming affect exact matches, especially on custom codes, terms, etc.
 
 What to remember when using Qdrant BM25 and miniCOIL (based on BM25):
-- avg_len in formula is not computed server-side, it is a user responsibility and passed as a parameter
+- `avg_len` in formula is not computed server-side, it is a user responsibility and passed as a parameter. Calibrate per field — defaults assume document-length text; short fields (titles, tags) need a much smaller value or BM25 scoring is skewed (`avg_len=256` against a 10-word title overweights term frequency).
 - BM25 might be not good for small chunks of text, as BM25 algorithm was initially created for search on long documents; consider adjusting document statistics in sparse vectors (TF & IDF, k, b).
 - Qdrant BM25 vectors are configured per language, so consider customizing stop words, stemming & tokenization when users documents mix several languages or carefully configure vectors per point when they are monolingual.
 
@@ -40,11 +40,16 @@ More on [Sparse Vectors for Text Search](https://search.qdrant.tech/md/course/es
 
 ## Need to Combine Multiple Representations of the Same Item
 
-Use when: the same item is embedded in multiple ways (e.g. different models, languages, or modalities) and you want to search across different representations in one request (don't have to be all of them, can be even one).
+Use when: the same item is embedded in multiple ways (e.g. different models, languages, modalities, or different fields like title/abstract/chunk) and you want to search across different representations in one request (don't have to be all of them, can be even one).
 
 Use multiple named vector prefetches, each prefetch covers one representation.
 
-- If you have groups and subgroups of representations (document -> chunk, image -> patch), you could use [searching in groups](https://search.qdrant.tech/md/documentation/search/search/?s=search-groups). To not store identical payloads several times, check [Lookup in Groups](https://search.qdrant.tech/md/documentation/search/search/#lookup-in-groups)
+A representation only earns its own prefetch if it carries signal independent of the others — e.g. title vocabulary the body never repeats, or an abstract treated as a single semantic unit vs. individual chunks. Don't add a prefetch per field reflexively; verify each candidate contributes content the other vectors don't.
+
+- End-to-end worked example fusing title, abstract, chunk, and sparse-title named vectors with RRF and document-level grouping in one Query API call: [Multi-Representation Search tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/multi-representation-search/)
+- If you have groups and subgroups of representations (document -> chunk, image -> patch), you could use [searching in groups](https://search.qdrant.tech/md/documentation/search/search/?s=search-groups). To not store identical payloads several times, check [Lookup in Groups](https://search.qdrant.tech/md/documentation/search/search/#lookup-in-groups). Index the grouping payload field (e.g. `document_id`) as a keyword payload index before grouping.
+- When grouping chunk-level points back to documents, each prefetch only contributes the candidates it returned — so size per-prefetch `limit` well above the final document `limit` (rule of thumb: `prefetch_limit ≥ final_limit × expected_chunks_per_document`), otherwise a few documents with many chunks saturate the candidate pool and relevant documents drop silently. Validate grouped recall on a labeled sample.
+- When per-document vectors (title, abstract) would be duplicated across every chunk-level point, the duplication can dominate storage at scale. Keeping them denormalized in one collection makes queries simpler (single Query API call, every representation reachable from any point); a sidecar collection joined via [Lookup in Groups](https://search.qdrant.tech/md/documentation/search/search/#lookup-in-groups) is the alternative when storage matters.
 
 You can also search directly on [multivectors](https://search.qdrant.tech/md/documentation/manage-data/vectors/?s=multivectors), a matrix of dense vectors, in a prefetch.
 
