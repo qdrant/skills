@@ -39,7 +39,7 @@ You can use any type of vector as an outer query over the prefetches, to perform
 
 Instead of using client-side fusion through cross-encoders, a popular option is **Late interaction models-based fusion**, through reranking on multivectors (e.g. ColBERT for text, ColPali and ColQwen for images).
 - Most precise but highest compute/resource usage.
-- Configure multivectors used for fusion through reranking with HNSW disabled like in [Hybrid Search with Reranking tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/reranking-hybrid-search/).
+- Configure multivectors used for fusion through reranking with HNSW disabled like in [Hybrid Search with Reranking tutorial](https://search.qdrant.tech/md/documentation/tutorials-basics/reranking-hybrid-search/).
 
 ## What NOT to Do
 
