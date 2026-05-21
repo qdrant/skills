@@ -36,13 +36,15 @@ Careful, the alias swap only redirects queries. Payloads must be re-uploaded sep
 
 Use when: A/B testing models, multi-modal (dense + sparse), or evaluating a new model before committing.
 
-You cannot add a named vector to an existing collection. Create a new collection with both vector fields defined upfront:
+- v1.18+: Use `PUT /collections/{name}/vectors/{new_vector_name}` to add the new vector field directly to the existing collection, then backfill with `UpdateVectors`.
 
-- Create new collection with old and new named vectors both defined [Collection with multiple vectors](https://search.qdrant.tech/md/documentation/manage-data/collections/?s=collection-with-multiple-vectors)
-- Migrate data from old collection, preserving existing vectors in the old named field
-- Backfill new model embeddings incrementally using `UpdateVectors` [Update vectors](https://search.qdrant.tech/md/documentation/manage-data/points/?s=update-vectors)
-- Compare quality by querying with `using: "old_model"` vs `using: "new_model"`
-- Swap alias to new collection once satisfied
+- Pre-v1.18: You cannot add a named vector to an existing collection. Create a new collection with both vector fields defined upfront:
+
+  - Create new collection with old and new named vectors both defined [Collection with multiple vectors](https://search.qdrant.tech/md/documentation/manage-data/collections/?s=collection-with-multiple-vectors)
+  - Migrate data from old collection, preserving existing vectors in the old named field
+  - Backfill new model embeddings incrementally using `UpdateVectors` [Update vectors](https://search.qdrant.tech/md/documentation/manage-data/points/?s=update-vectors)
+  - Compare quality by querying with `using: "old_model"` vs `using: "new_model"`
+  - Swap alias to new collection once satisfied
 
 Co-locating large multi-vectors (especially ColBERT) with dense vectors degrades ALL queries, even those only using dense. At millions of points, users report 13s latency dropping to 2s after removing ColBERT. Put large vectors on disk during side-by-side migration.
 
@@ -77,7 +79,7 @@ For 400GB+ datasets, expect days. For small datasets (<25MB), re-indexing from s
 
 ## What NOT to Do
 
-- Assume you can add named vectors to an existing collection (must be defined at creation time)
+- Assume you can add named vectors to an existing collection on pre-v1.18 servers — check your server version first (`GET /` returns it)
 - Delete the old collection before verifying the new one
 - Forget to update the query embedding model in your application code
 - Skip payload migration when using alias swap (aliases redirect queries, they do not copy data)
