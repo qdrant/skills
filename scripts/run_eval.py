@@ -34,6 +34,12 @@ SKILL_MAP = {
         "skills/qdrant-scaling/SKILL.md",
         "skills/qdrant-scaling/scaling-qps/SKILL.md",
     ],
+    7: [
+        "skills/qdrant-search-quality/SKILL.md",
+        "skills/qdrant-search-quality/search-strategies/SKILL.md",
+        "skills/qdrant-search-quality/search-strategies/hybrid-search/SKILL.md",
+        "skills/qdrant-search-quality/search-strategies/hybrid-search/search-types/SKILL.md",
+    ],
 }
 
 
