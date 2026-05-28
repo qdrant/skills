@@ -11,6 +11,9 @@ eval-results.json
 *.swp
 *.swo
 
+# Build output
+public/
+
 # Python
 __pycache__/
 *.pyc

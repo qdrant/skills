@@ -13,7 +13,7 @@ High throughput favors fewer, larger segments so each query touches less overhea
 
 ## Performance Tuning for Higher RPS
 
-- Use fewer, larger segments (`default_segment_number: 2`) [Maximizing throughput](https://search.qdrant.tech/md/documentation/operations/optimize/?s=maximizing-throughput)
+- Use fewer, larger segments (`default_segment_number: 2`) [Maximizing throughput](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=maximizing-throughput)
 - Enable quantization with `always_ram=true` to reduce disk IO [Quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/)
 - Use batch search API to amortize overhead [Batch search](https://search.qdrant.tech/md/documentation/search/search/?s=batch-search-api)
 
@@ -31,7 +31,7 @@ If a single node is saturated on CPU after applying the tuning above, scale hori
 
 - Shard replicas serve queries from replicated shards, distributing read load across nodes
 - Each replica adds independent query capacity without re-sharding
-- Use `replication_factor: 2+` and route reads to replicas [Distributed deployment](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=replication)
+- Use `replication_factor: 2+` and route reads to replicas [Distributed deployment](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=replication)
 
 See also [Horizontal Scaling](../scaling-data-volume/horizontal-scaling/SKILL.md) for general horizontal scaling guidance.
 
@@ -44,7 +44,7 @@ In this case:
 - Upgrade to provisioned IOPS or local NVMe first. See impact of disk performance to vector search in [Disk performance article](https://qdrant.tech/articles/memory-consumption/)
 - Use `io_uring` on Linux (kernel 5.11+) [io_uring article](https://qdrant.tech/articles/io_uring/)
 - In case of quantized vectors, prefer global rescoring over per-segment rescoring to reduce disk reads. Example in the [tutorial](https://search.qdrant.tech/md/documentation/tutorials-operations/large-scale-search/?s=search-query)
-- Configure higher number of search threads to parallelize disk reads. Default is `cpu_count - 1`, which is optimal for RAM-based search but may be too low for disk-based search. See [configuration reference](https://search.qdrant.tech/md/documentation/operations/configuration/?s=configuration-options)
+- Configure higher number of search threads to parallelize disk reads. Default is `cpu_count - 1`, which is optimal for RAM-based search but may be too low for disk-based search. See [configuration reference](https://search.qdrant.tech/md/documentation/ops-configuration/configuration/?s=configuration-options)
 - If still saturated, scale out horizontally (each node adds independent IOPS)
 
 

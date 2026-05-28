@@ -7,7 +7,7 @@ description: "Diagnoses and fixes slow Qdrant indexing and data ingestion. Use w
 
 Qdrant does NOT build HNSW indexes immediately. Small segments use brute-force until they exceed `indexing_threshold_kb` (default: 20 MB). Search during this window is slower by design, not a bug.
 
-- Understand the indexing optimizer [Indexing optimizer](https://search.qdrant.tech/md/documentation/operations/optimizer/?s=indexing-optimizer)
+- Understand the indexing optimizer [Indexing optimizer](https://search.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=indexing-optimizer)
 
 
 ## Uploads/Ingestion Too Slow
@@ -22,7 +22,7 @@ For client-side, optimize batching and parallelism:
 
 For server-side, optimize Qdrant configuration and indexing strategy:
 
-- Create more shards (3-12), each shard has an independent update worker [Sharding](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=sharding)
+- Create more shards (3-12), each shard has an independent update worker [Sharding](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=sharding)
 - Create payload indexes before HNSW builds (needed for filterable vector index) [Payload index](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
 
 Suitable for initial bulk load of large datasets:
@@ -39,7 +39,7 @@ See https://search.qdrant.tech/md/documentation/tutorials-develop/bulk-upload/
 
 Use when: optimizer running for hours, not finishing.
 
-- Check actual progress via optimizations endpoint (v1.17+) [Optimization monitoring](https://search.qdrant.tech/md/documentation/operations/optimizer/?s=optimization-monitoring)
+- Check actual progress via optimizations endpoint (v1.17+) [Optimization monitoring](https://search.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=optimization-monitoring)
 - Large merges and HNSW rebuilds legitimately take hours on big datasets
 - Check CPU and disk I/O (HNSW is CPU-bound, merging is I/O-bound, HDD is not viable)
 - If `optimizer_status` shows an error, check logs for disk full or corrupted segments
@@ -51,8 +51,8 @@ Use when: HNSW index build dominates total indexing time.
 
 - Reduce `m` (default 16, good for most cases, 32+ rarely needed) [HNSW params](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Reduce `ef_construct` (100-200 sufficient) [HNSW config](https://search.qdrant.tech/md/documentation/manage-data/collections/?s=indexing-vectors-in-hnsw)
-- Keep `max_indexing_threads` proportional to CPU cores [Configuration](https://search.qdrant.tech/md/documentation/operations/configuration/)
-- Use GPU for indexing [GPU indexing](https://search.qdrant.tech/md/documentation/operations/running-with-gpu/)
+- Keep `max_indexing_threads` proportional to CPU cores [Configuration](https://search.qdrant.tech/md/documentation/ops-configuration/configuration/)
+- Use GPU for indexing [GPU indexing](https://search.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
 
 ## HNSW index for multi-tenant collections
 

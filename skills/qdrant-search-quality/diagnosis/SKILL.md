@@ -23,7 +23,7 @@ Payload filtering and sparse vector search are different things. Metadata (dates
 
 Use when: exact search returns good results but HNSW approximation misses them.
 
-- Increase `hnsw_ef` at query time [Search params](https://search.qdrant.tech/md/documentation/operations/optimize/?s=fine-tuning-search-parameters)
+- Increase `hnsw_ef` at query time [Search params](https://search.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Increase `ef_construct` (200+ for high quality) [HNSW config](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Increase `m` (16 default, 32 for high recall) [HNSW config](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Enable oversampling + rescore with quantization [Search with quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
@@ -35,7 +35,9 @@ Binary quantization requires rescore. Without it, quality loss is severe. Use ov
 
 Use when: exact search also returns bad results.
 
-Test top 3 MTEB models on 100-1000 sample queries, measure recall@10. Domain-specific models often outperform general models. [Hosted inference](https://search.qdrant.tech/md/documentation/inference/)
+Check [Qdrant team recommendations on how to choose an embedding model](https://search.qdrant.tech/md/articles/how-to-choose-an-embedding-model/).
+
+Test top 3 MTEB models on 100-1000 sample queries. [Hosted Qdrant inference](https://search.qdrant.tech/md/documentation/inference/)
 
 ## Unoptimized Search Pipeline
 

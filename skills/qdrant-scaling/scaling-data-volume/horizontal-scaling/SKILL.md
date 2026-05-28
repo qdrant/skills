@@ -31,7 +31,7 @@ Resharding is designed to be transparent for user operations, updates and search
 
 But resharding operation itself is time-consuming and requires to move large amounts of data between nodes.
 
-- Available in Qdrant Cloud [Resharding](https://search.qdrant.tech/md/documentation/operations/distributed_deployment/?s=resharding)
+- Available in Qdrant Cloud [Resharding](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=resharding)
 - Resharding is not available for self-hosted deployments.
 
 Better alternatives: over-provision shards initially, or spin up new cluster with correct config and migrate data.
