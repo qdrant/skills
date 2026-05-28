@@ -49,7 +49,7 @@ Use when: RAM usage, query latency, or collection size grows faster than expecte
 - Check admission quality first; duplicate memories and indiscriminate storage are the usual reason memory systems become expensive
 - Check filter design next; if `session_id` or `agent_id` is in every query and not indexed, filtered retrieval becomes an avoidable bottleneck [Payload Index](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
 - Use scalar quantization when memory usage exceeds dataset expectations and recall remains acceptable; it is the default compression tradeoff for shrinking memory footprint without redesigning the system [Scalar Quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization), [Memory usage optimization](../qdrant-performance-optimization/memory-usage-optimization/SKILL.md)
-- Capacity planning must account for vectors, payload, indexes, and optimization headroom rather than raw embedding size alone [Capacity planning](https://search.qdrant.tech/md/documentation/operations/capacity-planning/)
+- Capacity planning must account for vectors, payload, indexes, and optimization headroom rather than raw embedding size alone [Capacity planning](https://search.qdrant.tech/md/documentation/capacity-planning/)
 
 ## Preserve Provenance
 
