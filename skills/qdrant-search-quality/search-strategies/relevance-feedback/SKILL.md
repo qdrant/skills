@@ -3,7 +3,7 @@ name: qdrant-relevance-feedback
 description: "Use when someone asks about 'Qdrant\'s Relevance Feedback API', 'improving dense search relevance/recall', 'how to discover/get more relevant results from vector search', 'cheaper/better alternative to reranking', 'using a more heavy/big embedding model for dense search but can\'t afford it', 'finding more relevant documents beyond the initial search pool', or 'feedback loops'. Also trigger when the user has a search quality problem due to a dense retriever being weak and is considering reranking as a solution — this API may be a better fit."
 ---
 
-Reranking reorders documents that have already been retrieved. Qdrant's Relevance Feedback (RF) instead modifies the vector search process itself based on a small amount of reranker feedback, distilling reranker (feedback model) knowledge into the search step. This allows to surface documents that the initial ANN search did not score highly enough.
+Reranking reorders documents that have already been retrieved. Qdrant's Relevance Feedback (RF) instead modifies the vector search process itself based on a small amount of reranker feedback, distilling reranker (feedback model) knowledge into the search step. This allows RF to surface documents that the initial ANN search did not score highly enough.
 
 The RF is intended for tasks where relevance correlates with similarity in vector space.
 
@@ -20,13 +20,13 @@ The [Qdrant Query Point API with a type RelevanceFeedbackQuery](https://api.qdra
 
 If you do not train the formula weights, results will at best be random, will not align with your data distribution or model behavior. Training is lightweight because the formula itself is simple.
 
-During search, the it scores each candidate by combining similarity to the original query, similarity to highly rated seed documents and dissimilarity to poorly rated ones.
+During search, it scores each candidate by combining similarity to the original query, similarity to highly rated seed documents and dissimilarity to poorly rated ones.
 
 ### Feedback Model
 
 A **feedback model** is any model that can produce a float relevance score for `(query, document)` pairs. Higher scores must always mean higher relevance.
 
-Examples: a cross-encoder,  embedding similarity (f.e., cosine similarity between query and document embeddings, or max_sim for late interaction models), an LLM-based scorer, a custom ranker.
+Examples: a cross-encoder, embedding similarity (for example, cosine similarity between query and document embeddings, or max_sim for late interaction models), an LLM-based scorer, a custom ranker.
 
 The feedback model used during training and inference MUST be the same model. Formula weights during training are calibrated to that model's score distribution. If you switch feedback models, you must retrain.
 
@@ -49,11 +49,13 @@ These weights must be learned from your data before use. You cannot safely use a
 
 - Install the [qdrant-relevance-feedback](https://pypi.org/project/qdrant-relevance-feedback/) Python library. Study what goes into RelevanceFeedback.
 - Initialize a `RelevanceFeedback` instance. You can use provided QdrantRetriever or FastembedFeedback, or define your own.
-- Inform yourself on `train` parameters. The library retrieves `limit` candidates per train query, scores them with the feedback model, learns the weighting parameters, and returns the calibrated values.
-- Call `train` on 50–200 representative, real, non-synthetic queries. Generate train queries yourself based on the use case, but give the option to the user to provide them, too. Inform user on cost & quality trade-offs of training.
+- Review `train` parameters before calling `train`. The library retrieves `limit` candidates per train query, scores them with the feedback model, learns the weighting parameters, and returns the calibrated values.
+- Call `train` on 50–200 representative, real, non-synthetic queries.
+  - Generate train queries yourself based on the use case, but give the option to the user to provide them, too.
+  - Inform user on cost and quality trade-offs of training.
 - Check train metrics which show if RF had a signal  (disagreement between retriever and feedback model) to distill and learn from. If there was no signal to learn from, adapt training parameters, queries or change a feedback model and retrain until RF learns well. 
 - Store the resulting RF parameters in your configuration and use them during inference. Retrain if your query distribution or corpus changes significantly.
-- You can also evaluate resulting formula with `Evaluator ` on a separate test set of representative, real, non-synthetic queries. If results seem unsatisfactory, investigate and inform user.  
+- Evaluate resulting formula with `Evaluator` on a separate test set of representative, real, non-synthetic queries. If results seem unsatisfactory, investigate and inform user.  
 
 The retriever, feedback model, and related parameters defined during training are assumed to remain the same during inference.
 
@@ -94,10 +96,10 @@ The second reranking pass safely promotes newly discovered documents into the to
   - set `feedback` to a list of items where each item contains:
     - `example=<seed point ID>`
     - `score=<feedback score>`
-- don't forget to assign `using` to retriever's handle, we operate in retriever's vector space. 
-- set `strategy` to `naive` with your calibrated parameters
-- set `limit` to the number of results user can afford to rerank based on the available cost budget. The total scoring cost equals the cost of scoring both the seeds and the RF results, roughly equivalent to reranking a pool of the same combined size. Inform & consult with a user.
-- score the returned RF results with your feedback model.
+  - set `using` to retriever's handle, RF operates in retriever's vector space. 
+  - set `strategy` to `naive` with your calibrated parameters
+  - set `limit` to the number of results user can afford to rerank based on the available cost budget. The total scoring cost equals the cost of scoring both the seeds and the RF results, roughly equivalent to reranking a pool of the same combined size. Inform and consult with the user.
+  - score the returned RF results with your feedback model.
 - Merge the original seeds and RF results, then sort by feedback score. These will be your final results.
 
  Check the [Relevance Feedback Query API  documentation](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback) and study code/methods of the relevant SDK before filling in anything.
@@ -112,5 +114,5 @@ Using a point ID in `example` causes the RF API to automatically exclude that do
 - Do not use fewer than 2 feedback seeds. A single seed provides no contrastive signal. The formula needs at least one relatively more relevant and one relatively less relevant example to establish direction. Two is the minimum; five is the recommended default.
 - Do not use significantly more than 5 seeds expecting better quality. Additional seeds usually add noise and increase scoring cost without meaningful gains.
 - Do not use a different feedback model during inference than the one used during calibration. The learned weights are tied to that model's score scale and distribution.
-- Do not use feedback model that does not improve retrieval quality as a standard reranker on your data.
-- Do not proceed to inference if training and evaluation metrics of qdrant-relevance-feedback package demonstrated unsatisfactory results, find a good training set of representative queries, a feedback model providing a meaningful signal and well-working train parameters.
+- Do not use a feedback model that does not improve retrieval quality as a standard reranker on your data.
+- Do not proceed to inference if training and evaluation metrics of qdrant-relevance-feedback package demonstrated unsatisfactory results, instead find a good training set of representative queries, a feedback model providing a meaningful signal and effective train parameters.
