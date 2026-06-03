@@ -32,7 +32,7 @@ All interaction with Qdrant can happen through the REST API or gRPC API. We reco
 To obtain code examples for a specific client and use case, you can send a search request to the library of curated code snippets for the Qdrant client.
 
 ```bash
-curl -X GET "https://snippets.qdrant.tech/search?language=python&query=how+to+upload+points"
+curl -X GET "https://search.qdrant.tech/snippets/search?language=python&query=how+to+upload+points"
 ```
 
 Available languages: `python`, `typescript`, `rust`, `java`, `go`, `csharp`
