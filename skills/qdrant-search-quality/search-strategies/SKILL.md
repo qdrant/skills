@@ -1,6 +1,6 @@
 ---
 name: qdrant-search-strategies
-description: "Guides Qdrant search strategy selection. Use when someone asks 'should I use hybrid search?', 'how to rerank?', 'results are not relevant', 'I don't get needed results from my dataset but they're there', 'retrieval quality is not good enough', 'results too similar', 'need diversity', 'MMR', 'relevance feedback', 'recommendation API', 'discovery API', or 'missing keyword matches'"
+description: "Guides Qdrant search strategy selection. Use when someone asks 'should I use hybrid search?', 'how to rerank?', 'results are not relevant', 'I don't get needed results from my dataset but they're there', 'retrieval quality is not good enough', 'results too similar', 'need diversity', 'MMR', 'relevance feedback', 'recommendation API', 'discovery API', 'missing keyword matches', or 'how to group chunks back to documents without duplicating payloads'"
 allowed-tools:
   - Read
   - Grep
@@ -17,6 +17,12 @@ If the user wants to use a weaker embedding model because it is small, fast, and
 Use when: pure vector search misses keyword/domain term matches, or the use case benefits from combining searches on multiple representations (including languages and modalities) of the same item.
 
 See how to use [hybrid search](hybrid-search/SKILL.md)
+
+## Group Chunks Back to Documents Without Duplicating Payloads
+
+Use when: documents are indexed as many chunk-level points and you want results collapsed to one entry per document, or shared document-level data (title, abstract, summary) duplicated across chunks is inflating storage.
+
+See [grouping chunks back to documents](document-grouping/SKILL.md)
 
 ## Right Documents Found But Not in the Top Results
 

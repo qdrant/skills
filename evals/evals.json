@@ -72,6 +72,20 @@
         "Suggests limiting optimizer CPU budget to reserve cores for queries",
         "Only recommends horizontal scaling (replicas) after tuning is exhausted"
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "we index research papers by chunk for retrieval. each chunk carries the parent document's title, abstract, and a document-level summary vector that we also want to search on. duplicating all of that across every chunk is making storage explode. should we move the document-level stuff into a separate collection and pull it back in with with_lookup? what do we need to watch out for?",
+      "expected_output": "Should classify which shared data is safe to move (display payload) vs which must stay denormalized (retrieval-relevant vectors like the summary), warn about silent recall regressions, and call out the with_lookup preconditions: it is a join by point id (not a vector search), the lookup collection must be populated first, group_by value type must match the lookup point id type, the payload index schema must match the field value type, and the with_lookup=\"documents\" shorthand returns payload only.",
+      "expectations": [
+        "Distinguishes shared payload (safe to move to a sidecar collection) from shared vectors used in retrieval (must stay denormalized)",
+        "Warns that moving retrieval-relevant vectors (like the document-level summary) behind with_lookup silently degrades recall and ranking because the join happens after grouping",
+        "States that Lookup in Groups is a join by point id, not a vector search",
+        "Calls out that the lookup collection must be populated before any with_lookup query runs",
+        "Calls out that group_by values must be valid Qdrant point IDs (unsigned integer or UUID) and must match the lookup collection's point ID type — arbitrary strings like DOIs/slugs cannot be point IDs and return empty lookup silently",
+        "Mentions matching the payload index schema to the field value type (keyword for string/UUID IDs, integer for numeric IDs)",
+        "Notes that with_lookup=\"documents\" shorthand returns payload only and the explicit WithLookup form is needed when downstream stages require vectors"
+      ]
     }
   ]
 }
