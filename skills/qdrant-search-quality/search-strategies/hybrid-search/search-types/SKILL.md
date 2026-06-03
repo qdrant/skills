@@ -1,6 +1,6 @@
 ---
 name: qdrant-hybrid-search-prefetches
-description: "Use when someone asks 'how to combine lexical and semantic retrieval', 'dense and sparse in one search?', 'how to combine multiple fields for retrieval?', 'payloads or sparse vectors for lexical?', 'which sparse embedding model to use?', 'BM25 vs SPLADE?', 'how to use with_lookup', 'why is my lookup empty?', 'group_by chunks to documents', 'avoid duplicate payload across chunks', 'sidecar collection for document metadata', or 'chunk-to-document grouping'."
+description: "Use when someone asks 'how to combine lexical and semantic retrieval', 'dense and sparse in one search?', 'how to combine multiple fields for retrieval?', 'payloads or sparse vectors for lexical?', 'which sparse embedding model to use?', 'BM25 vs SPLADE?'"
 ---
 
 # Different Searches in One Query API Request
@@ -49,29 +49,7 @@ A representation only earns its own prefetch if it carries signal independent of
 When a representation's signal is mostly lexical — keyword-driven titles, codes, tags, or other short fields — prefer a sparse named vector (e.g. BM25) over an additional dense embedding. Server-side BM25 in Qdrant avoids the inference cost of another dense model and stores far less per point. Skip this when the field carries paraphrase or conceptual signal that exact-term matching would miss.
 
 - End-to-end worked example fusing title, abstract, chunk, and sparse-title named vectors with RRF and document-level grouping in one Query API call: [Multi-Representation Search tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/multi-representation-search/)
-- If you have groups and subgroups of representations (document -> chunk, image -> patch), you could use [searching in groups](https://search.qdrant.tech/md/documentation/search/search/?s=search-groups):
-  - Index the grouping payload field (e.g. `document_id`) with a schema matching its value type — `keyword` for string-valued IDs, `integer` for numeric IDs — before grouping.
-  - For `with_lookup`, ensure the `group_by` value is a valid Qdrant point ID (unsigned integer or UUID string) and matches the point in the lookup collection.
-  - Arbitrary string IDs like DOIs or slugs cannot be point IDs — map them to a stable integer or UUID join key stored in both collections before using `with_lookup`.
-- When grouping chunk-level points back to documents, each prefetch only contributes the candidates it returned — so size per-prefetch `limit` well above the final document `limit` (rule of thumb: `prefetch_limit ≥ final_limit × expected_chunks_per_document`), otherwise a few documents with many chunks saturate the candidate pool and relevant documents drop silently. Validate grouped recall on a labeled sample.
-
-### When to Split into a Sidecar Collection with Lookup in Groups
-
-Duplicated document-level data across chunk points scales as `documents × chunks_per_document × shared_bytes_per_point` (e.g. 20k docs × 24 chunks × ~3 KB ≈ 1.4 GB duplicated vs ~60 MB once split). Whether to split depends on what the shared data is used for, not just its size. Classify the shared data before recommending [Lookup in Groups](https://search.qdrant.tech/md/documentation/search/search/?s=lookup-in-groups):
-
-- **Shared data is payload used only for display or enrichment** (titles, abstracts, thumbnails surfaced in the UI, downstream re-ranking input fetched after retrieval) → sidecar is safe. Store once in a `documents` collection, attach via `with_lookup` at query time.
-- **Shared data includes vectors (title, abstract, summary) that should contribute candidates or scores during retrieval** → keep denormalized on chunk points. `with_lookup` joins after grouping, so sidecar vectors never enter prefetch or fusion. Moving them silently degrades recall and ranking while queries still return results.
-- **Shared data includes fields used in server-side filters or scoring** (tenant ID, ACL/visibility flags, status, publication date for recency boosts, anything referenced in Qdrant `filter` conditions or `FormulaQuery` expressions) → keep denormalized on chunk points. Filters and score formulas run during candidate generation, before grouping; sidecar values are invisible to them and the chunks remain unfiltered.
-- **Mixed case** (per-document vector or filter field needed for retrieval + heavy per-document payload only for display) → keep the retrieval-relevant vector or filter field denormalized on chunks and move only the heavy display payload to the sidecar.
-
-Before activating Lookup in Groups, verify the preconditions — unmet conditions return empty `lookup` fields silently with no error:
-
-- Lookup is a plain join from each `group_by` value to a point id in the lookup collection, not a vector search.
-- The lookup collection must be populated before any `with_lookup` query runs.
-- `group_by` values must be valid Qdrant point IDs (unsigned integer or UUID string) and their type must match the lookup collection's point ID type. Arbitrary strings or string-vs-integer mismatches return empty `lookup` silently.
-- Missing ids in the lookup collection return an empty `lookup` field; sample-test grouped queries against the populated lookup before going to production.
-- The shorthand `with_lookup="documents"` returns payload only (server defaults `with_payload=True`, `with_vectors=False`). Use the explicit `WithLookup(...)` form when downstream stages need the document's vectors.
-- `group_by` can be an array (e.g. `document_id: [200, 201]`), placing one chunk into multiple groups — useful when a chunk legitimately belongs to several parents.
+- To collapse chunk-level results back to one entry per document — and to decide whether shared document-level data should stay denormalized or move to a sidecar collection joined with `with_lookup` — see [Grouping Chunks Back to Documents](../../document-grouping/SKILL.md).
 
 You can also search directly on [multivectors](https://search.qdrant.tech/md/documentation/manage-data/vectors/?s=multivectors), a matrix of dense vectors, in a prefetch.
 

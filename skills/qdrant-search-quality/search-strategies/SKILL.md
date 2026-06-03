@@ -18,6 +18,12 @@ Use when: pure vector search misses keyword/domain term matches, or the use case
 
 See how to use [hybrid search](hybrid-search/SKILL.md)
 
+## Group Chunks Back to Documents Without Duplicating Payloads
+
+Use when: documents are indexed as many chunk-level points and you want results collapsed to one entry per document, or shared document-level data (title, abstract, summary) duplicated across chunks is inflating storage.
+
+See [grouping chunks back to documents](document-grouping/SKILL.md)
+
 ## Right Documents Found But Not in the Top Results
 
 Use when: good recall but poor precision (right docs in top-100, not top-10).
