@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${SITE_URL:-${DEPLOY_PRIME_URL:-${URL:-https://skills.qdrant.tech}}}"
+# On production, URL is the custom domain (skills.qdrant.tech); DEPLOY_PRIME_URL
+# there is the branch permalink (main--qdrant-skills.netlify.app). On previews
+# and branch deploys, prefer DEPLOY_PRIME_URL so links match the viewed deploy.
+if [ "${CONTEXT:-}" = "production" ]; then
+  BASE_URL="${SITE_URL:-${URL:-https://skills.qdrant.tech}}"
+else
+  BASE_URL="${SITE_URL:-${DEPLOY_PRIME_URL:-${URL:-https://skills.qdrant.tech}}}"
+fi
 BASE_URL="${BASE_URL%/}"
 PUBLIC_DIR="${1:-public}"
 OUTPUT="${PUBLIC_DIR}/sitemap.xml"

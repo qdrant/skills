@@ -5,14 +5,24 @@ import os
 import re
 from urllib.parse import urljoin, urlsplit
 
-# On Netlify, DEPLOY_PRIME_URL / URL are injected with the deploy's real domain
-# (including branch deploys and deploy previews). Fall back to the production
-# domain for local builds.
-BASE_URL = (
-    os.environ.get("DEPLOY_PRIME_URL")
-    or os.environ.get("URL")
-    or "https://skills.qdrant.tech"
-).rstrip("/")
+def _site_url():
+    """Resolve the site's base URL from Netlify's build environment.
+
+    On production we want the custom domain, which Netlify exposes via URL —
+    DEPLOY_PRIME_URL there is the branch permalink (e.g.
+    https://main--qdrant-skills.netlify.app), not skills.qdrant.tech. On deploy
+    previews and branch deploys we prefer DEPLOY_PRIME_URL so links stay self
+    consistent with the deploy being viewed. Fall back to the production domain
+    for local builds.
+    """
+    if os.environ.get("CONTEXT") == "production":
+        url = os.environ.get("URL")
+    else:
+        url = os.environ.get("DEPLOY_PRIME_URL") or os.environ.get("URL")
+    return (url or "https://skills.qdrant.tech").rstrip("/")
+
+
+BASE_URL = _site_url()
 PUBLIC_DIR = "public"
 
 LINK_RE = re.compile(r'\[([^\]]*)\]\(([^)]+)\)')
