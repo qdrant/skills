@@ -76,7 +76,7 @@ Only score a small set of seed documents. Five seeds is a robust default across 
   - set `strategy` to `naive` with your calibrated parameters
   - set `limit` to the number of final results you need and use the RF results directly as final results.
 
- Check the [Relevance Feedback Query API  documentation](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback) and study code/methods of the relevant SDK before filling in anything.
+ Check the [Relevance Feedback Query API  documentation](https://skills.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback) and study code/methods of the relevant SDK before filling in anything.
 
 Using a point ID in `example` causes the RF API to automatically exclude that document from the final results. Using stored embeddings used for retrieval instead potentially keeps the document in the final results.
 
@@ -102,7 +102,7 @@ The second reranking pass safely promotes newly discovered documents into the to
   - score the returned RF results with your feedback model.
 - Merge the original seeds and RF results, then sort by feedback score. These will be your final results.
 
- Check the [Relevance Feedback Query API  documentation](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback) and study code/methods of the relevant SDK before filling in anything.
+ Check the [Relevance Feedback Query API  documentation](https://skills.qdrant.tech/md/documentation/search/search-relevance/?s=relevance-feedback) and study code/methods of the relevant SDK before filling in anything.
 
 Using a point ID in `example` causes the RF API to automatically exclude that document from the final results. Using stored embeddings used for retrieval instead potentially keeps the document in the final results.
 
