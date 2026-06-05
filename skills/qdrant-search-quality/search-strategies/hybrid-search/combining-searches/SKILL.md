@@ -12,18 +12,18 @@ The outer query fuses ranked candidate lists from all parallel prefetches into o
 Use when: searches produce scores on different scales, like BM25 and cosine on dense embeddings.
 
 ### RRF
-- **[RRF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=reciprocal-rank-fusion-rrf)** (Reciprocal Rank Fusion) — rank-based, ignores scores magnitude, a decent default to start with.
-- Tune `k` to [control rank sensitivity in RRF fusion](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=setting-rrf-constant-k).
-- Add per-prefetch **weights** when one search should dominate, using [Weighted RRF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=weighted-rrf). Weights should be customized per collection and retrievers' score distributions!
+- **[RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=reciprocal-rank-fusion-rrf)** (Reciprocal Rank Fusion) — rank-based, ignores scores magnitude, a decent default to start with.
+- Tune `k` to [control rank sensitivity in RRF fusion](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=setting-rrf-constant-k).
+- Add per-prefetch **weights** when one search should dominate, using [Weighted RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=weighted-rrf). Weights should be customized per collection and retrievers' score distributions!
 
 ### DBSF
-- **[DBSF](https://search.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion) — normalizes score distributions per prefetch before fusing them, for that, instead of min-max, uses mean +- 3 deviations on prefetched list of scores. Avoid relying on resulting absolute scores, as scores in DBSF are normalized per prefetch (aka per a retrieved list of search results), and might be uncomparable across queries.
+- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion) — normalizes score distributions per prefetch before fusing them, for that, instead of min-max, uses mean +- 3 deviations on prefetched list of scores. Avoid relying on resulting absolute scores, as scores in DBSF are normalized per prefetch (aka per a retrieved list of search results), and might be uncomparable across queries.
 
 ## Need Custom Fusion
 
 Use when: recency, popularity or other payload values should affect the merged ranking alongside candidate scores or you need a custom fusion.
 
-**[With formula query](https://search.qdrant.tech/md/documentation/search/search-relevance/?s=score-boosting)**, access `score` of each prefetch and, if desired, payload field values.
+**[With formula query](https://skills.qdrant.tech/md/documentation/search/search-relevance/?s=score-boosting)**, access `score` of each prefetch and, if desired, payload field values.
 
 If you want to implement custom fusion on `score` of each prefetch:
 - Use decay or any other available expressions for normalizing score distributions before fusing them. 
@@ -39,11 +39,11 @@ You can use any type of vector as an outer query over the prefetches, to perform
 
 Instead of using client-side fusion through cross-encoders, a popular option is **Late interaction models-based fusion**, through reranking on multivectors (e.g. ColBERT for text, ColPali and ColQwen for images).
 - Most precise but highest compute/resource usage.
-- Configure multivectors used for fusion through reranking with HNSW disabled like in [Hybrid Search with Reranking tutorial](https://search.qdrant.tech/md/documentation/tutorials-search-engineering/reranking-hybrid-search/).
+- Configure multivectors used for fusion through reranking with HNSW disabled like in [Hybrid Search with Reranking tutorial](https://skills.qdrant.tech/md/documentation/tutorials-basics/reranking-hybrid-search/).
 
 ## What NOT to Do
 
-- Use linear weighted fusion on incomparable score ranges. [Why not](https://search.qdrant.tech/md/articles/hybrid-search/?s=why-not-a-linear-combination).
+- Use linear weighted fusion on incomparable score ranges. [Why not](https://skills.qdrant.tech/md/articles/hybrid-search/?s=why-not-a-linear-combination).
 - Use "vibe" defined weights in weighted RRF. Weights should be fine-tuned per dataset and retrieval pipelines.
 - Pick any fusion type without comparative experiments.
-- Use late interaction multivectors for fusion without evaluating cheaper analogues, for example, MUVERA. More in [multi-vector Qdrant search course](https://search.qdrant.tech/md/course/multi-vector-search/)
+- Use late interaction multivectors for fusion without evaluating cheaper analogues, for example, MUVERA. More in [multi-vector Qdrant search course](https://skills.qdrant.tech/md/course/multi-vector-search/)

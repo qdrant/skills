@@ -7,8 +7,38 @@
   to = "/index.md"
   status = 200
 
+[[redirects]]
+  from = "/search*"
+  to = "https://search.qdrant.tech/skills/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/md/*"
+  to = "https://search.qdrant.tech/md/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-reference.md"
+  to = "https://api.qdrant.tech/api-reference.md"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-reference/*"
+  to = "https://api.qdrant.tech/api-reference/:splat"
+  status = 200
+  force = true
+
 [[headers]]
-  for = "/*"
+  for = "/*.md"
   [headers.values]
     Content-Type = "text/markdown; charset=utf-8"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
     Access-Control-Allow-Origin = "*"
