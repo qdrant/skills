@@ -19,6 +19,18 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api-reference.md"
+  to = "https://api.qdrant.tech/api-reference.md"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api-reference/*"
+  to = "https://api.qdrant.tech/api-reference/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*.md"
   [headers.values]

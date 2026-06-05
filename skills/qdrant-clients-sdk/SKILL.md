@@ -32,7 +32,7 @@ All interaction with Qdrant can happen through the REST API or gRPC API. We reco
 To obtain code examples for a specific client and use case, you can send a search request to the library of curated code snippets for the Qdrant client.
 
 ```bash
-curl -X GET "https://snippets.qdrant.tech/search?language=python&query=how+to+upload+points"
+curl -X GET "https://skills.qdrant.tech/snippets/search?language=python&query=how+to+upload+points"
 ```
 
 Available languages: `python`, `typescript`, `rust`, `java`, `go`, `csharp`
@@ -44,7 +44,7 @@ Response example:
 
 ## Snippet 1
 
-*qdrant-client* (vlatest) — https://search.qdrant.tech/md/documentation/manage-data/points/
+*qdrant-client* (vlatest) — https://skills.qdrant.tech/md/documentation/manage-data/points/
 
 Uploads multiple vector-embedded points to a Qdrant collection using the Python qdrant_client (PointStruct) with id, payload (e.g., color), and a 3D-like vector for similarity search. It supports parallel uploads (parallel=4) and a retry policy (max_retries=3) for robust indexing. The operation is idempotent: re-uploading with the same id overwrites existing points; if ids aren’t provided, Qdrant auto-generates UUIDs.
 

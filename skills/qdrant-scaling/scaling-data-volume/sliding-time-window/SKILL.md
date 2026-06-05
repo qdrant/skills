@@ -12,7 +12,7 @@ Three strategies: **shard rotation** (recommended), **collection rotation** (whe
 
 ## Shard Rotation (Recommended)
 
-Use when: data has natural time boundaries (daily, weekly, monthly). Preferred because queries span all time periods in one request without application-level fan-out. [User-defined sharding](https://search.qdrant.tech/md/documentation/distributed_deployment/?s=user-defined-sharding)
+Use when: data has natural time boundaries (daily, weekly, monthly). Preferred because queries span all time periods in one request without application-level fan-out. [User-defined sharding](https://skills.qdrant.tech/md/documentation/distributed_deployment/?s=user-defined-sharding)
 
 1. Create a collection with user-defined sharding enabled
 2. Create one shard key per time period (e.g., `2025-01`, `2025-02`, ..., `2025-06`)
@@ -28,11 +28,11 @@ Use when: data has natural time boundaries (daily, weekly, monthly). Preferred b
 
 ## Collection Rotation (Alias Swap)
 
-Use when: you need per-period collection configuration (e.g., different quantization or storage settings). [Collection aliases](https://search.qdrant.tech/md/documentation/manage-data/collections/?s=collection-aliases)
+Use when: you need per-period collection configuration (e.g., different quantization or storage settings). [Collection aliases](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=collection-aliases)
 
 1. Create one collection per time period, point a write alias at the newest
 2. Query across all active collections in parallel, merge results client-side
-3. When a new period starts, create the new collection and swap the write alias [Switch collection](https://search.qdrant.tech/md/documentation/manage-data/collections/?s=switch-collection)
+3. When a new period starts, create the new collection and swap the write alias [Switch collection](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=switch-collection)
 4. Drop the oldest collection outside the window
 
 Trade-off vs shard rotation: allows per-collection config differences, but requires application-level fan-out and more operational overhead.
@@ -42,9 +42,9 @@ Trade-off vs shard rotation: allows per-collection config differences, but requi
 
 Use when: data arrives continuously without clear time boundaries, or you want the simplest setup.
 
-1. Store a `timestamp` payload on every point, create a payload index on it [Payload index](https://search.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
-2. Filter to the desired window at query time using `range` condition [Range filter](https://search.qdrant.tech/md/documentation/search/filtering/?s=range)
-3. Periodically delete expired points using delete-by-filter [Delete points](https://search.qdrant.tech/md/documentation/manage-data/points/?s=delete-points)
+1. Store a `timestamp` payload on every point, create a payload index on it [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
+2. Filter to the desired window at query time using `range` condition [Range filter](https://skills.qdrant.tech/md/documentation/search/filtering/?s=range)
+3. Periodically delete expired points using delete-by-filter [Delete points](https://skills.qdrant.tech/md/documentation/manage-data/points/?s=delete-points)
 
 - Run cleanup during off-peak hours in batches (10k-50k points) to avoid optimizer locks
 - Deletes are not free: tombstoned points degrade search until optimizer compacts segments
@@ -56,7 +56,7 @@ Use when: data arrives continuously without clear time boundaries, or you want t
 Use when: recent data needs fast in-RAM search, older data should remain searchable at lower performance.
 
 - **Shard rotation:** place current shard key on fast-storage nodes, move older shard keys to cheaper nodes via shard placement. All queries still go through a single collection.
-- **Collection rotation:** keep current collection in RAM (`always_ram: true`), move older collections to mmap/on-disk vectors. [Quantization](https://search.qdrant.tech/md/documentation/manage-data/quantization/)
+- **Collection rotation:** keep current collection in RAM (`always_ram: true`), move older collections to mmap/on-disk vectors. [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 
 
 ## What NOT to Do
