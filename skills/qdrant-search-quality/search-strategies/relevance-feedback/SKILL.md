@@ -12,7 +12,7 @@ First, understand how the RF works, read the ENTIRE section. Then define your go
 
 ## How It Works
 
-The [Qdrant Query Point API with a type RelevanceFeedbackQuery](https://api.qdrant.tech/api-reference/search/query-points) takes:
+The [Qdrant Query Point API with a type RelevanceFeedbackQuery](https://skills.qdrant.tech/api-reference/search/query-points.md) takes:
 
 - a query (`target`)
 - a small list of seed documents (`feedback`) with relevance scores (often 4–5 seeds are enough)
