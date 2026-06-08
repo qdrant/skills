@@ -14,7 +14,6 @@
 
 Skills encode deep Qdrant knowledge so coding agents can make the engineering decisions that determine whether vector search works well: quantization, sharding, tenant isolation, hybrid search, model migration, and more.
 
-
 ## Philosophy
 
 Skills are not documentation. Qdrant already has docs in markdown. Skills
@@ -25,11 +24,57 @@ given a problem, navigate to the exact place in the documentation where the
 answer lives. No tutorials, no concept explanations. Only references and
 minimal snippets where absolutely necessary.
 
-
 ## Disclaimer
 
 These skills are under active development. Skill content and structure may change between versions as Qdrant evolves.
 
+## Usage
+
+Skills are hosted at [skills.qdrant.tech](https://skills.qdrant.tech). Pass the URL of a skill directly to your agent — no installation required:
+
+```
+Use skills.qdrant.tech
+```
+
+This keeps your agent's context focused: it fetches only the skill relevant to your current problem rather than loading everything upfront.
+
+If you prefer skills to be available offline or without passing URLs manually, you can install them locally. Refer to the [Installation](#installation) section.
+
+## Quick Start
+
+The recommended way is the URL method: ask your agent about Qdrant and pass [skills.qdrant.tech](https://skills.qdrant.tech) in your prompt.
+
+```
+"I have 50M vectors on a single node and search is slow, should I add more nodes? Use skills.qdrant.tech"
+
+"My search results are returning irrelevant matches. Use skills.qdrant.tech"
+```
+
+If you use the installation method, just ask your agent about Qdrant. Skills are triggered automatically when your question matches their description.
+
+```
+"I have 50M vectors on a single node and search is slow, should I add more nodes?"
+→ qdrant-scaling skill activates, recommends quantization and vertical scaling before adding nodes
+
+"My search results are returning irrelevant matches"
+→ qdrant-search-quality skill activates, walks through diagnosis and search strategy options
+
+"How do I switch from OpenAI embeddings to Cohere without downtime?"
+→ qdrant-model-migration skill activates, guides zero-downtime migration with dual vectors
+```
+
+## Skills
+
+| Skill | Useful for |
+|-------|------------|
+| qdrant-clients-sdk | SDK setup, code examples, snippet search across Python, TypeScript, Rust, Go, .NET, Java |
+| qdrant-scaling | Scaling decisions: data volume, QPS, latency, query volume, horizontal vs vertical |
+| qdrant-performance-optimization | Search speed, memory usage, indexing performance |
+| qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
+| qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
+| qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
+| qdrant-model-migration | Switching embedding models without downtime |
+| qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
 
 ## Installation
 
@@ -66,40 +111,6 @@ Clone this repo and copy the skill folders into the appropriate directory for yo
 | OpenAI Codex | `~/.codex/skills/` | [docs](https://developers.openai.com/codex/skills/) |
 | Pi | `~/.pi/agent/skills/` | [docs](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#skills) |
 
-
-## Quick Start
-
-After installing, just ask your agent about Qdrant. Skills are triggered automatically when your question matches their description.
-
-```
-"I have 50M vectors on a single node and search is slow, should I add more nodes?"
-→ qdrant-scaling skill activates, recommends quantization and vertical scaling before adding nodes
-
-"My search results are returning irrelevant matches"
-→ qdrant-search-quality skill activates, walks through diagnosis and search strategy options
-
-"How do I switch from OpenAI embeddings to Cohere without downtime?"
-→ qdrant-model-migration skill activates, guides zero-downtime migration with dual vectors
-```
-
-
-## Skills
-
-Skills are triggered automatically when your question matches their description.
-
-| Skill | Useful for |
-|-------|------------|
-| qdrant-clients-sdk | SDK setup, code examples, snippet search across Python, TypeScript, Rust, Go, .NET, Java |
-| qdrant-scaling | Scaling decisions: data volume, QPS, latency, query volume, horizontal vs vertical |
-| qdrant-performance-optimization | Search speed, memory usage, indexing performance |
-| qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
-| qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
-| qdrant-agent-memory | Agent memory architecture: storage selection, admission control, retrieval scoring, isolation, provenance |
-| qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
-| qdrant-model-migration | Switching embedding models without downtime |
-| qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
-
-
 ## MCP Servers
 
 For additional Qdrant context, pair skills with these MCP servers:
@@ -109,7 +120,6 @@ For additional Qdrant context, pair skills with these MCP servers:
 | [mcp-code-snippets](https://github.com/qdrant/mcp-code-snippets) | Search Qdrant docs and code examples across all SDKs |
 | [mcp-server-qdrant](https://github.com/qdrant/mcp-server-qdrant) | Store and retrieve memories, manage collections directly |
 
-
 ## Getting Help
 
 Found a bug or wrong advice in a skill? [Open an issue](https://github.com/qdrant/skills/issues/new) on GitHub and include:
@@ -117,7 +127,6 @@ Found a bug or wrong advice in a skill? [Open an issue](https://github.com/qdran
 - The skill name
 - The prompt you gave your agent
 - What the agent said vs what it should have said
-
 
 ## Contributing
 

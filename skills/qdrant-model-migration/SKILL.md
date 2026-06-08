@@ -5,7 +5,7 @@ description: "Guides embedding model migration in Qdrant without downtime. Use w
 
 # What to Do When Changing Embedding Models
 
-Vectors from different models are incompatible. You cannot mix old and new embeddings in the same vector space. All named vectors must be defined at collection creation time. Both migration strategies below require creating a new collection.
+Vectors from different models are incompatible. You cannot mix old and new embeddings in the same vector space. On v1.18+, you can add or delete named vector fields on an existing collection — migration no longer always requires a new collection. On v1.17 or earlier, all named vectors must be defined at collection creation time.
 
 - Understand collection aliases before choosing a strategy [Collection aliases](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=collection-aliases)
 
@@ -66,11 +66,13 @@ If you anticipate future model migrations, define both vector fields upfront at 
 
 Use when: adding sparse/BM25 vectors to an existing dense-only collection. Most common migration pattern.
 
-You cannot add sparse vectors to an existing dense-only collection. Must recreate:
+You cannot add sparse vectors to an existing collection that uses a default (unnamed) dense vector. Must recreate:
 
 - Create new collection with both dense and sparse vector configs defined
 - Re-embed all data with both dense and sparse models
 - Migrate payloads, swap alias
+
+If the collection already uses named dense vectors and is on v1.18+, add the sparse vector field directly without recreating [Update vector schema](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=update-vector-schema).
 
 Sparse vectors at chunk level have different TF-IDF characteristics than document level. Test retrieval quality after migration, especially for non-English text without stop-word removal.
 
