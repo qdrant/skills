@@ -31,6 +31,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/snippets/*"
+  to = "https://search.qdrant.tech/snippets/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*.md"
   [headers.values]
