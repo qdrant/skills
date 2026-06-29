@@ -43,7 +43,7 @@ RAM is the most critical resource for Qdrant performance. Use these guidelines t
 - With binary quantization: divide by 32 [Binary quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=binary-quantization)
 - Add overhead for HNSW index (~20-30% of vector data), payload indexes, and WAL
 - Reserve 20% headroom for optimizer operations and OS cache
-- Monitor actual usage via Grafana/Prometheus before and after resizing [Monitoring](../../../qdrant-monitoring/SKILL.md)
+- Monitor actual usage via Grafana/Prometheus before and after resizing [Monitoring](../../../qdrant-monitoring-setup/SKILL.md)
 
 
 ## When Vertical Scaling Is No Longer Enough

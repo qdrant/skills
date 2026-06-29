@@ -1,16 +1,22 @@
 ---
-name: qdrant-search-speed-optimization
+name: qdrant-search-speed
 description: "Diagnoses and fixes slow Qdrant search. Use when someone reports 'search is slow', 'high latency', 'queries take too long', 'low QPS', 'throughput too low', 'filtered search is slow', or 'search was fast but now it's slow'. Also use when search performance degrades after config changes or data growth."
 ---
 
 # Diagnose a problem
 
-There the multiple possible reasons for search performance degradation. The most common ones are:
+There are multiple possible reasons for search performance degradation. The most common ones are:
 
 * Memory pressure: if the working set exceeds available RAM
 * Complex requests (e.g. high `hnsw_ef`, complex filters without payload index)
 * Competing background processes (e.g. optimizer still running after bulk upload)
 * Problem with the cluster (e.g. network issues, hardware degradation)
+
+To troubleshoot search speed issues, check the following metrics:
+- Track `rest_responses_avg_duration_seconds` and `rest_responses_max_duration_seconds` per endpoint
+- Use histogram metric `rest_responses_duration_seconds` (v1.8+) for percentile analysis in Grafana
+- Equivalent gRPC metrics with `grpc_responses_` prefix
+- Check optimizer status first. Active optimizations compete for CPU and I/O, degrading search latency.
 
 
 ## Single Query Too Slow (Latency)
@@ -19,9 +25,11 @@ Use when: individual queries take too long regardless of load.
 
 ### Diagnostic steps:
 
+- Check segment count via collection info. Too many unmerged segments after bulk upload causes slower search.
 - Check if second run of the same request is significantly faster (indicates memory pressure)
 - Try the same query with `with_payload: false` and `with_vectors: false` to see if payload retrieval is the bottleneck
 - If request uses filters, try to remove them one by one to identify if a specific filter condition is the bottleneck
+
 
 ### Common fixes:
 
@@ -46,6 +54,7 @@ Use when: system can't serve enough queries per second under load.
 
 Use when: filtered search is significantly slower than unfiltered. Most common SA complaint after memory.
 
+- Compare filtered vs unfiltered query times. Large gap means missing payload index. [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
 - Create payload index on the filtered field [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
 - Use `is_tenant=true` for primary filtering condition: [Tenant index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=tenant-index)
 - Try ACORN algorithm for complex filters: [ACORN](https://skills.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm)
@@ -69,9 +78,11 @@ Learn more [here](https://skills.qdrant.tech/md/documentation/search/low-latency
 
 
 ## What NOT to Do
-
+- Suggest fixes before diagnosing the root cause.
+- Ignore optimizer status when debugging slow queries (most common root cause)
+- Change config while the optimizer is running. It triggers cascading re-optimizations and makes things worse.
+- Blame Qdrant before checking if a bulk upload just finished. Unmerged segments slow search until the optimizer catches up.
 - Set `always_ram=false` on quantization (disk thrashing on every search)
 - Put HNSW on disk for latency-sensitive production (only for cold storage)
 - Increase segment count for throughput (opposite: fewer = better)
 - Create payload indexes on every field (wastes memory)
-- Blame Qdrant before checking optimizer status

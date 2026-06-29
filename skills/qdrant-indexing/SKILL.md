@@ -1,5 +1,5 @@
 ---
-name: qdrant-indexing-performance-optimization
+name: qdrant-indexing
 description: "Diagnoses and fixes slow Qdrant indexing and data ingestion. Use when someone reports 'uploads are slow', 'indexing takes forever', 'optimizer is stuck', 'HNSW build time too long', or 'data uploaded but search is bad'. Also use when optimizer status shows errors, segments won't merge, or indexing threshold questions arise."
 ---
 
@@ -39,7 +39,10 @@ See https://skills.qdrant.tech/md/documentation/tutorials-develop/bulk-upload/
 
 Use when: optimizer running for hours, not finishing.
 
-- Check actual progress via optimizations endpoint (v1.17+) [Optimization monitoring](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=optimization-monitoring)
+- Check actual progress via optimizations endpoint `/collections/{collection_name}/optimizations` (v1.17+) [Optimization monitoring](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=optimization-monitoring)
+- Query with optional detail flags: `?with=queued,completed,idle_segments`
+- Returns: queued optimizations count, active optimizer type, involved segments, progress tracking
+- Web UI has an Optimizations tab with timeline view and per-task duration metrics [Web UI](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=web-ui)
 - Large merges and HNSW rebuilds legitimately take hours on big datasets
 - Check CPU and disk I/O (HNSW is CPU-bound, merging is I/O-bound, HDD is not viable)
 - If `optimizer_status` shows an error, check logs for disk full or corrupted segments
