@@ -35,7 +35,7 @@ Use when: individual queries take too long regardless of load.
 
 - Tune HNSW parameters: [Fine-tuning search](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Enable in-memory quantization: [Scalar quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
-- Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/?s=reduce-vector-dimensionality-with-matryoshka-models)
+- Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
 - Enable io_uring for disk-heavy workloads on Linux [io_uring](https://qdrant.tech/articles/io_uring/)
 

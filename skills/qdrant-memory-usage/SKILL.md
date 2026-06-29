@@ -56,7 +56,7 @@ Here are the main techniques to achieve that:
 
 - Use float16 or int8 datatypes to reduce memory usage of vectors by 2x or 4x respectively, with some tradeoff in precision. Read more about vector datatypes in [documentation](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
 
-- Leverage Matryoshka Representation Learning (MRL) to store only small vectors in RAM while keeping large vectors on disk. Examples of how to use MRL with Qdrant Cloud inference: [MRL docs](https://skills.qdrant.tech/md/documentation/inference/?s=reduce-vector-dimensionality-with-matryoshka-models)
+- Leverage Matryoshka Representation Learning (MRL) to store only small vectors in RAM while keeping large vectors on disk. Examples of how to use MRL with Qdrant Cloud inference: [MRL docs](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 
 - For multi-tenant deployments with small tenants, vectors might be stored on disk because the same tenant's data is stored together [Multitenancy docs](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance)
 
