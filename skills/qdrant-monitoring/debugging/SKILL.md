@@ -25,7 +25,7 @@ Use when: optimizer running for hours, not finishing, or showing errors.
 Use when: memory exceeds expectations, node crashes with OOM, or memory keeps growing.
 
 - Process memory metrics available via `/metrics` (RSS, allocated bytes, page faults)
-- Qdrant uses two types of RAM: resident memory (data structures, quantized vectors) and OS page cache (cached disk reads). Page cache filling available RAM is normal. [Memory article](https://qdrant.tech/articles/memory-consumption/)
+- Qdrant uses two types of RAM: resident memory (data structures, quantized vectors) and OS page cache (cached disk reads). Page cache filling available RAM is normal. [Memory article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 - If resident memory (RSSAnon) exceeds 80% of total RAM, investigate
 - Check `/telemetry` for per-collection breakdown of point counts and vector configurations
 - Estimate expected memory: `num_vectors * dimensions * 4 bytes * 1.5` for vectors, plus payload and index overhead [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/)

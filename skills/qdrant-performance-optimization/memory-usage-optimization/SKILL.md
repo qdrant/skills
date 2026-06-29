@@ -57,9 +57,9 @@ Here are the main techniques to achieve that:
 
 - For multi-tenant deployments with small tenants, vectors might be stored on disk because the same tenant's data is stored together [Multitenancy docs](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance)
 
-- For deployments with fast local storage and relatively low requirements for search throughput, it may be possible to store all components of vector store on disk. Read more about the performance implications of on-disk storage in [the article](https://qdrant.tech/articles/memory-consumption/)
+- For deployments with fast local storage and relatively low requirements for search throughput, it may be possible to store all components of vector store on disk. Read more about the performance implications of on-disk storage in [the article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 
-- For low RAM environments, consider `async_scorer` config, which enables support of `io_uring` for parallel disk access, which can significantly improve performance of on-disk storage. Read more about `async_scorer` in [the article](https://qdrant.tech/articles/io_uring/) (only available on Linux with kernel 5.11+)
+- For low RAM environments, consider `async_scorer` config, which enables support of `io_uring` for parallel disk access, which can significantly improve performance of on-disk storage. Read more about `async_scorer` in [the article](https://skills.qdrant.tech/md/articles/io_uring/) (only available on Linux with kernel 5.11+)
 
 - Consider storing Sparse Vectors and text payload on disk, as they are usually more disk-friendly than dense vectors.
 - Configure payload indexes to be stored on disk [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)

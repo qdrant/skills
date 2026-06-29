@@ -29,7 +29,7 @@ Use when: individual queries take too long regardless of load.
 - Enable in-memory quantization: [Scalar quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
-- Enable io_uring for disk-heavy workloads on Linux [io_uring](https://qdrant.tech/articles/io_uring/)
+- Enable io_uring for disk-heavy workloads on Linux [io_uring](https://skills.qdrant.tech/md/articles/io_uring/)
 
 
 ## Can't Handle Enough QPS (Throughput)

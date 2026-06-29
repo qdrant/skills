@@ -41,8 +41,8 @@ See also [Horizontal Scaling](../scaling-data-volume/horizontal-scaling/SKILL.md
 If it is not possible to keep all vectors in RAM, disk I/O can become the bottleneck for throughput. 
 In this case:
 
-- Upgrade to provisioned IOPS or local NVMe first. See impact of disk performance to vector search in [Disk performance article](https://qdrant.tech/articles/memory-consumption/)
-- Use `io_uring` on Linux (kernel 5.11+) [io_uring article](https://qdrant.tech/articles/io_uring/)
+- Upgrade to provisioned IOPS or local NVMe first. See impact of disk performance to vector search in [Disk performance article](https://skills.qdrant.tech/md/articles/memory-consumption/)
+- Use `io_uring` on Linux (kernel 5.11+) [io_uring article](https://skills.qdrant.tech/md/articles/io_uring/)
 - In case of quantized vectors, prefer global rescoring over per-segment rescoring to reduce disk reads. Example in the [tutorial](https://skills.qdrant.tech/md/documentation/tutorials-operations/large-scale-search/?s=search-query)
 - Configure higher number of search threads to parallelize disk reads. Default is `cpu_count - 1`, which is optimal for RAM-based search but may be too low for disk-based search. See [configuration reference](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/?s=configuration-options)
 - If still saturated, scale out horizontally (each node adds independent IOPS)
