@@ -12,7 +12,7 @@ Qdrant operates with two types of memory:
 - OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade.
 
 It is normal for the OS page cache to occupy all available RAM, but if resident memory is above 80% of total RAM, it is a sign of a problem.
-[Memory article](https://qdrant.tech/articles/memory-consumption/)
+[Memory article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 
 ## Memory usage monitoring and troubleshooting
 
