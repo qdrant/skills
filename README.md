@@ -73,6 +73,7 @@ If you use the installation method, just ask your agent about Qdrant. Skills are
 | qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
 | qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
+| qdrant-edge | Building on the embedded shard: server sync, on-device BM25, snapshots, reuse vs reimplement |
 | qdrant-model-migration | Switching embedding models without downtime |
 | qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
 

@@ -6,6 +6,7 @@ Agent skills encoding deep Qdrant knowledge for coding agents.
 
 - [qdrant-clients-sdk](qdrant-clients-sdk/SKILL.md) — Client SDKs for Python, TypeScript, Rust, Go, .NET, and Java.
 - [qdrant-deployment-options](qdrant-deployment-options/SKILL.md) — Choosing between local, Docker, self-hosted, Cloud, and embedded deployments.
+- [qdrant-edge](qdrant-edge/SKILL.md) — Building on the embedded in-process shard: server sync, on-device BM25, snapshots, and what to reuse versus implement.
 - [qdrant-model-migration](qdrant-model-migration/SKILL.md) — Switching embedding models without downtime.
 - [qdrant-monitoring](qdrant-monitoring/SKILL.md) — Monitoring, observability, health checks, and debugging production issues.
   - [qdrant-monitoring-setup](qdrant-monitoring/setup/SKILL.md) — Setting up Prometheus, health probes, alerting, and log centralization.
