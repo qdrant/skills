@@ -62,3 +62,11 @@ Synthesize an answer strictly from the loaded context:
 - **Always fetch fresh** every session. Never reuse a previously cached copy of a skill; the registry updates and staleness is exactly what this approach avoids.
 - **Do not install** anything. You are loading context only.
 - **Fetching:** every URL you need is either in this skill (root index, search base) or surfaced by a page you already fetched (links inside a `SKILL.md` or the root index), so each is fetchable as-is. If a *constructed* search-query URL is ever rejected, fall back to fetching the root index and navigate from its absolute links.
+
+## Example Workflow
+
+1. Symptom: "Our Qdrant node's RAM keeps climbing and it OOM-killed last night. Nothing obvious changed."
+2. Search: skills.qdrant.tech/search?query=qdrant+memory+growing+OOM
+3. Follow any sub-skill link on memory or debugging that the returned page names.
+4. Hop laterally to the scaling skill it references, if capacity is a plausible alternative cause.
+5. Synthesize from what you loaded; cite the doc URLs. If nothing loaded covers the case, say so; don't fill from memory.
