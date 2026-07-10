@@ -1,0 +1,114 @@
+name: nightly link fix
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      broken: ${{ steps.check.outputs.broken }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: check links
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --verbose --no-progress --accept 100..=403,405..=999 '**/*.md'
+          format: json
+          output: lychee/out.json
+          fail: false
+
+      - name: determine if broken links were found
+        id: check
+        run: |
+          if [ "${{ steps.lychee.outputs.exit_code }}" != "0" ]; then
+            echo "broken=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "broken=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: upload lychee report
+        if: steps.check.outputs.broken == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: lychee-report
+          path: lychee/out.json
+
+  fix-links:
+    needs: check-links
+    if: needs.check-links.outputs.broken == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: checkout skills (this repo)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: checkout landing_page (reference for URL investigation)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: qdrant/landing_page
+          path: landing_page
+          fetch-depth: 0
+
+      - name: download lychee report
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: lychee-report
+          path: lychee
+
+      - name: investigate and fix broken links
+        uses: anthropics/claude-code-action@a6a5b60a078a0af52612aac63e05e3f95fd4ff64 # v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          base_branch: main
+          branch_prefix: "fix-broken-links/"
+          claude_args: |
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Edit,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(gh issue create:*)"
+          prompt: |
+            A nightly link check found broken links (HTTP 404) in this repository (qdrant/skills).
+            The Lychee JSON report is at lychee/out.json.
+
+            Most broken links point to skills.qdrant.tech/md/<path> URLs, which mirror content
+            rendered from the qdrant/landing_page repository. That repo is checked out read-only
+            at ./landing_page with full git history.
+
+            For each broken link:
+            1. Read lychee/out.json to get the list of broken links and the files that reference them.
+            2. Map the broken skills.qdrant.tech/md/<path> URL to the corresponding content file at
+               landing_page/qdrant-landing/content/<path>.
+            3. If that content no longer exists at that path, investigate why, in this priority order:
+               a. landing_page/qdrant-landing/static/_redirects - the canonical Netlify redirects file,
+                  including wildcard/:splat rules (e.g. "/documentation/guides/* /documentation/operations/*:splat 301").
+               b. landing_page/netlify.toml - a handful of [[redirects]] entries.
+               c. git log --follow / git show history for the content path within ./landing_page, to find
+                  renames or moves.
+               d. Frontmatter aliases fields on content files under landing_page/qdrant-landing/content/.
+            4. Determine the correct new skills.qdrant.tech/md/<path> URL.
+            5. If you cannot confidently determine a replacement, do NOT guess. Leave that link unchanged
+               and record it as unresolved.
+
+            Update the broken links you can confidently resolve directly in the affected files in this repo
+            (qdrant/skills). Never modify anything under ./landing_page - it is a read-only reference checkout.
+
+            When finished:
+            - If you fixed at least one link, create a pull request against main. Title it
+              "fix: update N broken link(s) found by nightly link check" (with the actual count). In the
+              description, list each fixed link as "old -> new", and list any unresolved links under an
+              "Unresolved" heading with a short reason why no replacement could be found.
+            - If you could not confidently fix any link, do not open a pull request. Instead open a GitHub
+              issue titled "Nightly link check: N broken link(s) need manual review" (with the actual count)
+              listing each broken link, the file(s) that reference it, and why no replacement could be found.
