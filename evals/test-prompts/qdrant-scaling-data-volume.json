@@ -1,0 +1,32 @@
+{
+  "name": "qdrant-scaling-data-volume",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/SKILL.md",
+  "prompt": "Our collection grew from 40M to 220M vectors and is close to exhausting RAM and disk on a single node. Queries still need global search across all data, with no clean tenant or time partition. How should we think through the next data-volume scaling step?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Recognizes this as a global-search case (rules out tenant and time-window strategies given no partition)"
+    },
+    {
+      "type": "must",
+      "text": "Recommends exhausting vertical scaling first (more RAM, better disk, quantization, mmap)"
+    },
+    {
+      "type": "must",
+      "text": "Then moves to horizontal scaling (sharding across nodes) once vertical limits are reached"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes the alternative strategies (tenant scaling, sliding time window) and why they don't apply here"
+    },
+    {
+      "type": "bonus",
+      "text": "References the ~100M-vectors-per-node rule of thumb as the vertical ceiling"
+    },
+    {
+      "type": "avoid",
+      "text": "Jumps straight to horizontal scaling / sharding before considering vertical headroom"
+    }
+  ]
+}

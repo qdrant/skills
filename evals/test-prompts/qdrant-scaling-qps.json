@@ -1,0 +1,36 @@
+{
+  "name": "qdrant-scaling-qps",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-qps/SKILL.md",
+  "prompt": "Our search service peaks at roughly 800 queries/sec today and we need to sustain ~3,000 QPS for a launch. Per-query latency is fine — we just can't hold the concurrent request rate and CPU pegs out. What's the path to higher throughput?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Recommends throughput tuning — fewer, larger segments (e.g. default_segment_number ~2)"
+    },
+    {
+      "type": "must",
+      "text": "Scales out horizontally with read replicas (replication_factor 2+, route reads to replicas)"
+    },
+    {
+      "type": "must",
+      "text": "Uses the batch search API to amortize per-request overhead"
+    },
+    {
+      "type": "bonus",
+      "text": "Enables quantization with always_ram to reduce disk IO under concurrent load"
+    },
+    {
+      "type": "bonus",
+      "text": "Reserves CPU for queries (optimizer_cpu_budget / update-throughput control) so indexing doesn't starve reads"
+    },
+    {
+      "type": "avoid",
+      "text": "Applies latency-oriented tuning (many small segments) — the opposite direction"
+    },
+    {
+      "type": "avoid",
+      "text": "Conflates this with single-query latency reduction or data-volume scaling"
+    }
+  ]
+}

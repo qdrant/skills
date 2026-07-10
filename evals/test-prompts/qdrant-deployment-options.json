@@ -1,0 +1,32 @@
+{
+  "name": "qdrant-deployment-options",
+  "product_area": "deployment options",
+  "skill_url": "https://skills.qdrant.tech/qdrant-deployment-options/SKILL.md",
+  "prompt": "We're kicking off a new RAG project. Today it only runs in pytest CI and on a laptop, but within a few months it has to serve a production app under strict EU data-residency rules, and we'd rather not babysit clusters. How should we run Qdrant across these stages without painting ourselves into a corner?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Recommends a managed option (Qdrant Cloud or Hybrid Cloud) given the no-cluster-babysitting constraint"
+    },
+    {
+      "type": "must",
+      "text": "Ties the EU data-residency requirement to Hybrid Cloud (managed control plane on the user's own infra)"
+    },
+    {
+      "type": "must",
+      "text": "Suggests local mode / Docker for the early CI + laptop prototyping stage"
+    },
+    {
+      "type": "bonus",
+      "text": "Warns local-mode data format is not server-compatible (don't use for production or benchmarking)"
+    },
+    {
+      "type": "bonus",
+      "text": "Frames the choice via decision axes — managed vs control, latency, production vs prototyping"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends self-managed distributed Docker as the production target despite the explicit low-ops constraint"
+    }
+  ]
+}

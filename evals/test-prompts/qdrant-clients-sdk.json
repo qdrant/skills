@@ -1,0 +1,32 @@
+{
+  "name": "qdrant-clients-sdk",
+  "product_area": "clients & sdks",
+  "skill_url": "https://skills.qdrant.tech/qdrant-clients-sdk/SKILL.md",
+  "prompt": "I'm writing an ingestion service in Go and need to bulk-load about 5M points into a collection. What's the idiomatic way to do batched upserts with the official Go client, with retries and some parallelism? And is there somewhere I can grab a working sample instead of reverse-engineering it from the REST docs?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Confirms an official Go client exists and gives install/import (go get github.com/qdrant/go-client)"
+    },
+    {
+      "type": "must",
+      "text": "Points to the upsert / upload_points operation for batched ingestion (idempotent on point id)"
+    },
+    {
+      "type": "must",
+      "text": "Surfaces an actual code snippet or the curated snippet-search endpoint, not only prose"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions parallel uploads + retry settings (e.g. parallel, max_retries) for robust bulk loading"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes idempotent overwrite on same id / auto-generated UUIDs when ids omitted"
+    },
+    {
+      "type": "avoid",
+      "text": "Claims Qdrant has no Go SDK, or sends the user only to the raw REST docs to assemble it themselves"
+    }
+  ]
+}

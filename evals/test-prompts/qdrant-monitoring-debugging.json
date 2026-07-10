@@ -1,0 +1,36 @@
+{
+  "name": "qdrant-monitoring-debugging",
+  "product_area": "monitoring",
+  "skill_url": "https://skills.qdrant.tech/qdrant-monitoring/debugging/SKILL.md",
+  "prompt": "Our Qdrant nodes started OOMing after a nightly bulk import, and searches are slower even though traffic is unchanged. Grafana shows memory climbing and CPU spikes during indexing. Which metrics and endpoints should I check to tell whether this is normal cache/optimization activity or a real problem?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Directs the user to check optimizer status first (post-bulk-import optimizations compete for resources)"
+    },
+    {
+      "type": "must",
+      "text": "Distinguishes resident memory (RSS/RSSAnon) from OS page cache (page cache filling RAM is normal)"
+    },
+    {
+      "type": "must",
+      "text": "Points to /metrics and /telemetry for per-collection memory / point-count breakdown"
+    },
+    {
+      "type": "must",
+      "text": "Links the post-import symptom to too many unmerged segments slowing search"
+    },
+    {
+      "type": "bonus",
+      "text": "Gives the rough memory estimate (num_vectors x dimensions x 4 bytes x 1.5) to set expectations"
+    },
+    {
+      "type": "avoid",
+      "text": "Concludes 'memory leak' from page cache filling available RAM"
+    },
+    {
+      "type": "avoid",
+      "text": "Advises config changes while the optimizer is still running"
+    }
+  ]
+}

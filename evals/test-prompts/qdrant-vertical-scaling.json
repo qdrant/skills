@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-vertical-scaling",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/vertical-scaling/SKILL.md",
+  "prompt": "We're running ~60M 768-dim vectors on a single self-hosted node and RAM usage hovers around 85%, with latency starting to wobble. We'd rather not move to a distributed cluster yet. How much memory should this realistically need, and what's the right way to size the box up?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Endorses scaling up vertically (more RAM) since they're at the ~80% threshold and want to avoid distribution"
+    },
+    {
+      "type": "must",
+      "text": "Estimates RAM via the formula num_vectors x dimensions x 4 bytes x 1.5 (applied to 60M x 768-d)"
+    },
+    {
+      "type": "must",
+      "text": "Recommends reserving ~20% headroom above the working set for optimizer/OS cache"
+    },
+    {
+      "type": "bonus",
+      "text": "Offers quantization (scalar /4, binary /32) to cut the RAM requirement"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes ~100M vectors/node as the rough single-node ceiling (the user still has runway)"
+    },
+    {
+      "type": "bonus",
+      "text": "If on Cloud, ensure replication_factor >=2 so the resize rolling-restart is zero-downtime"
+    },
+    {
+      "type": "avoid",
+      "text": "Pushes horizontal scaling / sharding despite being within single-node limits and wanting to avoid it"
+    },
+    {
+      "type": "avoid",
+      "text": "Treats the 80% RAM threshold as a soft/gradual limit rather than a performance cliff"
+    }
+  ]
+}

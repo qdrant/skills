@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-monitoring-setup",
+  "product_area": "monitoring",
+  "skill_url": "https://skills.qdrant.tech/qdrant-monitoring/setup/SKILL.md",
+  "prompt": "We're about to put a 3-node cluster into production on our own Kubernetes via Hybrid Cloud. Before launch I want real observability — scraping, dashboards, health checks, and a sensible alert set. What should we wire up, and what are the gotchas for a Hybrid Cloud setup specifically?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Sets up Prometheus scraping of the node /metrics endpoint with Grafana dashboards"
+    },
+    {
+      "type": "must",
+      "text": "For Hybrid Cloud, also scrapes the cluster-exporter and operator pods, not just the Qdrant nodes"
+    },
+    {
+      "type": "must",
+      "text": "Configures Kubernetes liveness/readiness probes via /healthz, /livez, /readyz"
+    },
+    {
+      "type": "must",
+      "text": "Defines baseline alerts (optimizer errors, node not ready, replication below target, disk >80%)"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions Hybrid Cloud's ~11 preconfigured alerts and/or official Grafana dashboards"
+    },
+    {
+      "type": "bonus",
+      "text": "Covers log centralization (JSON log format; audit logs need a PV + sidecar to reach stdout)"
+    },
+    {
+      "type": "avoid",
+      "text": "Tells the user to scrape /sys_metrics (Cloud-only, unavailable on this self-managed data plane)"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends alerting on page-cache memory usage as if it were a fault"
+    }
+  ]
+}
