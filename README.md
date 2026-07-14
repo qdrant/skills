@@ -72,6 +72,7 @@ If you use the installation method, just ask your agent about Qdrant. Skills are
 | qdrant-performance-optimization | Search speed, memory usage, indexing performance |
 | qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
+| qdrant-multitenancy | Isolating multiple tenants within a Qdrant deployment: payload partitioning, tiered multitenancy, and region-based data isolation |
 | qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
 | qdrant-model-migration | Switching embedding models without downtime |
 | qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
