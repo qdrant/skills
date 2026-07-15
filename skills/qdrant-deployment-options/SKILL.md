@@ -43,6 +43,7 @@ Use when: network round-trip to a server is unacceptable. Edge devices, in-proce
 - Qdrant EDGE: in-process bindings to Qdrant shard-level functions, no network overhead [Qdrant EDGE](https://skills.qdrant.tech/md/documentation/edge/edge-quickstart/)
 - Same data format as server. Can sync with server via shard snapshots.
 - Single-node feature set only. No distributed mode.
+- Chose EDGE and want to build on it? See the `qdrant-edge` skill (BM25, snapshot sync, app-side fusion).
 
 
 ## What NOT to Do

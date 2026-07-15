@@ -1,0 +1,36 @@
+{
+  "name": "qdrant-search-quality-diagnosis",
+  "product_area": "search quality",
+  "skill_url": "https://skills.qdrant.tech/qdrant-search-quality/diagnosis/SKILL.md",
+  "prompt": "Users keep saying our semantic search \"misses obvious documents.\" We don't have any ground-truth set, we recently turned on quantization, and we can't tell whether it's the embedding model, the index, or the quantization. How do we figure out where the quality is leaking and actually put a number on it?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Establishes a baseline by comparing approximate (HNSW) vs exact (exact=true) search to compute recall@k"
+    },
+    {
+      "type": "must",
+      "text": "Uses the exact-vs-approx split to localize — exact bad => model/pipeline; exact good but approx bad => tune HNSW"
+    },
+    {
+      "type": "must",
+      "text": "Isolates the recently enabled quantization by measuring quality with and without it"
+    },
+    {
+      "type": "must",
+      "text": "Builds a labeled/golden query set (human, log-based, or LLM-synthetic) and scores a metric like recall@k (e.g. via ranx)"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions the Web UI ANN Recall tab for a no-code check and CI gating on a metric threshold"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes binary quantization needs oversampling + rescore or quality drops severely"
+    },
+    {
+      "type": "avoid",
+      "text": "Starts tuning HNSW/quantization params before verifying the embedding model and measuring a baseline"
+    }
+  ]
+}

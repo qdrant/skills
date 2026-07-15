@@ -32,7 +32,7 @@ Suitable for initial bulk load of large datasets:
 
 Careful, fast unindexed upload might temporarily use more RAM and degrade search performance until optimizer catches up.
 
-See https://skills.qdrant.tech/md/documentation/tutorials-develop/bulk-upload/
+See https://skills.qdrant.tech/md/documentation/manage-data/bulk-upload/
 
 
 ## Optimizer Stuck or Taking Too Long

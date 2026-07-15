@@ -76,6 +76,7 @@ Leaf skills contain the guidance an agent uses to help users.
 
 - Omit `allowed-tools` from frontmatter (exception: skills that need `Bash` for external API calls)
 - Description contains `Use when` with 5+ trigger phrases using exact user language
+- A skill `description` must start with a sentence describing what the skill covers, then list trigger phrases
 - First paragraph corrects a wrong assumption or forces a diagnostic fork
 - Sections named by symptom/scenario, not by feature
 - Each section starts with `Use when:` one-liner

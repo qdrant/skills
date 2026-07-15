@@ -30,37 +30,53 @@ These skills are under active development. Skill content and structure may chang
 
 ## Usage
 
-Skills are hosted at [skills.qdrant.tech](https://skills.qdrant.tech). Pass the URL of a skill directly to your agent — no installation required:
+Qdrant maintains a growing set of skills, and their content changes as Qdrant evolves. There are a few ways to give your agent access to them.
+
+### Recommended: install the Qdrant Advisor
+
+Install one skill — the **Qdrant Advisor** — and your agent always has the freshest, most relevant Qdrant guidance, with nothing to manage as the skills change:
+
+```bash
+npx skills add qdrant/skills/meta/qdrant-advisor
+```
+
+The Advisor ships no static content of its own. When you raise a Qdrant problem, it searches [skills.qdrant.tech](https://skills.qdrant.tech) live, traverses the skill hierarchy along the branch that matches your symptom, and grounds its diagnosis in the current, authoritative guidance, loading only the relevant context. Because it fetches fresh every session, you don't need to reinstall to stay current, and you don't have to remember a URL or hope the site is in the model's training data.
+
+### Alternative: pass the URL directly
+
+If you'd rather not install anything, pass the URL of the skills site in your prompt. The agent fetches the skill relevant to your current problem:
 
 ```
 Use skills.qdrant.tech
 ```
 
-This keeps your agent's context focused: it fetches only the skill relevant to your current problem rather than loading everything upfront.
+This keeps context focused, but you have to include the URL in every prompt.
 
-If you prefer skills to be available offline or without passing URLs manually, you can install them locally. Refer to the [Installation](#installation) section.
+### Offline: install the full skill set
+
+If you want the skills available offline, or triggered automatically without the Advisor, install the complete set locally. See the [Installation](#installation) section.
 
 ## Quick Start
 
-The recommended way is the URL method: ask your agent about Qdrant and pass [skills.qdrant.tech](https://skills.qdrant.tech) in your prompt.
+With the **Qdrant Advisor** installed, just ask your agent about Qdrant. The Advisor triggers automatically and loads the matching guidance live:
+
+```
+"I have 50M vectors on a single node and search is slow, should I add more nodes?"
+→ Advisor loads the scaling guidance, recommends quantization and vertical scaling before adding nodes
+
+"My search results are returning irrelevant matches"
+→ Advisor loads the search-quality guidance, walks through diagnosis and search strategy options
+
+"How do I switch from OpenAI embeddings to Cohere without downtime?"
+→ Advisor loads the model-migration guidance for a zero-downtime switch with dual vectors
+```
+
+Prefer the URL method? Add `Use skills.qdrant.tech` to the same prompts:
 
 ```
 "I have 50M vectors on a single node and search is slow, should I add more nodes? Use skills.qdrant.tech"
 
 "My search results are returning irrelevant matches. Use skills.qdrant.tech"
-```
-
-If you use the installation method, just ask your agent about Qdrant. Skills are triggered automatically when your question matches their description.
-
-```
-"I have 50M vectors on a single node and search is slow, should I add more nodes?"
-→ qdrant-scaling skill activates, recommends quantization and vertical scaling before adding nodes
-
-"My search results are returning irrelevant matches"
-→ qdrant-search-quality skill activates, walks through diagnosis and search strategy options
-
-"How do I switch from OpenAI embeddings to Cohere without downtime?"
-→ qdrant-model-migration skill activates, guides zero-downtime migration with dual vectors
 ```
 
 ## Skills
@@ -74,10 +90,21 @@ If you use the installation method, just ask your agent about Qdrant. Skills are
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
 | qdrant-multitenancy | Isolating multiple tenants within a Qdrant deployment: payload partitioning, tiered multitenancy, and region-based data isolation |
 | qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
+| qdrant-edge | Building on the embedded shard: server sync, on-device BM25, snapshots, reuse vs reimplement |
 | qdrant-model-migration | Switching embedding models without downtime |
 | qdrant-version-upgrade | Safe upgrade paths, compatibility guarantees, rolling upgrades |
 
 ## Installation
+
+### Qdrant Advisor (recommended)
+
+If you want a single, always-current skill instead of the full set, install only the **Qdrant Advisor**:
+
+```bash
+npx skills add qdrant/skills/meta/qdrant-advisor
+```
+
+This installs just the `qdrant-advisor` meta-skill. It ships no static content of its own, it loads the relevant Qdrant skills live from [skills.qdrant.tech](https://skills.qdrant.tech) on demand, so you always get the latest guidance without reinstalling. It is not part of the `npx skills add qdrant/skills` bundle.
 
 ### npx skills
 
