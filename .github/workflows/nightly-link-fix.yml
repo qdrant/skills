@@ -105,6 +105,7 @@ jobs:
             (qdrant/skills). Never modify anything under ./landing_page - it is a read-only reference checkout.
 
             When finished:
+            - If no broken links were found, do nothing.
             - If you fixed at least one link, create a pull request against main. Title it
               "fix: update N broken link(s) found by nightly link check" (with the actual count). In the
               description, list each fixed link as "old -> new", and list any unresolved links under an
