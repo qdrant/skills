@@ -76,6 +76,7 @@ jobs:
           base_branch: main
           branch_prefix: "fix-broken-links/"
           claude_args: |
+            --model claude-sonnet-5
             --max-turns 40
             --allowedTools "Read,Grep,Glob,Edit,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout -b:*),Bash(git commit:*),Bash(git push:*),Bash(gh pr create:*),Bash(gh issue create:*)"
           prompt: |
