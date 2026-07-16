@@ -39,7 +39,7 @@ Use when: system can't serve enough queries per second under load.
 - Reduce segment count (`default_segment_number` to 2) [Maximizing throughput](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=maximizing-throughput)
 - Use batch search API instead of single queries [Batch search](https://skills.qdrant.tech/md/documentation/search/search/?s=batch-search-api)
 - Enable quantization to reduce CPU cost [Scalar quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
-- Add replicas to distribute read load [Replication](https://skills.qdrant.tech/md/documentation/distributed_deployment/?s=replication)
+- Add replicas to distribute read load [Replication](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/?s=replication)
 
 
 ## Filtered Search Is Slow

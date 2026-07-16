@@ -23,7 +23,7 @@ Use when: you need full control over infrastructure, data residency, or custom c
 
 - Docker is the default deployment. Full Qdrant Open Source feature set, minimal setup. [Quick start](https://skills.qdrant.tech/md/documentation/quickstart/?s=download-and-run)
 - You own operations: upgrades, backups, scaling, monitoring
-- Must set up distributed mode manually for multi-node clusters [Distributed deployment](https://skills.qdrant.tech/md/documentation/distributed_deployment/)
+- Must set up distributed mode manually for multi-node clusters [Distributed deployment](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/)
 - Consider Hybrid Cloud if you want Qdrant Cloud management on your infrastructure [Hybrid Cloud](https://skills.qdrant.tech/md/documentation/hybrid-cloud/)
 
 

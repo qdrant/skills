@@ -31,7 +31,7 @@ If a single node is saturated on CPU after applying the tuning above, scale hori
 
 - Shard replicas serve queries from replicated shards, distributing read load across nodes
 - Each replica adds independent query capacity without re-sharding
-- Use `replication_factor: 2+` and route reads to replicas [Distributed deployment](https://skills.qdrant.tech/md/documentation/distributed_deployment/?s=replication)
+- Use `replication_factor: 2+` and route reads to replicas [Distributed deployment](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/?s=replication)
 
 See also [Horizontal Scaling](../scaling-data-volume/horizontal-scaling/SKILL.md) for general horizontal scaling guidance.
 

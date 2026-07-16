@@ -22,7 +22,7 @@ For client-side, optimize batching and parallelism:
 
 For server-side, optimize Qdrant configuration and indexing strategy:
 
-- Create more shards (3-12), each shard has an independent update worker [Sharding](https://skills.qdrant.tech/md/documentation/distributed_deployment/?s=sharding)
+- Create more shards (3-12), each shard has an independent update worker [Sharding](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/?s=sharding)
 - Create payload indexes before HNSW builds (needed for filterable vector index) [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
 
 Suitable for initial bulk load of large datasets:
