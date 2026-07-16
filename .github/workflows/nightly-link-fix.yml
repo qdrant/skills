@@ -22,7 +22,7 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --verbose --no-progress --accept 100..=403,405..=999 '**/*.md'
+          args: --verbose --no-progress --accept-timeouts --accept 100..=403,405..=999 '**/*.md'
           format: json
           output: lychee/out.json
           fail: false
@@ -77,7 +77,7 @@ jobs:
           branch_prefix: "fix-broken-links/"
           claude_args: |
             --max-turns 40
-            --allowedTools "Read,Grep,Glob,Edit,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(gh issue create:*)"
+            --allowedTools "Read,Grep,Glob,Edit,Bash(git log:*),Bash(git show:*),Bash(git diff:*),Bash(git add:*),Bash(git checkout -b:*),Bash(git commit:*),Bash(git push:*),Bash(gh pr create:*),Bash(gh issue create:*)"
           prompt: |
             A nightly link check found broken links (HTTP 404) in this repository (qdrant/skills).
             The Lychee JSON report is at lychee/out.json.
@@ -86,7 +86,7 @@ jobs:
             rendered from the qdrant/landing_page repository. That repo is checked out read-only
             at ./landing_page with full git history.
 
-            For each broken link:
+            For each broken 404 (ignore other errors like network errors):
             1. Read lychee/out.json to get the list of broken links and the files that reference them.
             2. Map the broken skills.qdrant.tech/md/<path> URL to the corresponding content file at
                landing_page/qdrant-landing/content/<path>.
@@ -105,6 +105,7 @@ jobs:
             (qdrant/skills). Never modify anything under ./landing_page - it is a read-only reference checkout.
 
             When finished:
+            - If no broken links were found, do nothing.
             - If you fixed at least one link, create a pull request against main. Title it
               "fix: update N broken link(s) found by nightly link check" (with the actual count). In the
               description, list each fixed link as "old -> new", and list any unresolved links under an
