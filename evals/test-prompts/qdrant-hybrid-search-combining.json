@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-hybrid-search-combining",
+  "product_area": "hybrid search",
+  "skill_url": "https://skills.qdrant.tech/qdrant-search-quality/search-strategies/hybrid-search/combining-searches/SKILL.md",
+  "prompt": "We run dense and sparse (BM25) prefetches in a single query, and each one alone returns sensible candidates, but the merged ranking is worse than either - the two score scales are completely different and the fusion feels arbitrary. We can't decide between rank-based fusion, normalizing and fusing on scores, or adding a reranker. How should we choose?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Because the two score scales are incomparable, recommends starting with RRF (rank-based fusion that ignores score magnitude) as a sensible default"
+    },
+    {
+      "type": "must",
+      "text": "Explains DBSF as the score-based alternative that normalizes each prefetch's score distribution (mean +/- 3 std) before fusing - the 'normalize and fuse on scores' option"
+    },
+    {
+      "type": "must",
+      "text": "Warns explicitly against a naive linear/weighted combination of the raw incomparable scores - the likely reason the merged ranking is worse than either alone"
+    },
+    {
+      "type": "must",
+      "text": "Frames the reranker option as late-interaction / multivector fusion (or using a vector as the combiner): most precise but highest compute, for when top-K precision justifies the cost"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes weighted RRF can let one retriever dominate, but weights must be tuned per dataset/score distribution, not guessed ('vibe' weights)"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions custom fusion via a formula query (combine score + payload with decay/normalization) for bespoke control"
+    },
+    {
+      "type": "avoid",
+      "text": "Picks a fusion method without running comparative experiments on their own data"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends late-interaction reranking without evaluating cheaper analogues (e.g. MUVERA) first"
+    }
+  ]
+}

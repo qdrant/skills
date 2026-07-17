@@ -1,0 +1,32 @@
+{
+  "name": "qdrant-performance-optimization",
+  "product_area": "performance optimization",
+  "skill_url": "https://skills.qdrant.tech/qdrant-performance-optimization/SKILL.md",
+  "prompt": "We're doing a performance and cost review before committing to a bigger cloud bill. Bulk re-imports feel slow, RAM sits high on the nodes, and a chunk of our queries are laggier than we'd like. We want to understand the full set of levers across ingestion, memory, and query speed before deciding where to invest. How should we approach this?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Frames performance as three areas and maps the symptoms: slow bulk imports -> indexing performance; high RAM -> memory usage; laggy queries -> search speed"
+    },
+    {
+      "type": "must",
+      "text": "Explains search speed splits into latency (single query) vs throughput (QPS), so the query lag must be characterized before tuning"
+    },
+    {
+      "type": "must",
+      "text": "Recommends prioritizing/sequencing which area to tackle first rather than tuning everything at once (fits the 'decide where to invest' ask)"
+    },
+    {
+      "type": "bonus",
+      "text": "Points to the specific sub-areas (indexing-performance, memory-usage, search-speed) for the detailed levers"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes background optimization can couple the areas (indexing competing with search), so measure before/after"
+    },
+    {
+      "type": "avoid",
+      "text": "Collapses into one sub-area and prescribes a single fix, ignoring the cross-cutting review the user asked for"
+    }
+  ]
+}

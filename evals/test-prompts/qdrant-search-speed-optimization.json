@@ -1,0 +1,36 @@
+{
+  "name": "qdrant-search-speed-optimization",
+  "product_area": "performance optimization",
+  "skill_url": "https://skills.qdrant.tech/qdrant-performance-optimization/search-speed-optimization/SKILL.md",
+  "prompt": "Single-query search latency on our product catalog has crept up over the last month as the collection grew, even though traffic is flat. We return a fair amount of stored metadata with every hit, and sometimes the same query is slow once and fast right after. We want to find the actual bottleneck and speed queries back up - where should we look?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Reads 'slow once, fast right after' as the memory-pressure signature: re-run the same query - a much faster second run means the working set no longer fits in RAM, consistent with latency creeping up as the collection grew"
+    },
+    {
+      "type": "must",
+      "text": "Tests whether payload retrieval is the bottleneck by re-running with with_payload:false (and with_vectors:false), given a lot of metadata is returned per hit"
+    },
+    {
+      "type": "must",
+      "text": "Offers latency fixes tied to the diagnosis: in-memory (scalar) quantization with always_ram so the working set fits, HNSW parameter tuning, and returning less payload per hit"
+    },
+    {
+      "type": "bonus",
+      "text": "Suggests removing filters one by one, if any are involved, to isolate a specific filter as the cause"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions oversampling + rescore for high-dimensional vectors and io_uring for disk-heavy Linux workloads as further levers"
+    },
+    {
+      "type": "avoid",
+      "text": "Sets always_ram=false or puts HNSW on disk for this latency-sensitive case (disk thrashing)"
+    },
+    {
+      "type": "avoid",
+      "text": "Blames Qdrant or scales out before checking the memory-pressure and payload diagnostics, or treats flat-traffic latency as a throughput/QPS problem"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-indexing-performance-optimization",
+  "product_area": "performance optimization",
+  "skill_url": "https://skills.qdrant.tech/qdrant-performance-optimization/indexing-performance-optimization/SKILL.md",
+  "prompt": "Our initial load of 250M vectors is taking days, and after upload finishes the collection spends hours with uneven search performance while indexes catch up. We're using small upsert batches and creating payload indexes as fields become available. How can we make ingestion and index building faster?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Identifies the small upsert batches as a client-side bottleneck and recommends larger batches (64-256 points/request) plus 2-4 parallel upload streams"
+    },
+    {
+      "type": "must",
+      "text": "Explains the post-load uneven search is expected: HNSW isn't built until segments exceed the indexing threshold (brute-force until then) and the optimizer is still catching up - not a bug"
+    },
+    {
+      "type": "must",
+      "text": "Recommends disabling HNSW during the bulk load (raise indexing_threshold_kb, restore after) to speed the initial load"
+    },
+    {
+      "type": "must",
+      "text": "Flags the payload-index timing problem: create payload indexes BEFORE the HNSW build, not 'as fields become available' after - adding them after HNSW breaks/forces rebuild of the filterable vector index"
+    },
+    {
+      "type": "bonus",
+      "text": "Suggests more shards (3-12), since each shard has an independent update worker, to parallelize server-side ingestion"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions checking the optimizations endpoint and CPU vs disk I/O (HNSW is CPU-bound, merging I/O-bound, HDD not viable), plus HNSW build knobs (m, ef_construct 100-200, GPU) if build time dominates"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends uploading one point at a time, or using m=0 on an existing collection"
+    },
+    {
+      "type": "avoid",
+      "text": "Treats the temporary post-load slow search as a defect rather than expected pre-index behavior"
+    }
+  ]
+}

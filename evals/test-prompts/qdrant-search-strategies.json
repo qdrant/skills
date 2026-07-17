@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-search-strategies",
+  "product_area": "search quality",
+  "skill_url": "https://skills.qdrant.tech/qdrant-search-quality/search-strategies/SKILL.md",
+  "prompt": "Our exact vector search looks reasonable, but product search still feels weak: some queries need exact part-number matches, some return near-duplicate items, and some relevant items are found only far down the list. Which retrieval strategy should we try for each problem?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Maps the exact part-number match failures to hybrid search (add a lexical/sparse signal alongside dense) - the keyword-match branch"
+    },
+    {
+      "type": "must",
+      "text": "Maps the near-duplicate/redundant results to MMR (diversity parameter, v1.15+) to diversify the top results"
+    },
+    {
+      "type": "must",
+      "text": "Maps 'relevant items found only far down the list' (good recall, poor precision) to reranking / multistage queries (late-interaction or cross-encoder rerankers), or relevance feedback if reranking a large pool is too costly"
+    },
+    {
+      "type": "must",
+      "text": "Treats each symptom as a separate strategy choice (the 'which strategy for each problem' ask) rather than one blanket fix"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes the prerequisite: confirm the embedding model and HNSW config are sound (verify pure vector-search quality) before layering strategies"
+    },
+    {
+      "type": "bonus",
+      "text": "Recommends evaluating each strategy's impact on the pipeline rather than assuming it helps"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends a single catch-all strategy (e.g. 'just add hybrid search') for all three distinct problems"
+    },
+    {
+      "type": "avoid",
+      "text": "Adds strategies without first verifying base vector-search quality"
+    }
+  ]
+}

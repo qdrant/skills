@@ -1,0 +1,52 @@
+{
+  "name": "qdrant-edge",
+  "product_area": "edge",
+  "skill_url": "https://github.com/qdrant/skills/blob/main/skills/qdrant-edge/SKILL.md",
+  "prompt": "I'm building an offline-capable Python app on Qdrant Edge (robot, intermittent wifi). Three problems. (1) I bulk-upserted 50k points but keyword search returns almost nothing right after. (2) I want to keep the shard fresh from our Qdrant Cloud collection and also get local edits back up to it. (3) For hybrid search I'm about to pip install a BM25 lib and write my own RRF. What am I getting wrong?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "The empty keyword results come from Edge having no background optimizer: call optimize after bulk writes to build the sparse/BM25 index and reclaim deletes — nothing is indexed until then."
+    },
+    {
+      "type": "must",
+      "text": "There's no built-in .sync(); pull via the dual-shard pattern (a mutable local-write shard plus an immutable shard restored from a server snapshot, queried together and refreshed on a schedule), downloading the snapshot yourself and applying it with unpack_snapshot/update_from_snapshot."
+    },
+    {
+      "type": "must",
+      "text": "Push is your own dual-write: enqueue each local upsert to a background worker that upserts to the server and buffers while offline."
+    },
+    {
+      "type": "must",
+      "text": "Don't add a BM25 library — BM25 is built into Edge (Bm25/Bm25Config, embed_document/embed_query) and is wire-compatible with server BM25."
+    },
+    {
+      "type": "must",
+      "text": "Keep the custom RRF: Edge queries one vector field per request (using) and doesn't fuse at query time, so combining rankings in application code is correct."
+    },
+    {
+      "type": "bonus",
+      "text": "Refresh incrementally with a partial snapshot from snapshot_manifest, not a full snapshot each cycle."
+    },
+    {
+      "type": "bonus",
+      "text": "Dense embeddings aren't in Edge — generate them on device with the separate fastembed package."
+    },
+    {
+      "type": "bonus",
+      "text": "Edge is beta — pin the version, since the API drifts."
+    },
+    {
+      "type": "avoid",
+      "text": "Blames the empty keyword search on BM25 setup or re-indexing instead of the missing optimize."
+    },
+    {
+      "type": "avoid",
+      "text": "Expects a built-in bidirectional .sync()/push, or untars/merges snapshot segments by hand."
+    },
+    {
+      "type": "avoid",
+      "text": "Drops the custom fusion because \"Edge handles hybrid,\" or swaps embed_document/embed_query."
+    }
+  ]
+}
