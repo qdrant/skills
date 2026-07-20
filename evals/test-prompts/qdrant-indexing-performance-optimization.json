@@ -1,40 +1,81 @@
 {
   "name": "qdrant-indexing-performance-optimization",
-  "product_area": "performance optimization",
+  "product_area": "indexing optimization",
   "skill_url": "https://skills.qdrant.tech/qdrant-performance-optimization/indexing-performance-optimization/SKILL.md",
-  "prompt": "Our initial load of 250M vectors is taking days, and after upload finishes the collection spends hours with uneven search performance while indexes catch up. We're using small upsert batches and creating payload indexes as fields become available. How can we make ingestion and index building faster?",
-  "rubric": [
+  "tasks": [
     {
-      "type": "must",
-      "text": "Identifies the small upsert batches as a client-side bottleneck and recommends larger batches (64-256 points/request) plus 2-4 parallel upload streams"
+      "prompt": "Our initial load of 250M vectors is taking days, and after upload finishes the collection spends hours with uneven search performance while indexes catch up. We're using small upsert batches and creating payload indexes as fields become available. How can we make ingestion and index building faster?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "Identifies the small upsert batches as a client-side bottleneck and recommends larger batches (64-256 points/request) plus 2-4 parallel upload streams"
+        },
+        {
+          "type": "must",
+          "text": "Explains the post-load uneven search is expected: HNSW isn't built until segments exceed the indexing threshold (brute-force until then) and the optimizer is still catching up - not a bug"
+        },
+        {
+          "type": "must",
+          "text": "Recommends disabling HNSW during the bulk load (raise indexing_threshold_kb, restore after) to speed the initial load"
+        },
+        {
+          "type": "must",
+          "text": "Flags the payload-index timing problem: create payload indexes BEFORE the HNSW build, not 'as fields become available' after - adding them after HNSW breaks/forces rebuild of the filterable vector index"
+        },
+        {
+          "type": "bonus",
+          "text": "Suggests more shards (3-12), since each shard has an independent update worker, to parallelize server-side ingestion"
+        },
+        {
+          "type": "bonus",
+          "text": "Mentions checking the optimizations endpoint and CPU vs disk I/O (HNSW is CPU-bound, merging I/O-bound, HDD not viable), plus HNSW build knobs (m, ef_construct 100-200, GPU) if build time dominates"
+        },
+        {
+          "type": "avoid",
+          "text": "Recommends uploading one point at a time, or using m=0 on an existing collection"
+        },
+        {
+          "type": "avoid",
+          "text": "Treats the temporary post-load slow search as a defect rather than expected pre-index behavior"
+        }
+      ]
     },
     {
-      "type": "must",
-      "text": "Explains the post-load uneven search is expected: HNSW isn't built until segments exceed the indexing threshold (brute-force until then) and the optimizer is still catching up - not a bug"
-    },
-    {
-      "type": "must",
-      "text": "Recommends disabling HNSW during the bulk load (raise indexing_threshold_kb, restore after) to speed the initial load"
-    },
-    {
-      "type": "must",
-      "text": "Flags the payload-index timing problem: create payload indexes BEFORE the HNSW build, not 'as fields become available' after - adding them after HNSW breaks/forces rebuild of the filterable vector index"
-    },
-    {
-      "type": "bonus",
-      "text": "Suggests more shards (3-12), since each shard has an independent update worker, to parallelize server-side ingestion"
-    },
-    {
-      "type": "bonus",
-      "text": "Mentions checking the optimizations endpoint and CPU vs disk I/O (HNSW is CPU-bound, merging I/O-bound, HDD not viable), plus HNSW build knobs (m, ef_construct 100-200, GPU) if build time dominates"
-    },
-    {
-      "type": "avoid",
-      "text": "Recommends uploading one point at a time, or using m=0 on an existing collection"
-    },
-    {
-      "type": "avoid",
-      "text": "Treats the temporary post-load slow search as a defect rather than expected pre-index behavior"
+      "prompt": "Our self-hosted Qdrant machines run on AWS (EC2 c6i.2xlarge with 8 vCPUs and 16GB RAM). We've noticed high CPU usage during indexing, which makes sense since max_indexing_threads is set to 0, meaning it uses all available CPU power. However, we'd prefer to avoid full CPU saturation so that reads and writes aren't affected. The API suggests keeping max_indexing_threads between 8 and 16 to avoid \"inefficient or broken HNSW graphs\", and that \"fewer threads are used on smaller CPUs\". Given our setup, what value would you recommend?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "Clarifies that 'inefficient' refers only to HNSW build time, not to the quality or correctness of the resulting HNSW graph"
+        },
+        {
+          "type": "must",
+          "text": "States the core tradeoff: reducing threads/CPU allocated to indexing will make HNSW building/indexing take longer, with no way around that tradeoff"
+        },
+        {
+          "type": "must",
+          "text": "Does not claim a fixed golden-rule thread count; recommends picking a value (e.g. 4) and empirically testing performance"
+        },
+        {
+          "type": "must",
+          "text": "Recommends setting optimizer_cpu_budget to -4 as the preferred lever, explaining it limits HNSW building across the entire peer (all collections) and is more resilient to CPU size changes"
+        },
+        {
+          "type": "must",
+          "text": "Mentions max_optimization_threads as a fallback option that can be set per collection, if peer-level configuration access isn't available"
+        },
+        {
+          "type": "bonus",
+          "text": "Suggests time-of-day scheduling as an alternative: disabling indexing during peak hours via high optimizer thresholds and enabling it at night (e.g. via a cron job), to avoid CPU contention entirely during business hours"
+        },
+        {
+          "type": "avoid",
+          "text": "Recommends a specific thread count (e.g. 'use 8' or 'use 12') as a universally correct answer without framing it as something to test"
+        },
+        {
+          "type": "avoid",
+          "text": "Conflates max_indexing_threads with optimizer_cpu_budget or max_optimization_threads as if they are the same setting at the same scope"
+        }
+      ]
     }
   ]
 }
