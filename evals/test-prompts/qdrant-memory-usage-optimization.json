@@ -2,39 +2,64 @@
   "name": "qdrant-memory-usage-optimization",
   "product_area": "performance optimization",
   "skill_url": "https://skills.qdrant.tech/qdrant-performance-optimization/memory-usage-optimization/SKILL.md",
-  "prompt": "Our Qdrant node has 128 GB RAM, but memory looks full most of the time and occasionally crosses into OOM risk during optimizations. The collection has 70M 1024-d vectors, several payload indexes, and quantization enabled. How do we tell what must stay in RAM and reduce the footprint safely?",
-  "rubric": [
+  "tasks": [
     {
-      "type": "must",
-      "text": "Distinguishes resident memory (RSSAnon: ID tracker, quantized vectors with always_ram, payload indexes) from OS page cache (original vectors, releasable); notes page cache filling RAM is normal while resident >80% is the real problem, checked via /metrics"
+      "prompt": "Our Qdrant node has 128 GB RAM, but memory looks full most of the time and occasionally crosses into OOM risk during optimizations. The collection has 70M 1024-d vectors, several payload indexes, and quantization enabled. How do we tell what must stay in RAM and reduce the footprint safely?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "Distinguishes resident memory (RSSAnon: ID tracker, quantized vectors with always_ram, payload indexes) from OS page cache (original vectors, releasable); notes page cache filling RAM is normal while resident >80% is the real problem, checked via /metrics"
+        },
+        {
+          "type": "must",
+          "text": "Attributes the OOM-during-optimization risk to insufficient headroom: optimized segments are fully loaded into RAM during optimization, so leave headroom (and a smaller max_segment_size reduces the headroom needed)"
+        },
+        {
+          "type": "must",
+          "text": "Since quantization is already enabled, recommends further footprint levers: original vectors / HNSW / payload indexes on disk, float16 or int8 datatypes (2x/4x reduction), or MRL to keep only small vectors in RAM"
+        },
+        {
+          "type": "bonus",
+          "text": "Notes payload indexes and the HNSW graph also consume resident memory and must be counted in the estimate, not just raw vectors"
+        },
+        {
+          "type": "bonus",
+          "text": "Mentions async_scorer (io_uring, Linux 5.11+) and moving sparse/text payload to disk to keep on-disk performance acceptable"
+        },
+        {
+          "type": "bonus",
+          "text": "Suggests confirming quantized vectors are the copy kept in RAM (always_ram) while originals stay on disk / page cache"
+        },
+        {
+          "type": "avoid",
+          "text": "Concludes a memory leak because page cache fills available RAM"
+        },
+        {
+          "type": "avoid",
+          "text": "Only recommends adding RAM / a bigger node and ignores the explicit footprint-reduction ask"
+        }
+      ]
     },
     {
-      "type": "must",
-      "text": "Attributes the OOM-during-optimization risk to insufficient headroom: optimized segments are fully loaded into RAM during optimization, so leave headroom (and a smaller max_segment_size reduces the headroom needed)"
-    },
-    {
-      "type": "must",
-      "text": "Since quantization is already enabled, recommends further footprint levers: original vectors / HNSW / payload indexes on disk, float16 or int8 datatypes (2x/4x reduction), or MRL to keep only small vectors in RAM"
-    },
-    {
-      "type": "bonus",
-      "text": "Notes payload indexes and the HNSW graph also consume resident memory and must be counted in the estimate, not just raw vectors"
-    },
-    {
-      "type": "bonus",
-      "text": "Mentions async_scorer (io_uring, Linux 5.11+) and moving sparse/text payload to disk to keep on-disk performance acceptable"
-    },
-    {
-      "type": "bonus",
-      "text": "Suggests confirming quantized vectors are the copy kept in RAM (always_ram) while originals stay on disk / page cache"
-    },
-    {
-      "type": "avoid",
-      "text": "Concludes a memory leak because page cache fills available RAM"
-    },
-    {
-      "type": "avoid",
-      "text": "Only recommends adding RAM / a bigger node and ignores the explicit footprint-reduction ask"
+      "prompt": "Running a 3-node Qdrant cluster (v1.17.0) with 15GB RAM per node, 60+ collections, 3 shards + replication factor 3 per collection, dynamically created collections. Started hitting recurring startup/recovery crashes with errors like: 'Cannot allocate memory (os error 12) failed to set up alternative stack guard page'. The nodes still had ~14GB available RAM, while the Qdrant process showed very high VSZ (~71GB) but low RSS (~4GB), so this appears related to mmap/virtual memory pressure rather than actual RAM exhaustion. Reducing max_workers didn't help the node start. Log at crash time:\n\n```\n2026-05-18T11:40:16.613636Z  INFO qdrant: Telemetry reporting disabled\n2026-05-18T11:40:16.613968Z  INFO qdrant::tonic: TLS disabled for internal gRPC API\n2026-05-18T11:40:16.617711Z  WARN qdrant::actix::web_ui: Static content folder for Web UI './static' does not exist\n2026-05-18T11:40:16.617840Z  INFO qdrant::actix: TLS disabled for REST API\n2026-05-18T11:40:16.617880Z  INFO qdrant::actix: Qdrant HTTP listening on 6333\n2026-05-18T11:40:16.617884Z  INFO actix_server::builder: starting 2 workers\n2026-05-18T11:40:16.617889Z  INFO actix_server::server: Actix runtime found; starting in Actix runtime\n2026-05-18T11:40:16.617895Z  INFO actix_server::server: starting service: \"actix-web-service-10.164.204.99:6333\", workers: 2, listening on: 10.164.204.99:6333\n2026-05-18T11:40:16.621945Z  INFO qdrant::tonic: Qdrant gRPC listening on 6334\n2026-05-18T11:40:16.621954Z  INFO qdrant::tonic: TLS disabled for gRPC API\n2026-05-18T11:40:19.961747Z ERROR qdrant::startup: Panic backtrace: [unknown frames]\n2026-05-18T11:40:19.961761Z ERROR qdrant::startup: Panic occurred in file library/std/src/sys/pal/unix/stack_overflow.rs at line 240: failed to set up alternative stack guard page: Cannot allocate memory (os error 12)\nfatal runtime error: failed to initiate panic, error 5, aborting\n```\n\nIs there a way to make the cluster stable in this situation?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "Suggests checking the kernel mmap limit via `cat /proc/sys/vm/max_map_count` as a potential cause"
+        },
+        {
+          "type": "must",
+          "text": "Mentions low_memory_mode (available in v1.18) as a way to help stabilize this setup"
+        },
+        {
+          "type": "must",
+          "text": "Notes that creating a high number of collections is not recommended"
+        },
+        {
+          "type": "bonus",
+          "text": "Notes the crash occurs after/during collection loading at startup"
+        }
+      ]
     }
   ]
 }

@@ -2,31 +2,72 @@
   "name": "qdrant-version-upgrade",
   "product_area": "version upgrade",
   "skill_url": "https://skills.qdrant.tech/qdrant-version-upgrade/SKILL.md",
-  "prompt": "We're on self-hosted 1.15 and want to get to 1.17. It's a replicated 3-node cluster serving live traffic, and our Python client is pinned to 1.15. Can we jump straight there, what order do we upgrade server vs. client in, and how do we avoid downtime or breaking our stored data?",
-  "rubric": [
+  "tasks": [
     {
-      "type": "must",
-      "text": "States you cannot jump straight 1.15 -> 1.17 on self-hosted — storage compat is one minor at a time, so go 1.15 -> 1.16 -> 1.17"
+      "prompt": "We're on self-hosted 1.15 and want to get to 1.17. It's a replicated 3-node cluster serving live traffic, and our Python client is pinned to 1.15. Can we jump straight there, what order do we upgrade server vs. client in, and how do we avoid downtime or breaking our stored data?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "States you cannot jump straight 1.15 -> 1.17 on self-hosted — storage compat is one minor at a time, so go 1.15 -> 1.16 -> 1.17"
+        },
+        {
+          "type": "must",
+          "text": "Recommends upgrading the SDK to the next minor before the server, stepwise (client/server within one minor)"
+        },
+        {
+          "type": "must",
+          "text": "Confirms zero-downtime via rolling upgrade because the 3-node cluster has replication_factor >=2 (one node at a time)"
+        },
+        {
+          "type": "bonus",
+          "text": "Notes Qdrant Cloud would automate the multi-version jump (this self-hosted setup does not)"
+        },
+        {
+          "type": "bonus",
+          "text": "Notes server and SDK major/minor are expected to match (1.17.x server <-> 1.17.x SDK)"
+        },
+        {
+          "type": "avoid",
+          "text": "Tells them to upgrade the server straight to 1.17 in one hop, risking storage incompatibility"
+        }
+      ]
     },
     {
-      "type": "must",
-      "text": "Recommends upgrading the SDK to the next minor before the server, stepwise (client/server within one minor)"
-    },
-    {
-      "type": "must",
-      "text": "Confirms zero-downtime via rolling upgrade because the 3-node cluster has replication_factor >=2 (one node at a time)"
-    },
-    {
-      "type": "bonus",
-      "text": "Notes Qdrant Cloud would automate the multi-version jump (this self-hosted setup does not)"
-    },
-    {
-      "type": "bonus",
-      "text": "Notes server and SDK major/minor are expected to match (1.17.x server <-> 1.17.x SDK)"
-    },
-    {
-      "type": "avoid",
-      "text": "Tells them to upgrade the server straight to 1.17 in one hop, risking storage incompatibility"
+      "prompt": "We recently upgraded our Qdrant server from v1.15.5 to v1.18.0 and noticed significant differences in search results for the same queries against the same database. Setup: Collection uses scalar quantization, embedding model ibm-granite/granite-embedding-107m-multilingual, database unchanged between both versions. Observed issues: (1) Score mismatch - same top result in both versions, but different similarity score. (2) Result mismatch - a different query returns a completely different top result depending on version. Could you help us understand if there were any changes in v1.16-v1.18 related to scalar quantization scoring or ranking that could explain this behavior? [CSV of before/after scores per query attached] We didn't touch anything, devops just updated the cluster from 1.15.5 to 1.18.0. No quantile set. Cosine distance.",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "States that nothing is wrong with the data or the upgrade itself"
+        },
+        {
+          "type": "must",
+          "text": "Explains that starting in v1.16.3, query quantization changed from truncation to rounding when converting vectors to int8"
+        },
+        {
+          "type": "bonus",
+          "text": "Notes that truncation introduced a small downward bias in scores, and rounding removes that bias"
+        },
+        {
+          "type": "must",
+          "text": "Explains that since queries are quantized on every search, score changes can appear immediately after upgrade even with no re-ingestion"
+        },
+        {
+          "type": "must",
+          "text": "Notes the effect is small and mostly preserves ranking, though very close results can swap positions"
+        },
+        {
+          "type": "must",
+          "text": "Recommends enabling rescoring (with oversampling) to get stable scores across versions, since rescoring recomputes scores from the original float vectors independent of int8 quantization"
+        },
+        {
+          "type": "bonus",
+          "text": "Asks clarifying questions (whether segments were rebuilt, whether a quantile is set, which distance metric) before giving a definitive explanation"
+        },
+        { 
+          "type": "avoid", 
+          "text": "Attributes the score/result differences to data corruption, embedding model drift, or a bug requiring re-ingestion or rollback, instead of the documented quantization rounding change" 
+        }
+      ]
     }
   ]
 }

@@ -2,39 +2,76 @@
   "name": "qdrant-hybrid-search-combining",
   "product_area": "hybrid search",
   "skill_url": "https://skills.qdrant.tech/qdrant-search-quality/search-strategies/hybrid-search/combining-searches/SKILL.md",
-  "prompt": "We run dense and sparse (BM25) prefetches in a single query, and each one alone returns sensible candidates, but the merged ranking is worse than either - the two score scales are completely different and the fusion feels arbitrary. We can't decide between rank-based fusion, normalizing and fusing on scores, or adding a reranker. How should we choose?",
-  "rubric": [
+  "tasks":[
     {
-      "type": "must",
-      "text": "Because the two score scales are incomparable, recommends starting with RRF (rank-based fusion that ignores score magnitude) as a sensible default"
+      "prompt": "We run dense and sparse (BM25) prefetches in a single query, and each one alone returns sensible candidates, but the merged ranking is worse than either - the two score scales are completely different and the fusion feels arbitrary. We can't decide between rank-based fusion, normalizing and fusing on scores, or adding a reranker. How should we choose?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "Because the two score scales are incomparable, recommends starting with RRF (rank-based fusion that ignores score magnitude) as a sensible default"
+        },
+        {
+          "type": "must",
+          "text": "Explains DBSF as the score-based alternative that normalizes each prefetch's score distribution (mean +/- 3 std) before fusing - the 'normalize and fuse on scores' option"
+        },
+        {
+          "type": "must",
+          "text": "Warns explicitly against a naive linear/weighted combination of the raw incomparable scores - the likely reason the merged ranking is worse than either alone"
+        },
+        {
+          "type": "must",
+          "text": "Frames the reranker option as late-interaction / multivector fusion (or using a vector as the combiner): most precise but highest compute, for when top-K precision justifies the cost"
+        },
+        {
+          "type": "must",
+          "text": "Notes weighted RRF can let one retriever dominate, but weights must be tuned per dataset/score distribution, not guessed ('vibe' weights)"
+        },
+        {
+          "type": "bonus",
+          "text": "Mentions custom fusion via a formula query (combine score + payload with decay/normalization) for bespoke control"
+        },
+        {
+          "type": "avoid",
+          "text": "Picks a fusion method without running comparative experiments on their own data"
+        },
+        {
+          "type": "avoid",
+          "text": "Recommends late-interaction reranking without evaluating cheaper analogues (e.g. MUVERA) first"
+        }
+      ]
     },
     {
-      "type": "must",
-      "text": "Explains DBSF as the score-based alternative that normalizes each prefetch's score distribution (mean +/- 3 std) before fusing - the 'normalize and fuse on scores' option"
-    },
-    {
-      "type": "must",
-      "text": "Warns explicitly against a naive linear/weighted combination of the raw incomparable scores - the likely reason the merged ranking is worse than either alone"
-    },
-    {
-      "type": "must",
-      "text": "Frames the reranker option as late-interaction / multivector fusion (or using a vector as the combiner): most precise but highest compute, for when top-K precision justifies the cost"
-    },
-    {
-      "type": "must",
-      "text": "Notes weighted RRF can let one retriever dominate, but weights must be tuned per dataset/score distribution, not guessed ('vibe' weights)"
-    },
-    {
-      "type": "bonus",
-      "text": "Mentions custom fusion via a formula query (combine score + payload with decay/normalization) for bespoke control"
-    },
-    {
-      "type": "avoid",
-      "text": "Picks a fusion method without running comparative experiments on their own data"
-    },
-    {
-      "type": "avoid",
-      "text": "Recommends late-interaction reranking without evaluating cheaper analogues (e.g. MUVERA) first"
+      "prompt": "Is there a way to apply a maximum expression over the raw scores of multiple prefetches? Let's say we have a collection with three named vectors (title, abstract, and body), all generated from the same embedding model. We want to run a query against all three named vectors and merge the candidates by taking the maximum raw score across the named vectors for each document. Why not RRF? We care about the absolute score rather than just position/rank. Why not DBSF? We don't want the scores to be normalized across the prefetched distributions. Example: Doc 1: title 0.85, abstract 0.82, body 0.80 => Max Score 0.85. Doc 2: title 0.40, abstract 0.50, body 0.92 => Max Score 0.92. Since Doc 2's body (0.92) is a better match than anything in Doc 1, our final results should rank Doc 2 above Doc 1. We looked into using FormulaQuery to access $score, but couldn't find a way to express a MaxExpression (only SumExpression, MultExpression, etc. seem natively supported). Does Qdrant have a built-in way to handle Maximum expressions directly in a FormulaQuery or via another method in the Query API? If not, what would be the recommended workaround?",
+      "rubric": [
+        {
+          "type": "must",
+          "text": "States that Qdrant does not currently have a built-in MaxExpression inside FormulaQuery"
+        },
+        {
+          "type": "must",
+          "text": "Offers the smooth-max (log-sum-exp) approximation as a server-side workaround using FormulaQuery's exp, ln, sum, mult operations, in the form max ≈ (1/k) * ln(sum(exp(k * score_i)))"
+        },
+        {
+          "type": "must",
+          "text": "Notes this smooth-max approach is an approximation, not a true max, and works better when raw scores are in a stable range (e.g. cosine similarity) but may be sensitive with larger dot-product scores"
+        },
+        {
+          "type": "must",
+          "text": "Offers client-side max as the workaround for an exact result: query each named vector, group results by point ID, take max(score), sort by max score"
+        },
+        {
+          "type": "must",
+          "text": "Concludes there is no native true max across named vectors, and that client-side max is the recommended option if an exact result is required"
+        },
+        {
+          "type": "bonus",
+          "text": "Mentions RecommendBestScore as an existing max-style behavior, but clarifies it applies within a single named vector's recommend query and does not solve max across multiple named vectors"
+        }, 
+        { 
+          "type": "avoid", 
+          "text": "Claims or fabricates that a MaxExpression (or equivalent native max operation) exists in FormulaQuery" 
+        }
+      ]
     }
   ]
 }
