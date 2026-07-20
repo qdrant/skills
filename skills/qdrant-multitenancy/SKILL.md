@@ -52,7 +52,7 @@ Use when: you have a limited number of tenants with different per-tenant embeddi
 
 Use when: data must be physically pinned to a location, e.g. regional compliance for healthcare industry (one region's data in Canada, another's in Germany). This is not only a tenant concern, a single tenant may also need to separate its own data by region.
 
-- Like tiered multitenancy, this uses custom sharding; the difference is what you shard by. Here the shard key is a region. Each key's data lands on specific shards you can place in specific locations, while everything stays in one collection. Combine it with payload partitioning if you also need per-tenant isolation within a region. Check [User-defined sharding](https://skills.qdrant.tech/md/documentation/distributed_deployment/?s=user-defined-sharding) for setup.
+- Like tiered multitenancy, this uses custom sharding; the difference is what you shard by. Here the shard key is a region. Each key's data lands on specific shards you can place in specific locations, while everything stays in one collection. Combine it with payload partitioning if you also need per-tenant isolation within a region. Check [User-defined sharding](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/?s=user-defined-sharding) for setup.
 - Geographic residency follows only if your cluster's nodes are actually in the target regions. 
 - Qdrant Cloud deploys a cluster in a single region and has no managed multi-region today.
 
