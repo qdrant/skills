@@ -21,7 +21,7 @@
       "text": "Frames the reranker option as late-interaction / multivector fusion (or using a vector as the combiner): most precise but highest compute, for when top-K precision justifies the cost"
     },
     {
-      "type": "bonus",
+      "type": "must",
       "text": "Notes weighted RRF can let one retriever dominate, but weights must be tuned per dataset/score distribution, not guessed ('vibe' weights)"
     },
     {
