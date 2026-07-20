@@ -11,6 +11,7 @@ Agent skills encoding deep Qdrant knowledge for coding agents.
 - [qdrant-monitoring](qdrant-monitoring/SKILL.md) — Monitoring, observability, health checks, and debugging production issues.
   - [qdrant-monitoring-setup](qdrant-monitoring/setup/SKILL.md) — Setting up Prometheus, health probes, alerting, and log centralization.
   - [qdrant-monitoring-debugging](qdrant-monitoring/debugging/SKILL.md) — Diagnosing production issues from metrics and observability data.
+- [qdrant-multitenancy](qdrant-multitenancy/SKILL.md) — Isolating multiple tenants within a Qdrant deployment: payload partitioning, tiered multitenancy, and region-based data isolation.
 - [qdrant-performance-optimization](qdrant-performance-optimization/SKILL.md) — Search speed, memory usage, and indexing performance tuning.
   - [qdrant-search-speed-optimization](qdrant-performance-optimization/search-speed-optimization/SKILL.md) — Diagnosing and fixing slow search and high query latency.
   - [qdrant-memory-usage-optimization](qdrant-performance-optimization/memory-usage-optimization/SKILL.md) — Diagnosing and reducing RAM usage and out-of-memory crashes.
