@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-tenant-scaling",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/tenant-scaling/SKILL.md",
+  "prompt": "We run a SaaS app with about 35,000 customers in Qdrant. Today each customer has its own collection, and we're hitting operational limits with many tiny tenants plus a few very large ones. How should we redesign this so tenant queries stay isolated and performance doesn't collapse?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Says to abandon collection-per-tenant (doesn't scale past a few hundred; ~1000 collection limit) and move to a single shared collection partitioned by a tenant-id payload key"
+    },
+    {
+      "type": "must",
+      "text": "Recommends a payload index on the tenant field with is_tenant=true for partitioning/isolation and read performance"
+    },
+    {
+      "type": "must",
+      "text": "Addresses the uneven tenant sizes with tiered multitenancy: promote the few very large tenants to dedicated shards while keeping the many small tenants on shared shards"
+    },
+    {
+      "type": "must",
+      "text": "For ~35k tenants on a multi-node cluster, recommends custom sharding (assign tenants to shards by tenant-id hash) to localize each tenant's queries to specific nodes instead of broadcasting to all"
+    },
+    {
+      "type": "bonus",
+      "text": "Uses payload_m to build per-tenant HNSW subgraphs instead of a global HNSW index for the multi-tenant collection"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes true per-tenant isolation via separate collections is only for compliance/encryption needs - the exception, not the default"
+    },
+    {
+      "type": "avoid",
+      "text": "Keeps or recommends collection-per-tenant as the scalable design (without a compliance reason)"
+    },
+    {
+      "type": "avoid",
+      "text": "Omits is_tenant=true on the tenant index (kills sequential-read performance) or builds a global HNSW for the multi-tenant collection"
+    }
+  ]
+}

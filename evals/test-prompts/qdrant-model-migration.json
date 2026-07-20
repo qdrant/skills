@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-model-migration",
+  "product_area": "model migration",
+  "skill_url": "https://skills.qdrant.tech/qdrant-model-migration/SKILL.md",
+  "prompt": "We have a production collection with 180M vectors from OpenAI `text-embedding-ada-002` and want to move to `text-embedding-3-large` while keeping search online. The new vectors have different dimensions, and we'd like to A/B test quality before cutting over. What migration plan should we use?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Confirms the model change requires full re-embedding into a NEW vector space (ada-002 1536-d and 3-large 3072-d are incompatible; old vectors can't be reused or mixed)"
+    },
+    {
+      "type": "must",
+      "text": "Recommends the side-by-side pattern for the requested A/B test: store both models as named vectors and query using the old vs new vector to compare quality before committing"
+    },
+    {
+      "type": "must",
+      "text": "Uses a collection alias so the app points at the alias and you can atomically swap to the new model once satisfied (zero downtime); notes the version dependency (v1.18+ can add a named vector to the existing collection; v1.17- needs a new collection with both vectors defined upfront)"
+    },
+    {
+      "type": "must",
+      "text": "Warns to verify search quality before deleting old vectors/collection, and to update the query-side embedding model in application code at cutover"
+    },
+    {
+      "type": "bonus",
+      "text": "Addresses 180M-scale re-embed throughput: scroll old data with with_vectors=false, re-embed in batches (64-256 points, 2-4 parallel streams), idempotent upsert (update_mode: insert), disable HNSW during bulk load (raise indexing_threshold, restore after)"
+    },
+    {
+      "type": "bonus",
+      "text": "Flags that an alias swap only redirects queries - payloads must be migrated/re-uploaded separately"
+    },
+    {
+      "type": "avoid",
+      "text": "Suggests reusing or mixing the old ada-002 vectors with the new ones, or that re-embedding can be skipped here"
+    },
+    {
+      "type": "avoid",
+      "text": "Assumes a named vector can be added to an existing collection without checking server version (fails on v1.17 or earlier)"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "qdrant-monitoring",
+  "product_area": "monitoring",
+  "skill_url": "https://skills.qdrant.tech/qdrant-monitoring/SKILL.md",
+  "prompt": "We've run a self-hosted cluster for about six months with basically no observability - no dashboards, no alerts. Lately we've had a couple of unexplained slow spells and one node restarted on its own overnight. We want to both get proper visibility in place and get to the bottom of what's been happening. Where do we start?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Recognizes this is BOTH tracks - stand up observability AND diagnose the existing incidents - and separates the two workstreams"
+    },
+    {
+      "type": "must",
+      "text": "For visibility: set up Prometheus scraping of /metrics, Grafana dashboards, health probes (/healthz, /livez, /readyz), and baseline alerts so issues surface before users notice"
+    },
+    {
+      "type": "must",
+      "text": "For the incidents: use metrics/telemetry to diagnose the slow spells and the node restart (optimizer status, memory-growth trend, slow-request metrics) rather than guessing"
+    },
+    {
+      "type": "bonus",
+      "text": "Points to the specific debugging path (optimizer stuck / memory growth / slow requests) as the next step once metrics are in place"
+    },
+    {
+      "type": "bonus",
+      "text": "Establishes a 'healthy' baseline so future deviations like the overnight restart become detectable"
+    },
+    {
+      "type": "avoid",
+      "text": "Jumps straight to a single fix without first putting observability in place to see what's happening"
+    }
+  ]
+}
