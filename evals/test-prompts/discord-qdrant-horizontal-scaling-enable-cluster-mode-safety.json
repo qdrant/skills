@@ -1,0 +1,44 @@
+{
+  "name": "discord-qdrant-horizontal-scaling-enable-cluster-mode-safety",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/horizontal-scaling/SKILL.md",
+  "prompt": "Qdrant Version: 1.16.3. Setup: Local. I have an existing single node qdrant setup with data on it. Is it safe for my existing data to use it to create a new cluster via enabling the cluster setting? Any downtime beyond restarting? It's fine if I need to manually reshard the existing data after the fact. Just wanna double check since it's not explicitly stated afaik in the distributed deployment docs.",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "States that it is safe, existing data stays put, and the only downtime is the restart itself"
+    },
+    {
+      "type": "must",
+      "text": "Explains the node becomes peer #1 of a new single-peer cluster once cluster mode is enabled"
+    },
+    {
+      "type": "must",
+      "text": "Mentions starting the node with a --uri flag pointing to itself so future peers can discover it"
+    },
+    {
+      "type": "must",
+      "text": "Notes that new peers added later come up empty and data does not auto-move to them"
+    },
+    {
+      "type": "must",
+      "text": "States that shard_number is fixed at collection creation, so existing collections are stuck at their original shard count, and self-hosted cannot reshard them in place"
+    },
+    {
+      "type": "must",
+      "text": "Notes that automated resharding is Cloud-only"
+    },
+    {
+      "type": "must",
+      "text": "Recommends creating a new collection with the desired shard count and migrating, or replicating via new shard replicas, as the self-hosted options"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes port 6335 (internal p2p port) should be isolated from outside access"
+    },
+    {
+      "type": "bonus",
+      "text": "Recommends taking a snapshot before the restart as a safety precaution"
+    }
+  ]
+}

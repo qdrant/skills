@@ -1,0 +1,36 @@
+{
+  "name": "discord-qdrant-vertical-scaling-vertical-scaling-cap",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/vertical-scaling/SKILL.md",
+  "prompt": "If I want to run Qdrant on a single node and resources are not a bottleneck, is there any recommended vertical scaling cap for Qdrant? I am referring to a limit beyond which the performance only degrades or saturates. Also, is there any correlation between performance and vertical scaling? Whether the performance exponentially or linearly increases with vertical scaling, and then degrades in what correlation beyond a point.",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "States there is no hard cap, but clear points beyond which adding more resources stops helping or starts hurting"
+    },
+    {
+      "type": "must",
+      "text": "Flags the ~80% RAM usage threshold where OS page cache eviction starts, causing severe/steep performance degradation rather than gradual decline"
+    },
+    {
+      "type": "must",
+      "text": "States that once the working set fully fits in RAM, adding more RAM provides no further benefit"
+    },
+    {
+      "type": "must",
+      "text": "Notes CPU helps up to around 16-32 cores, after which benefits taper off, since cores end up contending for the same data rather than continuing to improve throughput"
+    },
+    {
+      "type": "must",
+      "text": "Gives a practical single-node ceiling of roughly 100M vectors (depending on dimensions/quantization), beyond which horizontal scaling makes more sense"
+    },
+    {
+      "type": "bonus",
+      "text": "Points to horizontal scaling as the next step once these vertical ceilings are hit"
+    },
+    {
+      "type": "avoid",
+      "text": "Claims performance scales linearly or exponentially with added resources indefinitely, without describing the saturation/degradation points"
+    }
+  ]
+}

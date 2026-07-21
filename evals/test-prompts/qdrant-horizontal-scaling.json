@@ -2,113 +2,39 @@
   "name": "qdrant-horizontal-scaling",
   "product_area": "scaling",
   "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/horizontal-scaling/SKILL.md",
-  "tasks": [
+  "prompt": "We're already on the largest practical node size and need to move a 700M-vector collection to a multi-node Qdrant deployment. We need fault tolerance, predictable shard distribution, and a plan for adding nodes later. How many nodes, shards, and replicas should we start with?",
+  "rubric": [
     {
-      "prompt": "We're already on the largest practical node size and need to move a 700M-vector collection to a multi-node Qdrant deployment. We need fault tolerance, predictable shard distribution, and a plan for adding nodes later. How many nodes, shards, and replicas should we start with?",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "Recommends a cluster of at least 3 nodes (consensus + tolerate losing 1 node without downtime)"
-        },
-        {
-          "type": "must",
-          "text": "Uses replication_factor 2+ for fault tolerance and zero-downtime scaling/maintenance"
-        },
-        {
-          "type": "must",
-          "text": "Picks a shard count that is a multiple of node count, sized for distribution (e.g. ~6-12 shards for 3-6 nodes)"
-        },
-        {
-          "type": "must",
-          "text": "Over-provisions shards up front because resharding is expensive (and unavailable on self-hosted)"
-        },
-        {
-          "type": "bonus",
-          "text": "Uses the ~100M-vectors-per-node guideline to size node count for ~700M vectors"
-        },
-        {
-          "type": "bonus",
-          "text": "Mentions shard move API or migrating to a new cluster to rebalance instead of resharding"
-        },
-        {
-          "type": "avoid",
-          "text": "Uses replication_factor 1 in production where fault tolerance is required"
-        },
-        {
-          "type": "avoid",
-          "text": "Chooses a shard count that is not a multiple of node count (uneven distribution)"
-        }
-      ]
+      "type": "must",
+      "text": "Recommends a cluster of at least 3 nodes (consensus + tolerate losing 1 node without downtime)"
     },
     {
-      "prompt": "I am running Qdrant with 3 shards in a single node as of now. We want to increase it to 6 shards. Does Qdrant OSS support resharding? If yes, how can we configure automatic resharding and rebalancing? If no, what are the ways we can increase the number of shards as our use case scales?",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "States that resharding is not supported in self-hosted/OSS Qdrant, and is only available in Qdrant Cloud (fully managed or hybrid cloud)"
-        },
-        {
-          "type": "must",
-          "text": "Recommends custom shard keys with application-side routing as a way to distribute across more shards on self-hosted deployments"
-        },
-        {
-          "type": "must",
-          "text": "Recommends collection migration (e.g. a blue-green deployment: stand up a new collection with the target shard count, migrate/re-ingest data, cut over) as the alternative path to increase shard count"
-        },
-        { 
-          "type": "bonus", 
-          "text": "Notes that a high shard count on a single node may hurt performance and recommends testing before committing to a shard count" 
-        },
-        {
-          "type": "avoid",
-          "text": "Claims OSS Qdrant supports automatic resharding or rebalancing, or gives config steps to enable it"
-        },
-        {
-          "type": "avoid",
-          "text": "Suggests simply changing the shard_number setting on the existing collection without migration, as if it reshards in place"
-        }
-      ]
+      "type": "must",
+      "text": "Uses replication_factor 2+ for fault tolerance and zero-downtime scaling/maintenance"
     },
     {
-      "prompt": "Qdrant Version: 1.16.3. Setup: Local. I have an existing single node qdrant setup with data on it. Is it safe for my existing data to use it to create a new cluster via enabling the cluster setting? Any downtime beyond restarting? It's fine if I need to manually reshard the existing data after the fact. Just wanna double check since it's not explicitly stated afaik in the distributed deployment docs.",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "States that it is safe, existing data stays put, and the only downtime is the restart itself"
-        },
-        {
-          "type": "must",
-          "text": "Explains the node becomes peer #1 of a new single-peer cluster once cluster mode is enabled"
-        },
-        {
-          "type": "must",
-          "text": "Mentions starting the node with a --uri flag pointing to itself so future peers can discover it"
-        },
-        {
-          "type": "must",
-          "text": "Notes that new peers added later come up empty and data does not auto-move to them"
-        },
-        {
-          "type": "must",
-          "text": "States that shard_number is fixed at collection creation, so existing collections are stuck at their original shard count, and self-hosted cannot reshard them in place"
-        },
-        {
-          "type": "must",
-          "text": "Notes that automated resharding is Cloud-only"
-        },
-        {
-          "type": "must",
-          "text": "Recommends creating a new collection with the desired shard count and migrating, or replicating via new shard replicas, as the self-hosted options"
-        },
-        {
-          "type": "bonus",
-          "text": "Notes port 6335 (internal p2p port) should be isolated from outside access"
-        },
-        {
-          "type": "bonus",
-          "text": "Recommends taking a snapshot before the restart as a safety precaution"
-        }
-      ]
+      "type": "must",
+      "text": "Picks a shard count that is a multiple of node count, sized for distribution (e.g. ~6-12 shards for 3-6 nodes)"
+    },
+    {
+      "type": "must",
+      "text": "Over-provisions shards up front because resharding is expensive (and unavailable on self-hosted)"
+    },
+    {
+      "type": "bonus",
+      "text": "Uses the ~100M-vectors-per-node guideline to size node count for ~700M vectors"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions shard move API or migrating to a new cluster to rebalance instead of resharding"
+    },
+    {
+      "type": "avoid",
+      "text": "Uses replication_factor 1 in production where fault tolerance is required"
+    },
+    {
+      "type": "avoid",
+      "text": "Chooses a shard count that is not a multiple of node count (uneven distribution)"
     }
   ]
 }

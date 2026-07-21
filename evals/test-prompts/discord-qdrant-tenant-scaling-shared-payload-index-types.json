@@ -1,0 +1,20 @@
+{
+  "name": "discord-qdrant-tenant-scaling-shared-payload-index-types",
+  "product_area": "scaling",
+  "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/tenant-scaling/SKILL.md",
+  "prompt": "I have a question about payload indexes in Qdrant multitenancy. Suppose tenants share the same collection: Tenant A inserts: { \"field1\": 42 }. Tenant B inserts: { \"field1\": \"books\" }. If field1 is indexed as keyword, what happens to Tenant A's integer values? Are payload index schemas shared globally across the collection even in multitenant mode, or isolated per tenant? What's the recommended way to handle tenant-specific payload schemas?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "States that data is isolated per shard and point ID, so inserts using different point IDs coexist"
+    },
+    {
+      "type": "must",
+      "text": "Explains that in the default scenario (without custom sharding), if the same point ID is used with different data, the last applied operation wins"
+    },
+    {
+      "type": "must",
+      "text": "Notes that with custom sharding, inserting the same point ID with different data into two different shards is undefined behavior, and the user is responsible for not duplicating point IDs across shards"
+    }
+  ]
+}

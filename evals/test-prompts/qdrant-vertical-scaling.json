@@ -2,76 +2,39 @@
   "name": "qdrant-vertical-scaling",
   "product_area": "scaling",
   "skill_url": "https://skills.qdrant.tech/qdrant-scaling/scaling-data-volume/vertical-scaling/SKILL.md",
-  "tasks": [
+  "prompt": "We're running ~60M 768-dim vectors on a single self-hosted node and RAM usage hovers around 85%, with latency starting to wobble. We'd rather not move to a distributed cluster yet. How much memory should this realistically need, and what's the right way to size the box up?",
+  "rubric": [
     {
-      "prompt": "We're running ~60M 768-dim vectors on a single self-hosted node and RAM usage hovers around 85%, with latency starting to wobble. We'd rather not move to a distributed cluster yet. How much memory should this realistically need, and what's the right way to size the box up?",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "Endorses scaling up vertically (more RAM) since they're at the ~80% threshold and want to avoid distribution"
-        },
-        {
-          "type": "must",
-          "text": "Estimates RAM via the formula num_vectors x dimensions x 4 bytes x 1.5 (applied to 60M x 768-d)"
-        },
-        {
-          "type": "must",
-          "text": "Recommends reserving ~20% headroom above the working set for optimizer/OS cache"
-        },
-        {
-          "type": "bonus",
-          "text": "Offers quantization (scalar /4, binary /32) to cut the RAM requirement"
-        },
-        {
-          "type": "bonus",
-          "text": "Notes ~100M vectors/node as the rough single-node ceiling (the user still has runway)"
-        },
-        {
-          "type": "bonus",
-          "text": "If on Cloud, ensure replication_factor >=2 so the resize rolling-restart is zero-downtime"
-        },
-        {
-          "type": "avoid",
-          "text": "Pushes horizontal scaling / sharding despite being within single-node limits and wanting to avoid it"
-        },
-        {
-          "type": "avoid",
-          "text": "Treats the 80% RAM threshold as a soft/gradual limit rather than a performance cliff"
-        }
-      ]
+      "type": "must",
+      "text": "Endorses scaling up vertically (more RAM) since they're at the ~80% threshold and want to avoid distribution"
     },
     {
-      "prompt": "If I want to run Qdrant on a single node and resources are not a bottleneck, is there any recommended vertical scaling cap for Qdrant? I am referring to a limit beyond which the performance only degrades or saturates. Also, is there any correlation between performance and vertical scaling? Whether the performance exponentially or linearly increases with vertical scaling, and then degrades in what correlation beyond a point.",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "States there is no hard cap, but clear points beyond which adding more resources stops helping or starts hurting"
-        },
-        {
-          "type": "must",
-          "text": "Flags the ~80% RAM usage threshold where OS page cache eviction starts, causing severe/steep performance degradation rather than gradual decline"
-        },
-        {
-          "type": "must",
-          "text": "States that once the working set fully fits in RAM, adding more RAM provides no further benefit"
-        },
-        {
-          "type": "must",
-          "text": "Notes CPU helps up to around 16-32 cores, after which benefits taper off, since cores end up contending for the same data rather than continuing to improve throughput"
-        },
-        {
-          "type": "must",
-          "text": "Gives a practical single-node ceiling of roughly 100M vectors (depending on dimensions/quantization), beyond which horizontal scaling makes more sense"
-        },
-        {
-          "type": "bonus",
-          "text": "Points to horizontal scaling as the next step once these vertical ceilings are hit"
-        },
-        {
-          "type": "avoid",
-          "text": "Claims performance scales linearly or exponentially with added resources indefinitely, without describing the saturation/degradation points"
-        }
-      ]
+      "type": "must",
+      "text": "Estimates RAM via the formula num_vectors x dimensions x 4 bytes x 1.5 (applied to 60M x 768-d)"
+    },
+    {
+      "type": "must",
+      "text": "Recommends reserving ~20% headroom above the working set for optimizer/OS cache"
+    },
+    {
+      "type": "bonus",
+      "text": "Offers quantization (scalar /4, binary /32) to cut the RAM requirement"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes ~100M vectors/node as the rough single-node ceiling (the user still has runway)"
+    },
+    {
+      "type": "bonus",
+      "text": "If on Cloud, ensure replication_factor >=2 so the resize rolling-restart is zero-downtime"
+    },
+    {
+      "type": "avoid",
+      "text": "Pushes horizontal scaling / sharding despite being within single-node limits and wanting to avoid it"
+    },
+    {
+      "type": "avoid",
+      "text": "Treats the 80% RAM threshold as a soft/gradual limit rather than a performance cliff"
     }
   ]
 }

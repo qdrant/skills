@@ -2,72 +2,39 @@
   "name": "qdrant-hybrid-search-prefetches",
   "product_area": "hybrid search",
   "skill_url": "https://skills.qdrant.tech/qdrant-search-quality/search-strategies/hybrid-search/search-types/SKILL.md",
-  "tasks": [
+  "prompt": "Our pure vector search keeps missing exact matches on product SKUs and part numbers, and part of our catalog is in German. We want to add a keyword-style signal alongside the embeddings. Which kind of sparse/lexical representation should we use, and what do we need to watch out for given the SKUs and the non-English text?",
+  "rubric": [
     {
-      "prompt": "Our pure vector search keeps missing exact matches on product SKUs and part numbers, and part of our catalog is in German. We want to add a keyword-style signal alongside the embeddings. Which kind of sparse/lexical representation should we use, and what do we need to watch out for given the SKUs and the non-English text?",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "Recommends adding a sparse vector for lexical/exact matching alongside the dense vector (payload filtering gives no ranking score)"
-        },
-        {
-          "type": "must",
-          "text": "Suggests BM25 as the baseline sparse option (built-in, server-side, works out-of-domain)"
-        },
-        {
-          "type": "must",
-          "text": "Flags that tokenization/stemming config critically affects exact matches on SKUs / part numbers"
-        },
-        {
-          "type": "must",
-          "text": "Addresses German content — BM25 must be configured per language; several learned options (BM42/miniCOIL/SPLADE FastEmbed) are English-only"
-        },
-        {
-          "type": "bonus",
-          "text": "Mentions named vectors must be configured at collection creation (can't be added later)"
-        },
-        {
-          "type": "bonus",
-          "text": "Notes alternatives (SPLADE++ term expansion, external bge-m3 for multilingual) with tradeoffs"
-        },
-        {
-          "type": "avoid",
-          "text": "Recommends a sparse model without evaluating quality/resources on the user's own data"
-        },
-        {
-          "type": "avoid",
-          "text": "Proposes payload filtering as the ranking solution for keyword relevance"
-        }
-      ]
+      "type": "must",
+      "text": "Recommends adding a sparse vector for lexical/exact matching alongside the dense vector (payload filtering gives no ranking score)"
     },
     {
-      "prompt": "I'm having serious problems with a Hybrid RAG search (on texts 100% on Spanish). The user search for \"estafa piramidal\" (ponzy scam), and it's finding a document what doesn't contain \"estafa\" nor \"piramidal\", but it contains A LOT of \"esta\" (for example: estado, estaban, estatuto, estarían, éstas, and other). I'm about to do a deep debug, trying with only dense vector, and then with only bm25, and see what happens. But, after asking in a couple of different AI, the answer is always the same: \"The BM25 may not be properly creating the tokens for Spanish\". I wonder if that could be a problem on Qdrant. I'm using the internal BM25. I'm using embedding-small-3. I'm analyzing if moving to large-3 would improve it, but seems like it shouldn't create a big different.",
-      "rubric": [
-        {
-          "type": "must",
-          "text": "Confirms this is a BM25 language configuration issue rather than a Qdrant bug - by default BM25 is not configured for Spanish tokenization/stemming"
-        },
-        {
-          "type": "must",
-          "text": "Provides the concrete fix: setting tokenizer to 'multilingual' and language to 'spanish' in the BM25 vector options at upsert time"
-        },
-        {
-          "type": "bonus",
-          "text": "Notes that avg_len should be set to an estimate of the average length of the actual texts, rather than left at a mismatched default"
-        },
-        {
-          "type": "bonus",
-          "text": "Notes that both the indexed documents and the query-time search must use matching BM25 language/tokenizer configuration for the fix to work"
-        },
-        {
-          "type": "avoid",
-          "text": "Attributes the bug to embedding model choice (e.g. suggests switching from embedding-small-3 to large-3) as the fix, since the issue is in the sparse/BM25 leg, not the dense embedding"
-        },
-        {
-          "type": "avoid",
-          "text": "Recommends re-architecting the fusion method (RRF vs DBSF) as the fix, since the root cause is upstream in tokenization, not in how results are combined"
-        }
-      ]
+      "type": "must",
+      "text": "Suggests BM25 as the baseline sparse option (built-in, server-side, works out-of-domain)"
+    },
+    {
+      "type": "must",
+      "text": "Flags that tokenization/stemming config critically affects exact matches on SKUs / part numbers"
+    },
+    {
+      "type": "must",
+      "text": "Addresses German content — BM25 must be configured per language; several learned options (BM42/miniCOIL/SPLADE FastEmbed) are English-only"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions named vectors must be configured at collection creation (can't be added later)"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes alternatives (SPLADE++ term expansion, external bge-m3 for multilingual) with tradeoffs"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends a sparse model without evaluating quality/resources on the user's own data"
+    },
+    {
+      "type": "avoid",
+      "text": "Proposes payload filtering as the ranking solution for keyword relevance"
     }
   ]
 }
