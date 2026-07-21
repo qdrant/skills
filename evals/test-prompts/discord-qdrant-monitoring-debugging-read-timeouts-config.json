@@ -1,0 +1,44 @@
+{
+  "name": "discord-qdrant-monitoring-debugging-read-timeouts-config",
+  "product_area": "monitoring & debugging",
+  "skill_url": "https://skills.qdrant.tech/qdrant-monitoring/debugging/SKILL.md",
+  "prompt": "We run self-hosted Qdrant (Docker, single node) and get frequent read timeouts during search. We'd like advice on the best collection config for our hardware — we suspect our RAM/disk layout is unbalanced for the instance size. Two workloads on one collection: Ingestion (embed + batched upsert, scroll + filtered payload updates) and Search (filtered similarity search, limit=5, score_threshold=0.5, up to 10 concurrent), where timeouts occur. Error: \"Service internal error: 1 of 1 read operations failed: Timeout error: Operation 'retrieve' timed out after ~13s\". Collection: ~4.3M points, single collection, shard_number 1, replication_factor 1, 3072-dim vectors, Cosine, scalar int8 quantization (quantile 0.99, always_ram: true), HNSW m=16/ef_construct=100/on_disk=true, on_disk_payload=true, 28 segments, max_segment_size 2,000,000, several payload indexes (multi-tenant filtering on tenant + 2 fields + a bool field), plus a large unindexed JSON payload field per point. Hardware: EC2 m7g.xlarge (4 vCPU, 16 GiB RAM), EBS storage, Qdrant v1.16.3. Questions: (1) best config to avoid this error, (2) recommended config to scale to ~20-30M points on comparable hardware, (3) is read/write contention from concurrent ingestion + search the likely cause, and how to handle it (optimizer/indexing settings, or separating ingestion from search)?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Estimates RAM usage via num_vectors * dimensions * 4 bytes * 1.5 (or the quantized equivalent) and concludes the 4.3M x 3072-dim vectors are pushing close to the limits of 16GB RAM"
+    },
+    {
+      "type": "must",
+      "text": "Identifies read/write contention (ingestion + optimizer activity competing with search for CPU/I/O) as the likely cause of timeouts, rather than treating it as a single-variable config bug"
+    },
+    {
+      "type": "must",
+      "text": "Recommends checking optimizer status first before other diagnosis, since active optimizations competing for CPU/I/O is flagged as the most common root cause of slow queries"
+    },
+    {
+      "type": "must",
+      "text": "Suggests a deferred/disabled indexing strategy during heavy ingestion (e.g. raising indexing_threshold during bulk load/update, restoring it afterward) to reduce contention"
+    },
+    {
+      "type": "must",
+      "text": "Flags the large unindexed JSON payload as a potential disk I/O contributor given on_disk_payload=true, and asks about or addresses its size"
+    },
+    {
+      "type": "must",
+      "text": "For scaling to 20-30M points, recommends more nodes and more RAM rather than assuming the same single-node hardware will scale"
+    },
+    {
+      "type": "bonus",
+      "text": "Asks clarifying follow-up questions (write throughput, batch sizes, query volume, CPU/memory/disk I/O metrics during the timeout window) rather than guessing a single root cause outright"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes that setting on_disk=true for vectors trades RAM usage for a latency cost, relevant when discussing scaling"
+    },
+    {
+      "type": "avoid",
+      "text": "Prescribes a single definitive fix without acknowledging missing information (payload size, write throughput, live metrics) needed to pinpoint the exact bottleneck"
+    }
+  ]
+}
