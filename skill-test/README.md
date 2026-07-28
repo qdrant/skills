@@ -1,6 +1,6 @@
 # Claude Code Skill Test Harness
 
-This repo runs Claude Code inside a fresh Docker container for each prompt, captures
+This skill test framework runs Claude Code inside a fresh Docker container for each prompt, captures
 the answer, and avoids reusing local Claude state between tests.
 
 ## Why This Is Fresh
