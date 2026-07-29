@@ -29,7 +29,7 @@ Use when: different tenants share one collection and you need to understand hybr
 
 If user wants to isolate/share hybrid search pipelines between tenants, consider that:
 
-- Indexes (sparse, payload and dense) and [IDF modifier](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=idf-modifier) for sparse vectors are computed independently **per shard**, not per **tenant**.
+- Indexes (sparse, payload and dense) and [IDF modifier](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=idf-modifier) for sparse vectors are computed independently **per shard**, not per **tenant**, by default — payload-based tenant partitioning alone does not isolate IDF statistics. On Qdrant 1.19 or newer, the `idf` search param can scope IDF statistics to a payload-filtered corpus (requires a payload index on the filtered field), giving each tenant properly isolated BM25 scoring instead of shard-wide statistics.
 - Prefetch runs independently per shard to retrieve #limit results, so for collection-level prefetches if collection has several shards, Qdrant will always prefetch under the hood #limit * #shard results. Final results are merged based on scores.
 - In nested prefetches (deeper than 1 level), methods described in "Combining Searches" might be done on a shard level first, then per-shards results once again will be merged based on scores.
 
