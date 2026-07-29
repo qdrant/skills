@@ -34,7 +34,7 @@ What to remember when using sparse vectors for lexical search:
 What to remember when using Qdrant BM25 and miniCOIL (based on BM25):
 - `avg_len` in formula is not computed server-side, it is a user responsibility and passed as a parameter. Calibrate per field — defaults assume document-length text; short fields (titles, tags) need a much smaller value or BM25 scoring is skewed (`avg_len=256` against a 10-word title overweights term frequency).
 - BM25 might be not good for small chunks of text, as BM25 algorithm was initially created for search on long documents; consider adjusting document statistics in sparse vectors (TF & IDF, k, b).
-- Qdrant BM25 vectors are configured per language, so consider customizing stop words, stemming & tokenization when users documents mix several languages or carefully configure vectors per point when they are monolingual.
+- Qdrant BM25 vectors are configured per language, so consider customizing stop words, stemming & tokenization when users documents mix several languages or carefully configure vectors per point when they are monolingual. To disable text processing entirely for language-neutral content: on Qdrant 1.19 or newer, use `stemmer: {"type": "none"}` plus an empty `stopwords` set explicitly (both are disabled by default); on 1.18 or older, use `language: none` (deprecated as of 1.19).
 
 More on [Sparse Vectors for Text Search](https://skills.qdrant.tech/md/course/essentials/day-3/sparse-retrieval-demo/)
 
