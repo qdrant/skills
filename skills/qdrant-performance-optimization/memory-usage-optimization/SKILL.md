@@ -7,9 +7,9 @@ description: "Diagnoses and reduces Qdrant memory usage. Use when someone report
 
 Qdrant operates with two types of memory:
 
-- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that must stay in RAM, such as quantized vectors when `always_ram=true` and payload indexes.
+- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM. On Qdrant 1.19 or newer this is controlled per-component with `memory: pinned` (e.g. quantized vectors, payload indexes); on 1.18 or older the equivalent is `always_ram: true`.
 
-- OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade.
+- OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade. On Qdrant 1.19 or newer this corresponds to `memory: cached` (pre-warmed into page cache at startup) or `memory: cold` (lazy disk reads, not pre-warmed); on 1.18 or older it's controlled via the `on_disk` boolean on vectors, HNSW config, sparse vector index, and payload index. See [Memory Tiers docs](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/) (available on 1.19+).
 
 It is normal for the OS page cache to occupy all available RAM, but if resident memory is above 80% of total RAM, it is a sign of a problem.
 
@@ -36,7 +36,7 @@ The larger `max_segment_size` is, the more headroom is needed.
 
 ### When to put HNSW index on disk
 
-Putting frequently used components (such as HNSW index) on disk might cause significant performance degradation.
+Putting frequently used components (such as HNSW index) on disk might cause significant performance degradation. On Qdrant 1.19 or newer this is set with `memory: cold` in `hnsw_config`; on 1.18 or older with `hnsw_config.on_disk: true`.
 There are some scenarios, however, when it can be a good option:
 
 - Deployments with low latency disks - local NVMe or similar.
@@ -51,7 +51,7 @@ Here are the main techniques to achieve that:
 
 - Use quantization to store only compressed vectors in RAM [Quantization docs](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 
-- Use float16 or int8 datatypes to reduce memory usage of vectors by 2x or 4x respectively, with some tradeoff in precision. Read more about vector datatypes in [documentation](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
+- Use float16 or int8 datatypes to reduce memory usage of vectors by 2x or 4x respectively, with some tradeoff in precision. On Qdrant 1.19 or newer, the `turbo4` datatype (TurboQuant-based, 4 bits/dimension, dense vectors only) reduces memory by ~8x, and can be paired with 1-bit quantization for cheaper rescoring than pairing 1-bit quantization with full-precision vectors. Read more about vector datatypes in [documentation](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
 
 - Leverage Matryoshka Representation Learning (MRL) to store only small vectors in RAM while keeping large vectors on disk. Examples of how to use MRL with Qdrant Cloud inference: [MRL docs](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 
@@ -62,6 +62,6 @@ Here are the main techniques to achieve that:
 - For low RAM environments, consider `async_scorer` config, which enables support of `io_uring` for parallel disk access, which can significantly improve performance of on-disk storage. Read more about `async_scorer` in [the article](https://skills.qdrant.tech/md/articles/io_uring/) (only available on Linux with kernel 5.11+)
 
 - Consider storing Sparse Vectors and text payload on disk, as they are usually more disk-friendly than dense vectors.
-- Configure payload indexes to be stored on disk [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
-- Configure sparse vectors to be stored on disk [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=sparse-vector-index)
+- Configure payload indexes to be stored on disk: `memory: cold` on Qdrant 1.19 or newer, `on_disk: true` on 1.18 or older [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
+- Configure sparse vectors to be stored on disk: `memory: cold` on the sparse vector index on Qdrant 1.19 or newer (defaults to `pinned`), `on_disk: true` on 1.18 or older [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=sparse-vector-index)
 
