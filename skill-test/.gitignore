@@ -1,0 +1,8 @@
+# Captured run outputs (generated, not source)
+runs/
+
+# Local credentials
+.env
+
+# OS
+.DS_Store
