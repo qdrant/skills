@@ -29,7 +29,7 @@ Use when: memory exceeds expectations, node crashes with OOM, or memory keeps gr
 - If resident memory (RSSAnon) exceeds 80% of total RAM, investigate
 - Check `/telemetry` for per-collection breakdown of point counts and vector configurations
 - Estimate expected memory: `num_vectors * dimensions * 4 bytes * 1.5` for vectors, plus payload and index overhead [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/)
-- Common causes of unexpected growth: quantized vectors with `always_ram=true`, too many payload indexes, large `max_segment_size` during optimization
+- Common causes of unexpected growth: quantized vectors pinned in RAM (`memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older), too many payload indexes, large `max_segment_size` during optimization
 
 
 ## Queries Are Slow
