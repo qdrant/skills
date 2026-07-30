@@ -1,7 +1,7 @@
 {
   "name": "qdrant-edge",
   "product_area": "edge",
-  "skill_url": "https://github.com/qdrant/skills/blob/main/skills/qdrant-edge/SKILL.md",
+  "skill_url": "https://skills.qdrant.tech/qdrant-edge/SKILL.md",
   "prompt": "I'm building an offline-capable Python app on Qdrant Edge (robot, intermittent wifi). Three problems. (1) I bulk-upserted 50k points but keyword search returns almost nothing right after. (2) I want to keep the shard fresh from our Qdrant Cloud collection and also get local edits back up to it. (3) For hybrid search I'm about to pip install a BM25 lib and write my own RRF. What am I getting wrong?",
   "rubric": [
     {
