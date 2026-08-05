@@ -56,7 +56,7 @@ Use when: data arrives continuously without clear time boundaries, or you want t
 Use when: recent data needs fast in-RAM search, older data should remain searchable at lower performance.
 
 - **Shard rotation:** place current shard key on fast-storage nodes, move older shard keys to cheaper nodes via shard placement. All queries still go through a single collection.
-- **Collection rotation:** keep current collection in RAM (`always_ram: true`), move older collections to mmap/on-disk vectors. [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
+- **Collection rotation:** keep current collection in RAM (`memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older), move older collections to mmap/on-disk vectors (`memory: cold` on 1.19 or newer, `on_disk: true` on 1.18 or older). [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 
 
 ## What NOT to Do

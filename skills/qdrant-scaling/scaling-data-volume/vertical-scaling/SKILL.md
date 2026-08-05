@@ -41,6 +41,7 @@ RAM is the most critical resource for Qdrant performance. Use these guidelines t
 - Exact estimation of RAM usage is difficult; use this simple approximate formula: `num_vectors * dimensions * 4 bytes * 1.5` for full-precision vectors in RAM
 - With scalar quantization: divide by 4 (INT8 reduces each float32 to 1 byte) [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 - With binary quantization: divide by 32 [Binary quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=binary-quantization)
+- On Qdrant 1.19 or newer, the `turbo4` datatype (dense vectors only) divides by ~8 on its own, without needing separate quantization [Vector datatypes](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
 - Add overhead for HNSW index (~20-30% of vector data), payload indexes, and WAL
 - Reserve 20% headroom for optimizer operations and OS cache
 - Monitor actual usage via Grafana/Prometheus before and after resizing [Monitoring](../../../qdrant-monitoring/SKILL.md)

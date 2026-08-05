@@ -14,7 +14,7 @@ High throughput favors fewer, larger segments so each query touches less overhea
 ## Performance Tuning for Higher RPS
 
 - Use fewer, larger segments (`default_segment_number: 2`) [Maximizing throughput](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=maximizing-throughput)
-- Enable quantization with `always_ram=true` to reduce disk IO [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
+- Enable quantization pinned in RAM to reduce disk IO: `memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 - Use batch search API to amortize overhead [Batch search](https://skills.qdrant.tech/md/documentation/search/search/?s=batch-search-api)
 
 ## Minimize impact of Update Workloads

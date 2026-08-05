@@ -12,7 +12,7 @@ Low latency optimization is aimed at utilising maximum resource saturation for a
 ## Performance Tuning for Lower Latency
 
 - Increase segment count to match CPU cores (`default_segment_number: 16`) [Minimizing latency](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=minimizing-latency)
-- Keep quantized vectors and HNSW in RAM (`always_ram=true`)
+- Keep quantized vectors and HNSW in RAM: `memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older
 - Reduce `hnsw_ef` at query time (trade recall for speed) [Search params](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Use local NVMe, avoid network-attached storage
 
@@ -22,7 +22,7 @@ RAM is the most critical resource for latency. If working set exceeds available 
 
 - Vertical scale RAM first. Critical if working set >80%.
 - Use quantization: scalar (4x reduction) or binary (16x reduction) [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
-- Move payload indexes to disk if filtering is infrequent [On-disk payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
+- Move payload indexes to disk if filtering is infrequent: `memory: cold` on Qdrant 1.19 or newer, `on_disk: true` on 1.18 or older [On-disk payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
 - Set `optimizer_cpu_budget` to limit background optimization CPUs
 - Schedule indexing: set high `indexing_threshold` during peak hours
 
