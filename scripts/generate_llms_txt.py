@@ -17,7 +17,7 @@ import sys
 
 from make_links_absolute import _site_url
 
-SEARCH_URL = "https://skills.qdrant.tech/search"
+SEARCH_URL = "https://skills.qdrant.tech/search?query=your+query+here"
 DEFAULT_TITLE = "Qdrant Skills"
 DEFAULT_BLURB = "Agent skills encoding deep Qdrant knowledge for coding agents."
 
