@@ -520,10 +520,13 @@ def build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
 
     # run health
     budget_capped = sum(1 for r in manifest if r.get("budget_hit") == "1")
+    signals_bad = sum(1 for r in manifest if r.get("signals_ok") == "0")
     L.append("## Run health\n")
     L.append(f"- contested items: {contested}")
     L.append(f"- ungraded items (parse/verdict errors): {ungraded}")
     L.append(f"- budget-capped runs (hit the per-run $ cap, truncated, excluded): {budget_capped}")
+    L.append(f"- runs with unreliable signals (signals_ok=0 — transcript did not parse "
+             f"to the expected shape; activation/fetch numbers suspect, investigate): {signals_bad}")
     L.append(f"- runs excluded from the cost mean (errored/capped/no-cost): {cost_excluded}")
     L.append("")
 

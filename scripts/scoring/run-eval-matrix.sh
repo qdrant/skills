@@ -78,9 +78,11 @@ while [[ $# -gt 0 ]]; do
     --skills-root) SKILLS_ROOT="${2:?}"; shift 2 ;;
     --out-dir) OUT_DIR="${2:?}"; shift 2 ;;
     --permission-mode) PERMISSION_MODE="${2:?}"; shift 2 ;;
-    --allowed-tools) ALLOWED_TOOLS="${2:?}"; shift 2 ;;
+    # `${2?...}` (no colon) accepts an explicit "" (disables the feature, per the
+    # usage text) but still errors when the value is genuinely missing.
+    --allowed-tools) ALLOWED_TOOLS="${2?--allowed-tools needs a value (use \"\" to disable)}"; shift 2 ;;
     --max-turns) MAX_TURNS="${2:?}"; shift 2 ;;
-    --max-budget-usd) MAX_BUDGET_USD="${2:?}"; shift 2 ;;
+    --max-budget-usd) MAX_BUDGET_USD="${2?--max-budget-usd needs a value (use \"\" to disable)}"; shift 2 ;;
     --limit) LIMIT="${2:?}"; shift 2 ;;
     --dry-run) DRY_RUN="1"; shift ;;
     -h|--help) usage; exit 0 ;;

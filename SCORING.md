@@ -374,11 +374,15 @@ Under `evals/weekly/<date>/`:
 - **`manifest.csv`** — one row per run: `prompt, skill_family, skill_leaf, model,
   condition, rep, run_id, exit_code, skills_sha, timestamp, skill_available,
   skill_activation, reached_leaf, fetched_site, fetched_count, model_snapshot,
-  cli_version, total_cost_usd, num_turns, result_subtype, budget_hit`. The runner
-  writes the first ten (base) columns; `extract-run-signals.sh` derives the rest
-  from each transcript. `budget_hit` is `1` when the run hit the per-run spend cap
-  (`result_subtype = error_max_budget_usd`): such a run is truncated, so it is
-  excluded from scoring and the cost mean and reported as budget-capped.
+  cli_version, total_cost_usd, num_turns, result_subtype, budget_hit, signals_ok`.
+  The runner writes the first ten (base) columns; `extract-run-signals.sh` derives
+  the rest from each transcript. `budget_hit` is `1` when the run hit the per-run
+  spend cap (`result_subtype = error_max_budget_usd`): such a run is truncated, so
+  it is excluded from scoring and the cost mean and reported as budget-capped.
+  `signals_ok` is `0` when the transcript did not parse into the expected shape (a
+  format break, not a real `activation=none`): the run's activation/fetch fields
+  are then untrustworthy and the run is surfaced in Run health for investigation
+  rather than silently read as a trigger miss.
   `skill_family` is the installed/availability unit and `skill_leaf` the prompt's
   target SKILL.md (so `reached_leaf` records whether progressive disclosure
   actually fired); `fetched_site`/`fetched_count` replace a raw URL list and count

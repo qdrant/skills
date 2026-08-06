@@ -83,6 +83,7 @@ Traces a regression to a specific skill.
 - `contested items`: items where two judge samples disagreed; the rubric-ambiguity backlog.
 - `ungraded items`: items the judge returned no parseable verdict for.
 - `budget-capped runs`: runs that hit the per-run $ cap and were truncated; excluded from scoring and the cost mean.
+- `runs with unreliable signals`: runs whose transcript did not parse to the expected shape (`signals_ok=0`) — a format break, so their activation/fetch numbers are suspect and flagged for investigation rather than read as a trigger miss.
 - `runs excluded from the cost mean`: errored/capped runs left out of the cost average (their cost is a truncated floor).
 
 ### Provenance

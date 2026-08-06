@@ -57,13 +57,10 @@ done
 [[ -z "$MANIFEST" ]] && MANIFEST="$OUT_DIR/manifest.csv"
 [[ -f "$MANIFEST" ]] || { echo "Manifest not found: $MANIFEST" >&2; exit 66; }
 
-OUT_HEADER="prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp,skill_available,skill_activation,reached_leaf,fetched_site,fetched_count,model_snapshot,cli_version,total_cost_usd,num_turns,result_subtype,budget_hit"
+OUT_HEADER="prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp,skill_available,skill_activation,reached_leaf,fetched_site,fetched_count,model_snapshot,cli_version,total_cost_usd,num_turns,result_subtype,budget_hit,signals_ok"
 
 tmp="$(mktemp)"
 echo "$OUT_HEADER" > "$tmp"
-
-# grep -c can exit 1 on no match under set -e; this wrapper always returns a count.
-count() { grep -cE "$1" "$2" 2>/dev/null || true; }
 
 tail -n +2 "$MANIFEST" | while IFS= read -r line; do
   [[ -z "$line" ]] && continue
@@ -83,6 +80,7 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
   num_turns=""
   result_subtype=""
   budget_hit=0
+  signals_ok=1
 
   if [[ -f "$stdout" ]]; then
     init="$(grep -m1 '"subtype":"init"' "$stdout" || true)"
@@ -113,13 +111,26 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
     wf_site_denied="$(printf '%s' "$denials" | jq '[.[]|select(.tool_name=="WebFetch")|select((.tool_input.url // "")|test("skills\\.qdrant\\.tech"))]|length' 2>/dev/null || echo 0)"
     bash_site_denied="$(printf '%s' "$denials" | jq '[.[]|select(.tool_name=="Bash")|select((.tool_input.command // "")|test("skills\\.qdrant\\.tech"))]|length' 2>/dev/null || echo 0)"
 
-    # Activation signals (grep over the stream, tolerant of exact JSON shape).
-    skill_tool="$(grep -E '"name":"Skill"' "$stdout" 2>/dev/null | grep -c "$family" || true)"
-    read_family="$(grep -E '"name":"Read"' "$stdout" 2>/dev/null | grep -E "skills/$family/[^\"]*SKILL\.md" | grep -c . || true)"
-    read_leaf="$(grep -E '"name":"Read"' "$stdout" 2>/dev/null | grep -Fc "skills/$leaf" || true)"
-
-    wf="$(count '"name":"WebFetch"[^}]*skills\.qdrant\.tech' "$stdout")"
-    curlf="$(count '"name":"Bash"[^}]*skills\.qdrant\.tech' "$stdout")"
+    # Activation/fetch signals: structural jq over the whole stream (robust to
+    # whitespace and key-order changes, unlike string-matching). tool_use objects
+    # are found by recursive descent so a re-nesting of the event schema survives.
+    # If the slurp fails to parse, or init/result are absent, the transcript is not
+    # the shape we expect: set signals_ok=0 and surface it, rather than silently
+    # scoring activation=none (the No silent caps guardrail).
+    sig="$(jq -rs --arg fam "$family" --arg leaf "$leaf" '
+      [ .. | objects | select(.type? == "tool_use") ] as $t
+      | [ ([$t[]|select(.name=="Skill")   |select((((.input.skill // .input.command) // "")|tostring)|contains($fam))]|length),
+          ([$t[]|select(.name=="Read")    |select(((.input.file_path) // "")|test("skills/"+$fam+"/.*SKILL\\.md"))]|length),
+          ([$t[]|select(.name=="Read")    |select(((.input.file_path) // "")|contains("skills/"+$leaf))]|length),
+          ([$t[]|select(.name=="WebFetch")|select(((.input.url) // "")|contains("skills.qdrant.tech"))]|length),
+          ([$t[]|select(.name=="Bash")    |select(((.input.command) // "")|contains("skills.qdrant.tech"))]|length)
+        ] | @tsv' "$stdout" 2>/dev/null)"
+    if [[ -n "$sig" && -n "$init" && -n "$result_ev" ]]; then
+      IFS=$'\t' read -r skill_tool read_family read_leaf wf curlf <<< "$sig"
+    else
+      signals_ok=0
+      skill_tool=0; read_family=0; read_leaf=0; wf=0; curlf=0
+    fi
 
     # Subtract denied attempts (floor at 0).
     skill_tool=$(( skill_tool - skill_denied )); (( skill_tool < 0 )) && skill_tool=0
@@ -140,12 +151,13 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
     fi
   else
     model_snapshot="MISSING_TRANSCRIPT"
+    signals_ok=0
   fi
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$base" "$skill_available" "$activation" "$reached_leaf" \
     "$fetched_site" "$fetched_count" "$model_snapshot" "$cli_version" \
-    "$total_cost_usd" "$num_turns" "$result_subtype" "$budget_hit" >> "$tmp"
+    "$total_cost_usd" "$num_turns" "$result_subtype" "$budget_hit" "$signals_ok" >> "$tmp"
 done
 
 mv "$tmp" "$MANIFEST"
@@ -163,4 +175,15 @@ capped="$(awk -F, 'NR>1 && $21==1 {print $7}' "$MANIFEST")"
 if [[ -n "$capped" ]]; then
   echo "NOTE: budget-capped runs (hit the per-run \$ cap, truncated, excluded):" >&2
   printf '  %s\n' $capped >&2
+fi
+
+# Signals tripwire: a transcript we could not parse into the expected shape. Its
+# activation/fetch numbers are NOT trustworthy (a format break, not a real
+# activation=none) — surface it rather than let it read as a silent trigger miss.
+# ($22 = signals_ok)
+bad_signals="$(awk -F, 'NR>1 && $22==0 {print $7}' "$MANIFEST")"
+if [[ -n "$bad_signals" ]]; then
+  echo "WARNING: runs whose transcript did not parse to the expected shape" >&2
+  echo "         (signals_ok=0 — activation/fetch numbers unreliable, investigate the format):" >&2
+  printf '  %s\n' $bad_signals >&2
 fi
