@@ -42,8 +42,7 @@ MAX_BUDGET_USD="2.00"
 DRY_RUN="0"
 LIMIT="0"
 # Concurrent runs. Runs are API-latency-bound, so 2-3 roughly halves/thirds
-# wall-time at negligible local cost. It does NOT change results or spend — only
-# wall-time. Keep small: >=4 risks hitting API rate limits.
+# wall-time at negligible local cost. Keep small: >=4 risks hitting API rate limits.
 JOBS="1"
 DATE_TAG="$(date -u +%Y%m%d)"
 
