@@ -285,10 +285,11 @@ to set it explicitly instead:
 scripts/run-claude-test.sh --run-id my-unique-id prompts/qdrant-smoke.md
 ```
 
-`ID` must be filesystem/Docker-safe (letters, digits, `.`, `_`, `-`). This lets a
-batch runner give each run a unique, descriptive id so that **concurrent** runs
-never collide on a directory or a Docker `--name` (two runs of the same prompt in
-the same second would otherwise clash).
+`ID` must start with a letter or digit, then letters, digits, `.`, `_`, `-`
+(Docker's `--name` rule). This lets a batch runner give each run a unique,
+descriptive id so that **concurrent** runs never collide on a directory or a
+Docker `--name` (two runs of the same prompt in the same second would otherwise
+clash).
 
 For tests that intentionally need Claude Code to execute commands or edit a
 throwaway workspace, use a disposable workspace and pass a more permissive mode,

@@ -46,6 +46,11 @@ LIMIT="0"
 # wall-time. Keep small: >=4 risks hitting API rate limits.
 JOBS="1"
 DATE_TAG="$(date -u +%Y%m%d)"
+# Stamped once per invocation. Appended to each run id so ids are deterministic
+# *within* a run but unique *across* invocations — re-running (e.g. after a
+# partial failure) into the same out-dir can't clobber a prior run's transcript
+# or double-count its manifest rows.
+RUN_STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
 usage() {
   cat <<'USAGE'
@@ -154,11 +159,16 @@ echo
 
 # Each task writes its manifest row to its own file here; they are concatenated
 # (sorted) into manifest.csv after all workers finish, so concurrent writes never
-# race on a single file.
+# race on a single file. Worker skill-staging dirs live under STAGE_BASE so an
+# interrupt can clean them up in one sweep.
 MANIFEST_DIR="$OUT_DIR/.manifest.d"
+STAGE_BASE="$OUT_DIR/.stage"
 
 if [[ "$DRY_RUN" != "1" ]]; then
-  mkdir -p "$OUT_DIR" "$MANIFEST_DIR"
+  # Start from a clean slate: stale .row files from an interrupted prior run must
+  # not leak into this run's manifest.
+  rm -rf "$MANIFEST_DIR" "$STAGE_BASE"
+  mkdir -p "$OUT_DIR" "$MANIFEST_DIR" "$STAGE_BASE"
   if [[ ! -f "$MANIFEST" ]]; then
     echo "prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp" > "$MANIFEST"
   fi
@@ -190,18 +200,22 @@ run_one() {
   [[ -n "$ALLOWED_TOOLS" ]] && args+=(--extra-args "--allowedTools $ALLOWED_TOOLS --")
   [[ -n "$MAX_BUDGET_USD" ]] && args+=(--max-budget-usd "$MAX_BUDGET_USD")
 
+  # Descriptive, unique-per-invocation run id. Slugified so an odd char in the
+  # prompt .name (space, :, /) can't reach --run-id raw; RUN_STAMP makes it unique
+  # across invocations so a re-run into the same out-dir never clobbers a prior
+  # run's transcript or double-counts its manifest row.
+  local run_id
+  run_id="$(printf '%s' "$name-$model-$condition-r$rep-$RUN_STAMP" | tr -c 'A-Za-z0-9._-' '_')"
+
   local stage=""
   if [[ "$condition" == "with-skill" ]]; then
-    stage="$(mktemp -d)"
+    stage="$(mktemp -d "$STAGE_BASE/stage.XXXXXX")"
     # Copy the whole family subtree under its real name so progressive-disclosure
     # relative links resolve and the container installs it as ~/.claude/skills/<family>.
     cp -R "$SKILLS_ROOT/$family" "$stage/$family"
     args+=(--skills-dir "$stage")
   fi
 
-  # Descriptive, unique-per-task run id — passed to the harness via --run-id so
-  # concurrent runs never share a dir or Docker --name. All chars are safe.
-  local run_id="$name-$model-$condition-r$rep"
   args+=(--run-id "$run_id")
 
   local ts exit_code tmplog
@@ -215,20 +229,27 @@ run_one() {
     return 0
   fi
 
-  # Capture harness output per-task so parallel workers don't interleave on the console.
+  # Capture harness output per-task so parallel workers don't interleave on the
+  # console; keep it as a diagnostic if the run failed, discard it otherwise.
   tmplog="$(mktemp)"
   set +e
   "$HARNESS" "${args[@]}" "$prompt_file" >"$tmplog" 2>&1
   exit_code=$?
   set -e
-  rm -f "$tmplog"
+  if [[ "$exit_code" -ne 0 ]]; then
+    mv "$tmplog" "$OUT_DIR/$run_id.harness.log"
+  else
+    rm -f "$tmplog"
+  fi
   [[ -n "$stage" ]] && rm -rf "$stage"
 
   # One row per task, written to its own file — concatenated after the pool drains.
   echo "$name,$family,$leaf,$model,$condition,$rep,$run_id,$exit_code,$skills_sha,$ts" \
     > "$MANIFEST_DIR/$run_id.row"
-  printf '  ok   %-42s %-7s %-11s rep=%s  run_id=%s exit=%s\n' \
-    "$name" "$model" "$condition" "$rep" "$run_id" "$exit_code"
+  local status_word="ok  "
+  [[ "$exit_code" -ne 0 ]] && status_word="FAIL"
+  printf '  %s %-42s %-7s %-11s rep=%s  run_id=%s exit=%s\n' \
+    "$status_word" "$name" "$model" "$condition" "$rep" "$run_id" "$exit_code"
   return 0
 }
 
@@ -247,6 +268,31 @@ done
 # Rolling PID pool: keep up to $JOBS workers in flight (bash 3.2-safe — no
 # `wait -n`). Poll for any finished worker before launching the next.
 pids=()
+
+# Recursively SIGTERM a process and all its descendants (children first). A worker
+# subshell has a harness child which in turn has a `docker run` child; killing only
+# the tracked worker pid would orphan those, so walk the whole tree. SIGTERM (not
+# KILL) lets `docker run` forward the signal so its `--rm` container stops cleanly.
+kill_tree() {
+  local pid="$1" child
+  for child in $(pgrep -P "$pid" 2>/dev/null); do kill_tree "$child"; done
+  kill "$pid" 2>/dev/null || true
+}
+
+# On Ctrl-C / termination, stop the whole pool and clear temp state rather than
+# leaving orphaned workers, containers, and half-written temp dirs.
+cleanup_interrupt() {
+  trap - INT TERM
+  echo >&2
+  echo "Interrupted — stopping workers and cleaning up..." >&2
+  local p
+  for p in "${pids[@]:-}"; do [[ -n "$p" ]] && kill_tree "$p"; done
+  wait 2>/dev/null || true
+  rm -rf "$MANIFEST_DIR" "$STAGE_BASE"
+  exit 130
+}
+trap cleanup_interrupt INT TERM
+
 reap_one() {
   while :; do
     local i
@@ -275,10 +321,11 @@ done
 
 # Assemble the manifest from per-task rows in a deterministic order.
 if [[ "$DRY_RUN" != "1" ]]; then
+  trap - INT TERM
   if compgen -G "$MANIFEST_DIR/*.row" >/dev/null; then
     cat "$MANIFEST_DIR"/*.row | sort >> "$MANIFEST"
   fi
-  rm -rf "$MANIFEST_DIR"
+  rm -rf "$MANIFEST_DIR" "$STAGE_BASE"
 fi
 
 echo

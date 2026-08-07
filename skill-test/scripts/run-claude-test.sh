@@ -59,9 +59,10 @@ Options:
   --choose-model               Interactively choose a model from a menu.
   --max-budget-usd USD         Stop once this print-mode budget is reached.
   --run-id ID                  Use this exact run id (dir name + Docker --name) instead of
-                               deriving one from the timestamp and prompt name. Must be
-                               filesystem/Docker-safe (letters, digits, . _ -). Lets a
-                               parallel batch runner give each concurrent run a unique id.
+                               deriving one from the timestamp and prompt name. Must start
+                               with a letter/digit, then letters, digits, . _ - (Docker's
+                               --name rule). Lets a parallel batch runner give each
+                               concurrent run a unique id.
   --extra-args "ARGS"          Advanced Claude Code flags passed through by the container.
   --allow-missing-auth         Skip local auth preflight checks.
   --no-render                  Do not generate readable.md after the run.
@@ -360,8 +361,10 @@ if [[ -n "$RUN_ID" ]]; then
   # Caller-supplied run id (e.g. a parallel batch runner assigning a unique,
   # descriptive id per task so concurrent runs never share a dir or Docker
   # --name). Must be filesystem/Docker-name safe: letters, digits, ., _, - only.
-  if [[ ! "$RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
-    echo "Invalid --run-id '$RUN_ID' (allowed: letters, digits, . _ -)" >&2
+  # Must start with a letter or digit (Docker's --name rule) and contain only
+  # safe chars. Rejects a leading -/., and `..` path traversal.
+  if [[ ! "$RUN_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "Invalid --run-id '$RUN_ID' (must start with a letter/digit; allowed: letters, digits, . _ -)" >&2
     exit 64
   fi
   run_id="$RUN_ID"
