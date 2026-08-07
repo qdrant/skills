@@ -41,6 +41,10 @@ MAX_TURNS="20"
 MAX_BUDGET_USD="2.00"
 DRY_RUN="0"
 LIMIT="0"
+# Concurrent runs. Runs are API-latency-bound, so 2-3 roughly halves/thirds
+# wall-time at negligible local cost. It does NOT change results or spend — only
+# wall-time. Keep small: >=4 risks hitting API rate limits.
+JOBS="1"
 DATE_TAG="$(date -u +%Y%m%d)"
 
 usage() {
@@ -53,6 +57,9 @@ Options:
   --models LIST         Comma list of models. Default: sonnet,haiku
   --conditions LIST     Comma list of no-skill,with-skill. Default: both
   --reps N              Repetitions per cell. Default: 2
+  --jobs N              Runs to execute concurrently. Default: 1 (sequential).
+                        Changes wall-time only, not results or cost; 2-3 is the
+                        sweet spot, >=4 risks API rate limits.
   --prompts-dir DIR     Test-prompt JSONs. Default: ../skills/evals/test-prompts
   --skills-root DIR     Skills root for staging. Default: ../skills/skills
   --out-dir DIR         Weekly output dir. Default: runs/weekly/<UTC-date>
@@ -74,6 +81,7 @@ while [[ $# -gt 0 ]]; do
     --models) MODELS="${2:?}"; shift 2 ;;
     --conditions) CONDITIONS="${2:?}"; shift 2 ;;
     --reps) REPS="${2:?}"; shift 2 ;;
+    --jobs) JOBS="${2:?}"; shift 2 ;;
     --prompts-dir) PROMPTS_DIR="${2:?}"; shift 2 ;;
     --skills-root) SKILLS_ROOT="${2:?}"; shift 2 ;;
     --out-dir) OUT_DIR="${2:?}"; shift 2 ;;
@@ -92,6 +100,11 @@ done
 
 [[ -d "$PROMPTS_DIR" ]] || { echo "Prompts dir not found: $PROMPTS_DIR" >&2; exit 66; }
 [[ -d "$SKILLS_ROOT" ]] || { echo "Skills root not found: $SKILLS_ROOT" >&2; exit 66; }
+
+[[ "$JOBS" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid --jobs '$JOBS' (want a positive integer)" >&2; exit 64; }
+if [[ "$JOBS" -ge 4 ]]; then
+  echo "Warning: --jobs $JOBS — high concurrency may hit API rate limits; 2-3 is the sweet spot." >&2
+fi
 
 if [[ -z "$OUT_DIR" ]]; then
   OUT_DIR="$REPO_ROOT/evals/weekly/$DATE_TAG"
@@ -134,12 +147,18 @@ echo "  reps:       $REPS"
 echo "  prompts:    $n_prompts scored"
 echo "  skills_sha: $skills_sha"
 echo "  total runs: $total"
+echo "  jobs:       $JOBS concurrent"
 echo "  mode:       $PERMISSION_MODE  max-turns: $MAX_TURNS  budget: ${MAX_BUDGET_USD:-none}"
 echo "  allowed:    ${ALLOWED_TOOLS:-<none>}"
 echo
 
+# Each task writes its manifest row to its own file here; they are concatenated
+# (sorted) into manifest.csv after all workers finish, so concurrent writes never
+# race on a single file.
+MANIFEST_DIR="$OUT_DIR/.manifest.d"
+
 if [[ "$DRY_RUN" != "1" ]]; then
-  mkdir -p "$OUT_DIR"
+  mkdir -p "$OUT_DIR" "$MANIFEST_DIR"
   if [[ ! -f "$MANIFEST" ]]; then
     echo "prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp" > "$MANIFEST"
   fi
@@ -180,7 +199,12 @@ run_one() {
     args+=(--skills-dir "$stage")
   fi
 
-  local ts run_id exit_code tmplog
+  # Descriptive, unique-per-task run id — passed to the harness via --run-id so
+  # concurrent runs never share a dir or Docker --name. All chars are safe.
+  local run_id="$name-$model-$condition-r$rep"
+  args+=(--run-id "$run_id")
+
+  local ts exit_code tmplog
   ts="$(date -u +%Y%m%dT%H%M%SZ)"
 
   if [[ "$DRY_RUN" == "1" ]]; then
@@ -191,31 +215,71 @@ run_one() {
     return 0
   fi
 
+  # Capture harness output per-task so parallel workers don't interleave on the console.
   tmplog="$(mktemp)"
   set +e
   "$HARNESS" "${args[@]}" "$prompt_file" >"$tmplog" 2>&1
   exit_code=$?
   set -e
-
-  run_id="$(grep -o 'Starting Claude Code test: [^ ]*' "$tmplog" | tail -1 | awk '{print $NF}')"
-  [[ -n "$run_id" ]] || run_id="MISSING-$ts"
   rm -f "$tmplog"
   [[ -n "$stage" ]] && rm -rf "$stage"
 
-  echo "$name,$family,$leaf,$model,$condition,$rep,$run_id,$exit_code,$skills_sha,$ts" >> "$MANIFEST"
+  # One row per task, written to its own file — concatenated after the pool drains.
+  echo "$name,$family,$leaf,$model,$condition,$rep,$run_id,$exit_code,$skills_sha,$ts" \
+    > "$MANIFEST_DIR/$run_id.row"
   printf '  ok   %-42s %-7s %-11s rep=%s  run_id=%s exit=%s\n' \
     "$name" "$model" "$condition" "$rep" "$run_id" "$exit_code"
+  return 0
 }
 
+# Build the flat task list (prompt × model × condition × rep).
+tasks=()
 for prompt_file in "${PROMPTS[@]}"; do
   for model in "${MODEL_ARR[@]}"; do
     for condition in "${COND_ARR[@]}"; do
       for ((rep = 1; rep <= REPS; rep++)); do
-        run_one "$prompt_file" "$model" "$condition" "$rep" || true
+        tasks+=("$prompt_file"$'\t'"$model"$'\t'"$condition"$'\t'"$rep")
       done
     done
   done
 done
+
+# Rolling PID pool: keep up to $JOBS workers in flight (bash 3.2-safe — no
+# `wait -n`). Poll for any finished worker before launching the next.
+pids=()
+reap_one() {
+  while :; do
+    local i
+    for i in "${!pids[@]}"; do
+      if ! kill -0 "${pids[$i]}" 2>/dev/null; then
+        wait "${pids[$i]}" 2>/dev/null || true
+        unset 'pids[$i]'
+        return 0
+      fi
+    done
+    sleep 1
+  done
+}
+
+for task in "${tasks[@]}"; do
+  IFS=$'\t' read -r tf tm tc tr <<< "$task"
+  if [[ "$JOBS" -le 1 || "$DRY_RUN" == "1" ]]; then
+    run_one "$tf" "$tm" "$tc" "$tr" || true
+  else
+    (( ${#pids[@]} >= JOBS )) && reap_one
+    run_one "$tf" "$tm" "$tc" "$tr" &
+    pids+=("$!")
+  fi
+done
+[[ "$JOBS" -gt 1 && "$DRY_RUN" != "1" ]] && wait
+
+# Assemble the manifest from per-task rows in a deterministic order.
+if [[ "$DRY_RUN" != "1" ]]; then
+  if compgen -G "$MANIFEST_DIR/*.row" >/dev/null; then
+    cat "$MANIFEST_DIR"/*.row | sort >> "$MANIFEST"
+  fi
+  rm -rf "$MANIFEST_DIR"
+fi
 
 echo
 if [[ "$DRY_RUN" == "1" ]]; then
