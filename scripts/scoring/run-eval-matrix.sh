@@ -41,9 +41,10 @@ MAX_TURNS="20"
 MAX_BUDGET_USD="2.00"
 DRY_RUN="0"
 LIMIT="0"
-# Concurrent runs. Runs are API-latency-bound, so 2-3 roughly halves/thirds
-# wall-time at negligible local cost. It does NOT change results or spend — only
-# wall-time. Keep small: >=4 risks hitting API rate limits.
+# Concurrent runs. At the recommended 2-3, runs are API-latency-bound, so this
+# roughly halves/thirds wall-time at negligible local cost and does NOT change
+# results or spend. Do not go higher: >=4 risks API rate limits, and a
+# rate-limited run can change results.
 JOBS="1"
 DATE_TAG="$(date -u +%Y%m%d)"
 # Stamped once per invocation. Appended to each run id so ids are deterministic
@@ -63,8 +64,9 @@ Options:
   --conditions LIST     Comma list of no-skill,with-skill. Default: both
   --reps N              Repetitions per cell. Default: 2
   --jobs N              Runs to execute concurrently. Default: 1 (sequential).
-                        Changes wall-time only, not results or cost; 2-3 is the
-                        sweet spot, >=4 risks API rate limits.
+                        At the recommended 2-3, changes wall-time only, not
+                        results or cost; >=4 risks API rate limits (which can
+                        change results).
   --prompts-dir DIR     Test-prompt JSONs. Default: ../skills/evals/test-prompts
   --skills-root DIR     Skills root for staging. Default: ../skills/skills
   --out-dir DIR         Weekly output dir. Default: runs/weekly/<UTC-date>
