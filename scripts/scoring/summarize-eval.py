@@ -25,8 +25,9 @@ import argparse
 import csv
 import math
 from collections import Counter, defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
-from statistics import mean, pstdev, stdev
+from statistics import mean, median, pstdev, stdev
 
 MODELS_ORDER = ["sonnet", "haiku"]
 CONDITIONS = ["no-skill", "with-skill"]
@@ -249,6 +250,81 @@ def provenance(manifest):
 
 
 # --- new sections ----------------------------------------------------------
+
+
+def _stamp_epoch(ts):
+    """Parse a run's YYYYmmddTHHMMSSZ start timestamp to epoch seconds."""
+    try:
+        return datetime.strptime(ts, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+    except (ValueError, TypeError):
+        return None
+
+
+def cost_time_section(weekdir, manifest):
+    """Total spend (generation + Opus judge) and generation timing — the run's
+    money/time summary. Spend is actual dollars spent (all runs, incl. truncated
+    ones that still cost), not the cost *mean*. Judge spend is read from each
+    run's judge_cost.txt; generation timing from manifest duration_ms + start."""
+    L = ["## Cost & time\n"]
+
+    gen_by_model = defaultdict(float)
+    gen_total = 0.0
+    for r in manifest:
+        c = r.get("total_cost_usd", "")
+        if c in ("", None):
+            continue
+        try:
+            v = float(c)
+        except ValueError:
+            continue
+        gen_total += v
+        gen_by_model[r.get("model", "?")] += v
+
+    judge_total = 0.0
+    for r in manifest:
+        f = weekdir / (r.get("run_id") or "") / "judge_cost.txt"
+        if f.exists():
+            try:
+                judge_total += float(f.read_text().strip())
+            except ValueError:
+                pass
+
+    grand = gen_total + judge_total
+    by_model_str = ", ".join(f"{m} ${gen_by_model[m]:.2f}" for m in sorted(gen_by_model)) or "n/a"
+    L.append("**Spend (actual $ spent, all runs):**")
+    L.append(f"- generation: ${gen_total:.2f}  ({by_model_str})")
+    L.append(f"- judge (Opus): ${judge_total:.2f}")
+    L.append(f"- **total: ${grand:.2f}**")
+    L.append("")
+
+    durs, starts, finishes = [], [], []
+    for r in manifest:
+        d = r.get("duration_ms", "")
+        if d in ("", None):
+            continue
+        try:
+            ds = float(d) / 1000.0
+        except ValueError:
+            continue
+        durs.append(ds)
+        e = _stamp_epoch(r.get("timestamp", ""))
+        if e is not None:
+            starts.append(e)
+            finishes.append(e + ds)
+    L.append("**Time (generation phase):**")
+    if durs:
+        compute = sum(durs)
+        L.append(f"- runs timed: {len(durs)}")
+        L.append(f"- compute-time (Σ per-run): {compute/60:.1f} min  "
+                 f"(mean {mean(durs):.0f}s, median {median(durs):.0f}s, max {max(durs):.0f}s)")
+        if starts and finishes:
+            wall = max(finishes) - min(starts)
+            speed = f"  (parallel speedup ~{compute/wall:.1f}×)" if wall > 0 else ""
+            L.append(f"- wall-clock: {wall/60:.1f} min{speed}")
+    else:
+        L.append("- (no per-run durations recorded)")
+    L.append("")
+    return L
 
 
 def models_present(cell_q, cell_cost):
@@ -517,6 +593,9 @@ def build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
     L += baseline_selfserved_section(manifest)
     L += avoid_section(scores)
     L += coverage_section(manifest, scores)
+
+    # cost & time summary
+    L += cost_time_section(weekdir, manifest)
 
     # run health
     budget_capped = sum(1 for r in manifest if r.get("budget_hit") == "1")

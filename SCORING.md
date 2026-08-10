@@ -334,6 +334,9 @@ scripts/scoring/run-eval-matrix.sh --models sonnet,haiku --reps 2
 scripts/scoring/extract-run-signals.sh --out-dir evals/weekly/<date>
 
 # 3. Judge: grade every valid run's final answer against its rubric (Opus, blind).
+#    Resumable: re-running skips runs already in scores.csv, so an interrupted
+#    judge pass continues without re-grading (or re-paying for) completed runs.
+#    Pass --fresh to discard scores.csv and grade every run from scratch.
 scripts/scoring/judge-runs.sh --out-dir evals/weekly/<date>
 
 # 4. Summarize: aggregate to the per-model lift + efficiency scorecard.
@@ -374,9 +377,9 @@ Under `evals/weekly/<date>/`:
 - **`manifest.csv`** — one row per run: `prompt, skill_family, skill_leaf, model,
   condition, rep, run_id, exit_code, skills_sha, timestamp, skill_available,
   skill_activation, reached_leaf, fetched_site, fetched_count, model_snapshot,
-  cli_version, total_cost_usd, num_turns, result_subtype, budget_hit, signals_ok`.
-  The runner writes the first ten (base) columns; `extract-run-signals.sh` derives
-  the rest from each transcript. `budget_hit` is `1` when the run hit the per-run
+  cli_version, total_cost_usd, num_turns, result_subtype, budget_hit, signals_ok,
+  duration_ms`. The runner writes the first ten (base) columns;
+  `extract-run-signals.sh` derives the rest from each transcript. `budget_hit` is `1` when the run hit the per-run
   spend cap (`result_subtype = error_max_budget_usd`): such a run is truncated, so
   it is excluded from scoring and the cost mean and reported as budget-capped.
   `signals_ok` is `0` when the transcript did not parse into the expected shape (a
@@ -387,7 +390,9 @@ Under `evals/weekly/<date>/`:
   target SKILL.md (so `reached_leaf` records whether progressive disclosure
   actually fired); `fetched_site`/`fetched_count` replace a raw URL list and count
   reaches to `skills.qdrant.tech`, net of denied attempts; `total_cost_usd` and
-  `num_turns` are the per-run efficiency signals, straight from the result event.
+  `num_turns` are the per-run efficiency signals, straight from the result event;
+  `duration_ms` is the run's wall-clock duration (also from the result event),
+  aggregated into the scorecard's generation-time stats.
 - **`scores.csv`** — one row per graded rubric item: `prompt, skill, model,
   condition, rep, item_type, item_text, verdict, credit, contribution,
   contested, evidence_quote`. This is the raw grade ledger; everything else is
@@ -434,6 +439,11 @@ Under `evals/weekly/<date>/`:
   - **coverage** — `graded X of Y` runs, and every dropped run listed with its
     reason (invalid install / errored / no gradeable answer). A partial run must
     not read as a clean one (refer to the No silent caps guardrail).
+  - **cost & time** — actual spend (not the cost *mean*): generation `$` (per
+    model) + **Opus judge `$`** (summed from each run's `judge_cost.txt`) + grand
+    total; and generation timing — compute-time (Σ per-run `duration_ms`, with
+    mean/median/max) and wall-clock, whose ratio is the **parallel speedup** from
+    `--jobs`. Answers "what did this run cost and how long did it take".
   - contested-item and harness-failure counts.
   - **provenance** — exact resolved model snapshot string per model label, CLI
     version(s), skills commit(s), and the UTC run window (the only correlate for a

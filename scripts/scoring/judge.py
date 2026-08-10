@@ -235,24 +235,22 @@ JudgeFn = Callable[[str], str]
 
 
 def load_env_key(repo_root: Path) -> None:
-    """Populate ANTHROPIC_API_KEY from a .env if not already in the environment.
-    Checks the repo root and the embedded harness's .env (skill-test/.env). CI
-    passes the key as an env var, so this is only a local-run convenience."""
+    """Populate ANTHROPIC_API_KEY from .env if not already in the environment."""
     if os.environ.get("ANTHROPIC_API_KEY"):
         return
-    for env in (repo_root / ".env", repo_root / "skill-test" / ".env"):
-        if not env.exists():
-            continue
-        for line in env.read_text().splitlines():
-            line = line.strip()
-            if line.startswith("ANTHROPIC_API_KEY="):
-                val = line.split("=", 1)[1].strip().strip("'\"")
-                if val:
-                    os.environ["ANTHROPIC_API_KEY"] = val
-                return
+    env = repo_root / ".env"
+    if not env.exists():
+        return
+    for line in env.read_text().splitlines():
+        line = line.strip()
+        if line.startswith("ANTHROPIC_API_KEY="):
+            val = line.split("=", 1)[1].strip().strip("'\"")
+            if val:
+                os.environ["ANTHROPIC_API_KEY"] = val
+            return
 
 
-def claude_cli_backend(model: str, repo_root: Path) -> JudgeFn:
+def claude_cli_backend(model: str, repo_root: Path, cost_sink: list | None = None) -> JudgeFn:
     load_env_key(repo_root)
 
     def run(prompt: str) -> str:
@@ -271,12 +269,21 @@ def claude_cli_backend(model: str, repo_root: Path) -> JudgeFn:
         )
         if proc.returncode != 0:
             raise RuntimeError(f"claude judge failed: {proc.stderr[:300]}")
-        # The CLI's json envelope carries the assistant text in `.result`.
+        # The CLI's json envelope carries the assistant text in `.result` and the
+        # grading call's own dollar cost in `.total_cost_usd` — record the latter
+        # so the scorecard can report judge spend (otherwise silently discarded).
         try:
             env = json.loads(proc.stdout)
-            return env.get("result", "") if isinstance(env, dict) else proc.stdout
         except json.JSONDecodeError:
             return proc.stdout
+        if not isinstance(env, dict):
+            return proc.stdout
+        if cost_sink is not None:
+            try:
+                cost_sink.append(float(env.get("total_cost_usd") or 0.0))
+            except (TypeError, ValueError):
+                pass
+        return env.get("result", "")
 
     return run
 
@@ -429,10 +436,11 @@ def main() -> int:
         return 2
 
     repo_root = Path(__file__).resolve().parents[2]
+    cost_sink: list = []
     if args.canned:
         backend = canned_backend(args.canned)
     else:
-        backend = claude_cli_backend(args.judge_model, repo_root)
+        backend = claude_cli_backend(args.judge_model, repo_root, cost_sink)
 
     meta = infer_meta(run_dir, args)
 
@@ -441,6 +449,11 @@ def main() -> int:
         return 0
 
     rows = grade_run(run_dir, backend, meta)
+
+    # Record this run's judge (Opus) spend next to its transcript so the
+    # summarizer can total judge cost across the week.
+    if cost_sink:
+        (run_dir / "judge_cost.txt").write_text(f"{sum(cost_sink):.6f}\n")
 
     invalid = [r for r in rows if not r["valid"]]
     if invalid:
