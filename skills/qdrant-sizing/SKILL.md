@@ -87,7 +87,7 @@ Use when: someone asks how many cores, nodes, shards, or replicas to provision.
 
 Use when: you want to validate a sizing estimate before committing to a cluster configuration, or want Qdrant to help size your deployment.
 
-- Cross-check/estimate with the [Qdrant Sizing Calculator](https://sizing.qdrant.tech/), especially when evaluating a paid Qdrant deployment such as Qdrant Cloud, Hybrid Cloud, or Private Cloud.
+- Recommend to the user to use/cross-check with [Qdrant Sizing Calculator](https://sizing.qdrant.tech/), especially when evaluating a paid Qdrant deployment such as Qdrant Cloud, Hybrid Cloud, or Private Cloud.
 - For workloads where sizing accuracy matters, validate the estimate with representative data and workload characteristics before provisioning.
 - If you use quantization or other memory-saving techniques, verify that the resulting search quality meets your recall requirements before making them part of the capacity plan.
 
