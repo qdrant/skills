@@ -24,6 +24,7 @@ Agent skills encoding deep Qdrant knowledge for coding agents.
 - [qdrant-search-quality](qdrant-search-quality/SKILL.md) — Diagnosing bad results, search strategies, hybrid search, and reranking.
   - [qdrant-search-quality-diagnosis](qdrant-search-quality/diagnosis/SKILL.md) — Diagnosing irrelevant, wrong, or missing results.
   - [qdrant-search-strategies](qdrant-search-quality/search-strategies/SKILL.md) — Choosing strategies: hybrid search, reranking, relevance feedback.
+- [qdrant-sizing](qdrant-sizing/SKILL.md) — Sizing RAM, disk, CPU, and node count before a deployment is provisioned.
 - [qdrant-version-upgrade](qdrant-version-upgrade/SKILL.md) — Safe upgrade paths, compatibility guarantees, and rolling upgrades.
 
 Skills structure is hierarchical.

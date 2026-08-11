@@ -87,6 +87,7 @@ Prefer the URL method? Add `Use skills.qdrant.tech` to the same prompts:
 |-------|------------|
 | qdrant-clients-sdk | SDK setup, code examples, snippet search across Python, TypeScript, Rust, Go, .NET, Java |
 | qdrant-scaling | Scaling decisions: data volume, QPS, latency, query volume, horizontal vs vertical |
+| qdrant-sizing | Sizing RAM, disk, CPU, and node count before a deployment is provisioned.
 | qdrant-performance-optimization | Search speed, memory usage, indexing performance |
 | qdrant-search-quality | Diagnosing bad results, search strategies, hybrid search |
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
