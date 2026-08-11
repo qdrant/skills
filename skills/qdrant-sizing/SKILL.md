@@ -5,6 +5,7 @@ description: "Sizes a Qdrant deployment before it is provisioned. Use when someo
 
 # Sizing a Qdrant Deployment
 
+Sizing is not `points × dims × 4`. Raw vectors are only one part of the footprint.
 Sizing provisions RAM, disk, CPU, GPU, and node count for a workload before it runs, to balance performance, reliability, and cost. Each resource is driven by different requirements:
 
 - RAM and disk: number of vectors, vector dimensions, payload size, throughput, target query latency, and search quality requirements. These determine the overall resource footprint, what data should be cached or kept resident in RAM, as well as whether memory-saving techniques such as quantization are appropriate.
@@ -22,7 +23,7 @@ Use when: someone asks how much RAM or disk they need, how much data should be k
 
 Memory requirements mainly come from Qdrant's data structures, with additional memory needed for metadata and temporary work during optimization and other background operations.
 
-The estimates below break down the data footprint by component. Each component scales with `base = points × replication_factor`. Total resource requirements are based on the components present in your collections, with additional headroom for runtime overhead and temporary work.
+The following estimates break down the data footprint by component. Each component scales with `base = points × replication_factor`. Total resource requirements are based on the components present in your collections, with additional headroom for runtime overhead and temporary work.
 
 - **Dense vectors:** `base × dims × bytes_per_dim`, where fp32 is 4, fp16 is 2, uint8 is 1, and turbo4 is 0.5 [Vector datatypes](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes).
 - **Quantized vectors:** `base × dims × quant_bytes` [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/). Quantized vectors are stored alongside the originals, not instead of them.
@@ -42,7 +43,7 @@ For multiple payload fields, calculate the footprint of each field separately ac
 ### Decide what needs to be loaded in RAM
 
 Qdrant persists all collection data to disk. Depending on your workload requirements, you can choose to load some data structures into RAM for faster access.
-On Qdrant 1.19+, configure this per structure with `memory: pinned`, `cached`, or `cold`; on 1.18 and older, use `always_ram` and `on_disk`. Available tiers vary by structure (for example, payloads support only cached and cold).
+On Qdrant 1.19+, configure this per structure with `memory: pinned`, `cached`, or `cold`; on 1.18 and older, use `always_ram` and `on_disk`. Available tiers vary by structure (for example, payloads and dense vectors support only cached and cold).
 Use Qdrant's [memory tiers](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/) to check which tiers are available for each structure and control the desired memory behavior.
 
 You can choose the desired memory tier for each structure, except:
@@ -54,8 +55,8 @@ Check the [default memory tiers](https://skills.qdrant.tech/md/documentation/ops
 
 **Recommendations:**
 
-- It's recommended to keep indexes (HNSW, inverted indexes for sparse vectors, and payload indexes) pinned in RAM for faster search.
-- It's recommended to keep quantized vectors pinned in RAM if they fit comfortably in the available memory, as this reduces disk I/O during search.
+- Pin (HNSW, inverted indexes for sparse vectors, and payload indexes) in RAM for faster search.
+- Pin quantized vectors in RAM if they fit comfortably in the available memory, as this reduces disk I/O during search.
 - If your use case involves splitting vectors into multiple collections or subgroups based on payload values (e.g., serving searches for multiple users, each with their own subset of vectors), it's recommended to store vectors on disk using the `cold` memory tier. In this scenario, only the active subset of vectors will be cached in RAM. See [Subgroup-oriented configuration](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=subgroup-oriented-configuration).
 
 ### Size RAM
@@ -67,7 +68,7 @@ Check the [default memory tiers](https://skills.qdrant.tech/md/documentation/ops
 
 `memory_size = number_of_vectors × vector_dimension × 4 bytes × 1.5`
 
-- At the end, we multiply everything by 1.5. This extra 50% accounts for metadata (such as indexes and point versions) and temporary segments created during optimization. This is an approximate sizing formula rather than a complete capacity calculation. Account for the actual components you have and intend to keep in RAM.
+- At the end, everything is multiplied by 1.5. This extra 50% accounts for metadata (such as indexes and point versions) and temporary segments created during optimization. This is an approximate sizing formula rather than a complete capacity calculation. Account for the actual components you have and intend to keep in RAM.
 
 ### Size disk
 
@@ -83,7 +84,7 @@ Use when: someone asks how many cores, nodes, shards, or replicas to provision.
 - **Shard count:** if you're planning ahead for future expansion, create at least 2 shards per node. If you anticipate significant growth, 12 shards is a common starting point because it divides evenly as you scale from 1 to 2, 3, 4, 6, and 12 nodes [Distributed deployment](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/)
 - **Resharding:** choose the shard count with future growth in mind. Resharding is available in Qdrant Cloud.
 
-# Validating the Estimate Before Provisioning
+## Validating the Estimate Before Provisioning
 
 Use when: you want to validate a sizing estimate before committing to a cluster configuration, or want Qdrant to help size your deployment.
 
