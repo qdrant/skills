@@ -6,11 +6,11 @@
   "rubric": [
     {
       "type": "must",
-      "text": "Notes that on Qdrant 1.19+ the `idf` search param can scope IDF statistics to a payload-filtered corpus (e.g. tenant_id), giving per-tenant term statistics without shard-level partitioning"
+      "text": "Notes that on Qdrant 1.19 or newer the `idf` search param can scope IDF statistics to a payload-filtered corpus (e.g. tenant_id), giving per-tenant term statistics without shard-level partitioning"
     },
     {
       "type": "must",
-      "text": "Notes that on version 1.18 and older, IDF statistics are not tenant-isolated; they are computed per shard, which absolutely can contaminate tenant A's statistics with tenant B's data in a multi-tenant collection"
+      "text": "Notes that on version 1.18 and older, IDF statistics are not tenant-isolated; they are computed per shard, which can contaminate tenant A's statistics with tenant B's data in a multi-tenant collection"
     },
     {
       "type": "must",
@@ -23,6 +23,10 @@
     {
       "type": "bonus",
       "text": "Notes that using the `idf` parameter on a vector without the IDF modifier returns an error"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes prefetch runs per shard (limit x #shards retrieved under the hood, then merged by score)"
     },
     {
       "type": "bonus",
