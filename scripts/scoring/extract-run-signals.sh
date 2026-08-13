@@ -57,7 +57,7 @@ done
 [[ -z "$MANIFEST" ]] && MANIFEST="$OUT_DIR/manifest.csv"
 [[ -f "$MANIFEST" ]] || { echo "Manifest not found: $MANIFEST" >&2; exit 66; }
 
-OUT_HEADER="prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp,skill_available,skill_activation,reached_leaf,fetched_site,fetched_count,model_snapshot,cli_version,total_cost_usd,num_turns,result_subtype,budget_hit,signals_ok"
+OUT_HEADER="prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp,skill_available,skill_activation,reached_leaf,fetched_site,fetched_count,model_snapshot,cli_version,total_cost_usd,num_turns,result_subtype,budget_hit,signals_ok,duration_ms"
 
 tmp="$(mktemp)"
 echo "$OUT_HEADER" > "$tmp"
@@ -81,6 +81,7 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
   result_subtype=""
   budget_hit=0
   signals_ok=1
+  duration_ms=""
 
   if [[ -f "$stdout" ]]; then
     init="$(grep -m1 '"subtype":"init"' "$stdout" || true)"
@@ -98,6 +99,7 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
     result_ev="$(grep '"type":"result"' "$stdout" 2>/dev/null | tail -1)"
     total_cost_usd="$(printf '%s' "$result_ev" | jq -r '.total_cost_usd // ""' 2>/dev/null || echo "")"
     num_turns="$(printf '%s' "$result_ev" | jq -r '.num_turns // ""' 2>/dev/null || echo "")"
+    duration_ms="$(printf '%s' "$result_ev" | jq -r '.duration_ms // ""' 2>/dev/null || echo "")"
     result_subtype="$(printf '%s' "$result_ev" | jq -r '.subtype // ""' 2>/dev/null || echo "")"
     # A run that hit the per-run spend cap: definitive markers from the result event.
     terminal_reason="$(printf '%s' "$result_ev" | jq -r '.terminal_reason // ""' 2>/dev/null || echo "")"
@@ -154,10 +156,10 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
     signals_ok=0
   fi
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$base" "$skill_available" "$activation" "$reached_leaf" \
     "$fetched_site" "$fetched_count" "$model_snapshot" "$cli_version" \
-    "$total_cost_usd" "$num_turns" "$result_subtype" "$budget_hit" "$signals_ok" >> "$tmp"
+    "$total_cost_usd" "$num_turns" "$result_subtype" "$budget_hit" "$signals_ok" "$duration_ms" >> "$tmp"
 done
 
 mv "$tmp" "$MANIFEST"

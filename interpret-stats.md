@@ -78,6 +78,14 @@ Traces a regression to a specific skill.
 - `runs graded`: how many of the attempted runs were actually scored (`X of Y`).
 - `dropped`: runs excluded, each with a reason (`budget-capped (truncated)` / `invalid: skill unavailable` / `errored` / `no gradeable answer`). Stops a partial week from reading as a clean one.
 
+### Cost & time
+
+- `generation`: actual dollars spent on the generation runs (all of them, incl. truncated ones that still cost), broken down per model — not the cost *mean*.
+- `judge (Opus)`: dollars spent grading, summed from each run's `judge_cost.txt`.
+- `total`: generation + judge — what this run cost end to end.
+- `compute-time (Σ per-run)`: sum of per-run wall durations, with mean/median/max.
+- `wall-clock`: elapsed time of the generation phase; `compute-time ÷ wall-clock` is the **parallel speedup** delivered by `--jobs`.
+
 ### Run health
 
 - `contested items`: items where two judge samples disagreed; the rubric-ambiguity backlog.

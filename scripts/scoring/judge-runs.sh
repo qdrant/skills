@@ -14,17 +14,23 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR=""
 JUDGE_MODEL="opus"
 SCORES=""
+FRESH="0"
 
 usage() {
   cat <<'USAGE'
-Usage: scripts/scoring/judge-runs.sh --out-dir DIR [--judge-model M] [--scores FILE]
+Usage: scripts/scoring/judge-runs.sh --out-dir DIR [--judge-model M] [--scores FILE] [--fresh]
 
 Grades every valid run under DIR into DIR/scores.csv (blind Opus judge).
+
+By default this RESUMES: an existing scores.csv is kept and any run already graded
+in it is skipped, so an interrupted judging pass can be re-run without re-grading
+(and re-paying for) completed runs. Use --fresh to grade from scratch.
 
 Options:
   --out-dir DIR       Weekly dir with manifest.csv and run subdirs.
   --judge-model M     Grader model. Default: opus
   --scores FILE       Output ledger. Default: <out-dir>/scores.csv
+  --fresh             Delete any existing scores.csv and grade every run anew.
   -h, --help          Show this help.
 USAGE
 }
@@ -34,6 +40,7 @@ while [[ $# -gt 0 ]]; do
     --out-dir) OUT_DIR="${2:?}"; shift 2 ;;
     --judge-model) JUDGE_MODEL="${2:?}"; shift 2 ;;
     --scores) SCORES="${2:?}"; shift 2 ;;
+    --fresh) FRESH="1"; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1" >&2; usage >&2; exit 64 ;;
   esac
@@ -56,7 +63,17 @@ C_PROMPT=$(col prompt); C_FAMILY=$(col skill_family); C_MODEL=$(col model)
 C_COND=$(col condition); C_REP=$(col rep); C_RUNID=$(col run_id)
 C_EXIT=$(col exit_code); C_AVAIL=$(col skill_available); C_BUDGET=$(col budget_hit)
 
-rm -f "$SCORES"
+# Fresh start deletes the ledger; otherwise resume (keep it, skip graded runs).
+[[ "$FRESH" == "1" ]] && rm -f "$SCORES"
+
+# A run counts as already graded if a scores.csv row matches its
+# (prompt, model, condition, rep) exactly. Exact field compare (quoting-safe).
+already_graded() {
+  [[ -f "$SCORES" ]] || return 1
+  awk -F, -v p="$1" -v m="$2" -v c="$3" -v r="$4" \
+    'NR>1 && $1==p && $3==m && $4==c && $5==r {found=1; exit} END{exit !found}' "$SCORES"
+}
+
 graded=0; skip_invalid=0; skip_error=0; skip_noanswer=0
 
 tail -n +2 "$MANIFEST" | while IFS= read -r line; do
@@ -66,6 +83,10 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
   cond=$(get "$C_COND"); rep=$(get "$C_REP"); run_id=$(get "$C_RUNID")
   exit_code=$(get "$C_EXIT"); avail=$(get "$C_AVAIL")
   run_dir="$OUT_DIR/$run_id"
+
+  if already_graded "$prompt" "$model" "$cond" "$rep"; then
+    echo "  skip (already graded) $model/$cond/rep$rep $prompt" >&2; continue
+  fi
 
   budget=""; [[ -n "${C_BUDGET:-}" ]] && budget=$(get "$C_BUDGET")
   if [[ "$budget" == "1" ]]; then
