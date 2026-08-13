@@ -20,6 +20,7 @@ PERMISSION_MODE="auto"
 MAX_TURNS="20"
 MODEL=""
 MAX_BUDGET_USD=""
+RUN_ID=""
 BUILD_IMAGE="0"
 CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-latest}"
 CLAUDE_EXTRA_ARGS="${CLAUDE_EXTRA_ARGS:-}"
@@ -57,6 +58,11 @@ Options:
   --model MODEL                Pass --model to Claude Code.
   --choose-model               Interactively choose a model from a menu.
   --max-budget-usd USD         Stop once this print-mode budget is reached.
+  --run-id ID                  Use this exact run id (dir name + Docker --name) instead of
+                               deriving one from the timestamp and prompt name. Must start
+                               with a letter/digit, then letters, digits, . _ - (Docker's
+                               --name rule). Lets a parallel batch runner give each
+                               concurrent run a unique id.
   --extra-args "ARGS"          Advanced Claude Code flags passed through by the container.
   --allow-missing-auth         Skip local auth preflight checks.
   --no-render                  Do not generate readable.md after the run.
@@ -236,6 +242,11 @@ while [[ $# -gt 0 ]]; do
       MAX_BUDGET_USD="$2"
       shift 2
       ;;
+    --run-id)
+      require_value "$1" "${2:-}"
+      RUN_ID="$2"
+      shift 2
+      ;;
     --extra-args)
       require_value "$1" "${2:-}"
       CLAUDE_EXTRA_ARGS="$2"
@@ -346,21 +357,34 @@ if [[ "$BUILD_IMAGE" == "1" ]]; then
     --claude-code-version "$CLAUDE_CODE_VERSION"
 fi
 
-if [[ -n "$TEST_PROMPT_JSON" ]]; then
-  # Prefer the test-prompt's canonical .name over the file name so the run id
-  # tracks the test even if the file is renamed. Fall back to the file name if
-  # .name is missing or empty.
-  prompt_base="$(jq -r 'if (.name | type == "string") and (.name | length > 0) then .name else empty end' "$TEST_PROMPT_JSON")"
-  if [[ -z "$prompt_base" ]]; then
+if [[ -n "$RUN_ID" ]]; then
+  # Caller-supplied run id (e.g. a parallel batch runner assigning a unique,
+  # descriptive id per task so concurrent runs never share a dir or Docker
+  # --name). Must be filesystem/Docker-name safe: letters, digits, ., _, - only.
+  # Must start with a letter or digit (Docker's --name rule) and contain only
+  # safe chars. Rejects a leading -/., and `..` path traversal.
+  if [[ ! "$RUN_ID" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "Invalid --run-id '$RUN_ID' (must start with a letter/digit; allowed: letters, digits, . _ -)" >&2
+    exit 64
+  fi
+  run_id="$RUN_ID"
+else
+  if [[ -n "$TEST_PROMPT_JSON" ]]; then
+    # Prefer the test-prompt's canonical .name over the file name so the run id
+    # tracks the test even if the file is renamed. Fall back to the file name if
+    # .name is missing or empty.
+    prompt_base="$(jq -r 'if (.name | type == "string") and (.name | length > 0) then .name else empty end' "$TEST_PROMPT_JSON")"
+    if [[ -z "$prompt_base" ]]; then
+      prompt_base="$(basename "$PROMPT_SOURCE_PATH")"
+      prompt_base="${prompt_base%.*}"
+    fi
+  else
     prompt_base="$(basename "$PROMPT_SOURCE_PATH")"
     prompt_base="${prompt_base%.*}"
   fi
-else
-  prompt_base="$(basename "$PROMPT_SOURCE_PATH")"
-  prompt_base="${prompt_base%.*}"
+  prompt_slug="$(printf '%s' "$prompt_base" | tr -c 'A-Za-z0-9._-' '_')"
+  run_id="$(date -u +%Y%m%dT%H%M%SZ)-$prompt_slug"
 fi
-prompt_slug="$(printf '%s' "$prompt_base" | tr -c 'A-Za-z0-9._-' '_')"
-run_id="$(date -u +%Y%m%dT%H%M%SZ)-$prompt_slug"
 
 plugin_urls_joined=""
 if [[ "${#PLUGIN_URLS[@]}" -gt 0 ]]; then

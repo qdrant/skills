@@ -355,6 +355,15 @@ truncated answer would grade unfairly low and its cost is a floor, not the real
 figure. Keep the cap high enough that legitimate runs never hit it; if several do,
 raise it rather than let clipped runs contaminate the numbers.
 
+The runs are independent, so `run-eval-matrix.sh --jobs N` executes N at a time
+(default 1). Each run is its own fresh container with a unique per-invocation id,
+so at the recommended **2–3** concurrency this changes **wall-time only — not
+results or cost** (same runs, same tokens). Runs are API-latency-bound, so 2–3
+roughly halves/thirds the generation phase at negligible local cost. Do not push
+it higher: at ≥4 you risk API rate limits, and a rate-limited run *can* change
+results — so the wall-time-only guarantee holds only in the 2–3 range. The judge
+stage is unaffected.
+
 Confirm the skill-install step and `--permission-mode dontAsk` work on the pinned
 CLI version before the first scored run — verify an installed skill actually shows
 up in the `init` skill list, **and that the allow-listed tools are not denied**

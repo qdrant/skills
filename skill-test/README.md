@@ -277,6 +277,20 @@ total, since there is no user to approve a fallback prompt. A test that repeated
 attempts out-of-scope actions can therefore end early, where `dontAsk` would
 deny each call and let the run continue to completion.
 
+By default the run id (the `runs/<id>/` directory name and the Docker container
+`--name`) is derived from the timestamp and the prompt name. Pass `--run-id ID`
+to set it explicitly instead:
+
+```bash
+scripts/run-claude-test.sh --run-id my-unique-id prompts/qdrant-smoke.md
+```
+
+`ID` must start with a letter or digit, then letters, digits, `.`, `_`, `-`
+(Docker's `--name` rule). This lets a batch runner give each run a unique,
+descriptive id so that **concurrent** runs never collide on a directory or a
+Docker `--name` (two runs of the same prompt in the same second would otherwise
+clash).
+
 For tests that intentionally need Claude Code to execute commands or edit a
 throwaway workspace, use a disposable workspace and pass a more permissive mode,
 for example:
