@@ -15,6 +15,9 @@ on:
       reps:
         description: "Repetitions per cell"
         default: "2"
+      jobs:
+        description: "Parallel generation jobs (1 = serial). 2–3 is safe on a hosted runner; higher risks disk/memory. Does not change results or spend, only wall-clock."
+        default: "2"
       limit:
         description: "Only the first N scored prompts (0 = all 26). Use a small N for a cheap first run."
         default: "0"
@@ -42,9 +45,10 @@ permissions:
 jobs:
   score:
     runs-on: ubuntu-latest
-    # NOTE: a full 26-prompt run (208 runs) will very likely exceed the 6h
-    # hosted-runner limit and cost real money — scope it down with `limit`, or
-    # move to a self-hosted runner for full runs.
+    # NOTE: a full 26-prompt run (208 runs) fits well within this timeout —
+    # measured run #1 took ~84 min serial / ~47 min at --jobs 2 — but it costs
+    # real money (~$29 end-to-end incl. the Opus judge). Scope it down with
+    # `limit` for cheap runs; raise `jobs` to trim wall-clock (runner minutes).
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -81,12 +85,14 @@ jobs:
           MODELS: ${{ inputs.models }}
           CONDITIONS: ${{ inputs.conditions }}
           REPS: ${{ inputs.reps }}
+          JOBS: ${{ inputs.jobs }}
           LIMIT: ${{ inputs.limit }}
           MAX_BUDGET_USD: ${{ inputs.max_budget_usd }}
           MAX_TURNS: ${{ inputs.max_turns }}
         run: |
           set -euo pipefail
           args=(--models "$MODELS" --conditions "$CONDITIONS" --reps "$REPS"
+                --jobs "$JOBS"
                 --max-turns "$MAX_TURNS" --max-budget-usd "$MAX_BUDGET_USD"
                 --out-dir "$OUT_DIR")
           if [ "$LIMIT" != "0" ]; then args+=(--limit "$LIMIT"); fi
