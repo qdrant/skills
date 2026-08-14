@@ -36,15 +36,27 @@ skills/
       hybrid-search/
         search-types/
         combining-searches/
+      relevance-feedback/
   qdrant-monitoring/
     SKILL.md
     debugging/
     setup/
   qdrant-clients-sdk/
   qdrant-deployment-options/
+  qdrant-edge/
   qdrant-model-migration/
+  qdrant-multitenancy/
+  qdrant-sizing/
   qdrant-version-upgrade/
 ```
+
+## Navigating skills locally
+
+The same tree as the [published site](https://skills.qdrant.tech), reached by relative path instead of URL. Each `SKILL.md` links to its sub-skills, and those links are the navigation mechanism; follow them rather than assembling paths yourself.
+
+- Read the `SKILL.md` for the relevant skill, then follow its relative links to go deeper. Skills nest up to four levels.
+- If you do not have a link to the skill you need, do not guess the path. Glob `skills/**/SKILL.md` and grep the frontmatter `description` fields, which carry the `Use when` trigger phrases.
+- When a tool summarizes a `SKILL.md`, preserve its Markdown links exactly as written. They are the only way to reach the deeper skills.
 
 ## Conventions
 
