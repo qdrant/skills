@@ -13,6 +13,9 @@
   status = 200
   force = true
 
+# Netlify processes _redirects before this file, so the /md/ rules that
+# scripts/generate_md_redirects.sh writes into public/_redirects match first and
+# answer moved paths at the edge. Everything else proxies through below.
 [[redirects]]
   from = "/md/*"
   to = "https://search.qdrant.tech/md/:splat"
