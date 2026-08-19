@@ -27,5 +27,11 @@ Agent skills encoding deep Qdrant knowledge for coding agents.
 - [qdrant-sizing](qdrant-sizing/SKILL.md) — Sizing RAM, disk, CPU, and node count before a deployment is provisioned.
 - [qdrant-version-upgrade](qdrant-version-upgrade/SKILL.md) — Safe upgrade paths, compatibility guarantees, and rolling upgrades.
 
-Skills structure is hierarchical.
-You can use search: https://skills.qdrant.tech/search?query=your+query+here
+## Navigating this skill tree
+
+Skills structure is hierarchical. Each `SKILL.md` links to its sub-skills, and those links are the navigation mechanism; follow them rather than assembling paths yourself.
+
+- Read the `SKILL.md` for the relevant skill, then follow its links to go deeper. This page lists the top two levels; skills nest up to four levels, and the deeper ones are reachable only through the links inside each `SKILL.md`.
+- If you do not have a link to the skill you need, do not guess the path. Fetch the [complete index of every skill](https://skills.qdrant.tech/llms.txt), including the ones this page does not list, or search: https://skills.qdrant.tech/search?query=your+query+here
+- When fetching `SKILL.md` files via a URL tool, preserve all Markdown links exactly as written. Do not paraphrase, summarize away, or omit URLs.
+- Search returns a full skill with its links intact, so a hit can be acted on directly.
