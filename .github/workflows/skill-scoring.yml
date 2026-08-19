@@ -1,0 +1,145 @@
+name: skill scoring (manual)
+
+# Manual-only for now: run the weekly skill-lift scoring pipeline on demand from
+# the Actions tab. No `schedule:` trigger yet — periodic runs come later, once
+# manual runs are trusted. Inputs let you scope a run (start small, scale up).
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: "Comma list of models"
+        default: "sonnet,haiku"
+      conditions:
+        description: "Comma list: no-skill,with-skill"
+        default: "no-skill,with-skill"
+      reps:
+        description: "Repetitions per cell"
+        default: "2"
+      jobs:
+        description: "Parallel generation jobs (1 = serial). 2–3 is safe on a hosted runner; higher risks disk/memory. Does not change results or spend, only wall-clock."
+        default: "2"
+      limit:
+        description: "Only the first N scored prompts (0 = all 26). Use a small N for a cheap first run."
+        default: "0"
+      max_budget_usd:
+        description: "Per-run spend cap in USD (empty string disables)"
+        default: "2.00"
+      max_turns:
+        description: "Max agent turns per run"
+        default: "20"
+      judge_model:
+        description: "Blind judge model"
+        default: "opus"
+      claude_code_version:
+        description: "Claude Code version for the harness image + host judge CLI"
+        default: "latest"
+      commit_results:
+        description: "Commit derived scorecard/CSVs + history back to this branch (off = artifacts only)"
+        type: boolean
+        default: false
+
+# `contents: write` is only exercised by the optional commit step below.
+permissions:
+  contents: write
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    # NOTE: a full 26-prompt run (208 runs) fits well within this timeout —
+    # measured run #1 took ~84 min serial / ~47 min at --jobs 2 — but it costs
+    # real money (~$29 end-to-end incl. the Opus judge). Scope it down with
+    # `limit` for cheap runs; raise `jobs` to trim wall-clock (runner minutes).
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+
+      - name: Install Claude CLI (host — used by the blind judge)
+        env:
+          CCV: ${{ inputs.claude_code_version }}
+        run: |
+          set -euo pipefail
+          if [ "$CCV" = "latest" ]; then
+            npm install -g @anthropic-ai/claude-code
+          else
+            npm install -g @anthropic-ai/claude-code@"$CCV"
+          fi
+
+      - name: Build harness Docker image
+        env:
+          CCV: ${{ inputs.claude_code_version }}
+        run: skill-test/scripts/build-image.sh --claude-code-version "$CCV"
+
+      - name: Compute output dir
+        run: echo "OUT_DIR=evals/weekly/$(date -u +%Y%m%dT%H%M%SZ)" >> "$GITHUB_ENV"
+
+      - name: Preflight — validate every prompt resolves to a skill
+        run: scripts/scoring/validate-prompts.sh
+
+      - name: Generate — run the scoring matrix
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODELS: ${{ inputs.models }}
+          CONDITIONS: ${{ inputs.conditions }}
+          REPS: ${{ inputs.reps }}
+          JOBS: ${{ inputs.jobs }}
+          LIMIT: ${{ inputs.limit }}
+          MAX_BUDGET_USD: ${{ inputs.max_budget_usd }}
+          MAX_TURNS: ${{ inputs.max_turns }}
+        run: |
+          set -euo pipefail
+          args=(--models "$MODELS" --conditions "$CONDITIONS" --reps "$REPS"
+                --jobs "$JOBS"
+                --max-turns "$MAX_TURNS" --max-budget-usd "$MAX_BUDGET_USD"
+                --out-dir "$OUT_DIR")
+          if [ "$LIMIT" != "0" ]; then args+=(--limit "$LIMIT"); fi
+          scripts/scoring/run-eval-matrix.sh "${args[@]}"
+
+      - name: Extract per-run signals
+        run: scripts/scoring/extract-run-signals.sh --out-dir "$OUT_DIR"
+
+      - name: Judge — grade valid runs (blind Opus)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JUDGE_MODEL: ${{ inputs.judge_model }}
+        run: scripts/scoring/judge-runs.sh --out-dir "$OUT_DIR" --judge-model "$JUDGE_MODEL"
+
+      - name: Summarize — build the scorecard
+        run: scripts/scoring/summarize-eval.py "$OUT_DIR"
+
+      - name: Publish scorecard to the run summary
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -f "$OUT_DIR/scorecard.md" ]; then
+            cat "$OUT_DIR/scorecard.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No scorecard produced (run may have failed before summarize)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload results (scorecard + manifest + scores + transcripts)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scoring-${{ github.run_id }}
+          path: ${{ env.OUT_DIR }}
+          if-no-files-found: warn
+
+      - name: Commit derived results (opt-in)
+        if: ${{ inputs.commit_results }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Only the small derived files + history — never the bulky transcripts.
+          git add "$OUT_DIR/manifest.csv" "$OUT_DIR/scores.csv" "$OUT_DIR/scorecard.md" \
+                  evals/weekly/scorecard-history.csv
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "scoring: manual run $(basename "$OUT_DIR")"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
