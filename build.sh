@@ -11,3 +11,5 @@ python3 scripts/make_links_absolute.py
 python3 scripts/generate_llms_txt.py public
 
 bash scripts/generate_sitemap.sh public
+
+bash scripts/generate_md_redirects.sh public
