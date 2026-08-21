@@ -10,6 +10,20 @@ allowed-tools:
 
 # Qdrant Performance Optimization
 
+## Symptom to Sub-skill Map
+
+| Symptom | Sub-skill |
+|---|---|
+| Filtered queries much slower than unfiltered | [Search Speed Optimization](search-speed-optimization/SKILL.md) |
+| Low QPS, cannot handle the query load | [Search Speed Optimization](search-speed-optimization/SKILL.md) |
+| Individual queries take too long to return | [Search Speed Optimization](search-speed-optimization/SKILL.md) |
+| Index build or vector upload takes too long | [Indexing Performance Optimization](indexing-performance-optimization/SKILL.md) |
+| Collection stays yellow, optimizer runs for a long time | [Indexing Performance Optimization](indexing-performance-optimization/SKILL.md) |
+| Bulk upsert of vectors is slow | [Indexing Performance Optimization](indexing-performance-optimization/SKILL.md) |
+| RAM usage too high or out-of-memory crashes | [Memory Usage Optimization](memory-usage-optimization/SKILL.md) |
+| Want to fit a larger dataset on the same hardware | [Memory Usage Optimization](memory-usage-optimization/SKILL.md) |
+| Reducing cost by moving data to disk | [Memory Usage Optimization](memory-usage-optimization/SKILL.md) |
+
 There are different aspects of Qdrant performance, this document serves as a navigation hub for different aspects of performance optimization in Qdrant.
 
 

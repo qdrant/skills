@@ -9,6 +9,19 @@ allowed-tools:
 
 # Qdrant Scaling
 
+## Symptom to Sub-skill Map
+
+| Symptom | Sub-skill |
+|---|---|
+| Data does not fit on a single node | [Scaling Data Volume](scaling-data-volume/SKILL.md) |
+| Running out of disk or memory as the dataset grows | [Scaling Data Volume](scaling-data-volume/SKILL.md) |
+| Need to shard the collection across more nodes | [Scaling Data Volume](scaling-data-volume/SKILL.md) |
+| Cannot handle enough parallel queries | [Scaling for Query Throughput](scaling-qps/SKILL.md) |
+| Need higher QPS | [Scaling for Query Throughput](scaling-qps/SKILL.md) |
+| A single query is too slow | [Scaling for Query Latency](minimize-latency/SKILL.md) |
+| Need to cut the tail latency of individual requests | [Scaling for Query Latency](minimize-latency/SKILL.md) |
+| Queries return very large result sets and slow down | [Scaling for Query Volume](scaling-query-volume/SKILL.md) |
+
 First determine what you're scaling for:
 
 - data volume
