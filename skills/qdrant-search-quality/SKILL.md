@@ -1,6 +1,6 @@
 ---
 name: qdrant-search-quality
-description: "Diagnoses and improves Qdrant search relevance. Use when someone reports 'search results are bad', 'wrong results', 'low precision', 'low recall', 'irrelevant matches', 'missing expected results', or asks 'how to improve search quality?', 'which embedding model?', 'should I use hybrid search?', 'should I use reranking?', 'how to measure retrieval quality?', 'build a golden set', 'ground truth dataset', or 'how to score recall@k?'. Also use when search quality degrades after quantization, model change, or data growth."
+description: "Diagnoses and improves Qdrant search relevance. Use when someone reports 'search results are bad', 'wrong results', 'low precision', 'low recall', 'irrelevant matches', 'missing expected results', or asks 'how to improve search quality?', 'which embedding model?', 'should I use hybrid search?', 'how to combine keyword and vector search / fusion / RRF / prefetch?', 'should I use reranking?', 'relevance feedback?', 'how to measure retrieval quality?', 'build a golden set', 'ground truth dataset', or 'how to score recall@k?'. Also use when search quality degrades after quantization, model change, or data growth."
 allowed-tools:
   - Read
   - Grep
@@ -9,16 +9,20 @@ allowed-tools:
 
 # Qdrant Search Quality
 
-First determine whether the problem is the embedding model, Qdrant configuration, or the query strategy. Most quality issues come from the model or data, not from Qdrant itself. If search quality is low, inspect how chunks are being passed to Qdrant before tuning any parameters. Splitting mid-sentence can drop quality 30-40%.
+Route first, then answer. Match the user's symptom in the table, `Read` that
+file, and answer from it. Do not answer from this page alone: it contains
+routing only, not the guidance. If two rows match, read both.
 
-- Start by testing with exact search to isolate the problem [Search API](https://skills.qdrant.tech/md/documentation/search/search/?s=search-api)
+| The user says | Read |
+|---|---|
+| Bad, wrong, or irrelevant results; low precision/recall; missing expected matches | `diagnosis/SKILL.md` |
+| Which embedding model to use; quality dropped after quantization, model change, or data growth | `diagnosis/SKILL.md` |
+| Build a golden set, ground truth dataset, measure recall@k, retrieval quality | `diagnosis/SKILL.md` |
+| Combine keyword and vector search, hybrid search, sparse + dense, fusion / RRF, prefetch | `search-strategies/hybrid-search/SKILL.md` |
+| Should I rerank, results too similar, need diversity, MMR, recommendation/discovery API | `search-strategies/SKILL.md` |
+| Improve results using user feedback/clicks, cheaper alternative to reranking | `search-strategies/relevance-feedback/SKILL.md` |
 
-
-## Diagnosis and Tuning
-
-Isolate the source of quality issues, establish labeled baselines to measure recall and relevance, tune HNSW parameters, and choose the right embedding model. [Diagnosis and Tuning](diagnosis/SKILL.md)
-
-
-## Search Strategies
-
-Hybrid search, reranking, relevance feedback, and exploration APIs for improving result quality. [Search Strategies](search-strategies/SKILL.md)
+Most quality issues come from the embedding model or the data, not from Qdrant's
+configuration — splitting chunks mid-sentence alone can drop quality 30-40%.
+Rule that out with exact search before tuning any Qdrant parameter:
+[Search API](https://skills.qdrant.tech/md/documentation/search/search/?s=search-api)

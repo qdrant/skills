@@ -1,6 +1,6 @@
 ---
 name: qdrant-monitoring
-description: "Guides Qdrant monitoring and observability setup. Use when someone asks 'how to monitor Qdrant', 'what metrics to track', 'is Qdrant healthy', 'optimizer stuck', 'why is memory growing', 'requests are slow', or needs to set up Prometheus, Grafana, or health checks. Also use when debugging production issues that require metric analysis."
+description: "Guides Qdrant monitoring and observability setup. Use when someone asks 'how to monitor Qdrant', 'what metrics to track', 'is Qdrant healthy', 'optimizer stuck', 'why is memory growing', 'requests are slow', 'set up alerts', 'cluster health check', or needs to set up Prometheus, Grafana, health checks, or log centralization. Also use when debugging production issues that require metric analysis."
 allowed-tools:
   - Read
   - Grep
@@ -9,16 +9,15 @@ allowed-tools:
 
 # Qdrant Monitoring
 
-Qdrant monitoring allows tracking performance and health of your deployment, and identifying issues before they become outages. First determine whether you need to set up monitoring or diagnose an active issue.
+Route first, then answer. Match the user's symptom in the table, `Read` that
+file, and answer from it. Do not answer from this page alone: it contains
+routing only, not the guidance. If two rows match, read both.
 
-- Understand available metrics [Monitoring docs](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/)
+| The user says | Read |
+|---|---|
+| Set up monitoring: Prometheus scraping, health probes, Hybrid Cloud metrics, alerting, log centralization | `setup/SKILL.md` |
+| Diagnose an active issue: optimizer stuck, memory growing, requests slow, is Qdrant healthy | `debugging/SKILL.md` |
 
-
-## Monitoring Setup
-
-Prometheus scraping, health probes, Hybrid Cloud specifics, alerting, and log centralization. [Monitoring Setup](setup/SKILL.md)
-
-
-## Debugging with Metrics
-
-Optimizer stuck, memory growth, slow requests. Using metrics to diagnose active production issues. [Debugging with Metrics](debugging/SKILL.md)
+Qdrant monitoring tracks performance and health, and catches issues before they
+become outages. See the metric reference before tuning anything:
+[Monitoring docs](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/)
