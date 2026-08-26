@@ -35,5 +35,5 @@ If user wants to isolate/share hybrid search pipelines between tenants, consider
 
 ## What NOT to Do
 
-- Choose a hybrid search pattern based on "vibes" without any [hybrid search quality evaluation](https://skills.qdrant.tech/md/articles/hybrid-search/?s=how-effective-is-your-search-system) in-place.
+- Choose a hybrid search pattern based on "vibes" without any [hybrid search quality evaluation](https://skills.qdrant.tech/md/articles/hybrid-search/?s=measure-whether-it-helps) in-place.
 - Create too many named vectors without a need. An unfilled named vector might take as much resources as a filled one.
