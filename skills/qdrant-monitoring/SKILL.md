@@ -9,10 +9,8 @@ allowed-tools:
 
 # Qdrant Monitoring
 
-
 Route first, then answer. Match the user's symptom in the table, `Read` that file, and answer from it.
 Do not answer from this page alone: it contains routing only, not the guidance. If two rows match, read both.
-
 
 | The user says | Read |
 |---|---|
