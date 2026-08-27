@@ -18,3 +18,6 @@ public/
 __pycache__/
 *.pyc
 .venv/
+
+# Scoring: keep derived scorecard/CSVs + history, ignore bulky per-run transcripts
+evals/weekly/*/*/
