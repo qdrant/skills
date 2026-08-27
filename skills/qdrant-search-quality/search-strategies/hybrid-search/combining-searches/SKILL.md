@@ -48,7 +48,7 @@ Instead of using client-side fusion through cross-encoders, a popular option is 
 
 ## What NOT to Do
 
-- Use linear weighted fusion on incomparable score ranges. [Why not](https://skills.qdrant.tech/md/articles/hybrid-search/?s=why-not-a-linear-combination).
+- Use linear weighted fusion on incomparable score ranges. [Why not](https://skills.qdrant.tech/md/articles/hybrid-search/?s=fusion-merges-two-rankings-into-one).
 - Use "vibe" defined weights in weighted RRF. Weights should be fine-tuned per dataset and retrieval pipelines.
 - Pick any fusion type without comparative experiments.
 - Use late interaction multivectors for fusion without evaluating cheaper analogues, for example, MUVERA. More in [multi-vector Qdrant search course](https://skills.qdrant.tech/md/course/multi-vector-search/)

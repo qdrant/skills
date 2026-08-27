@@ -9,20 +9,22 @@ allowed-tools:
 
 # Qdrant Search Quality
 
-Route first, then answer. Match the user's symptom in the table, `Read` that
-file, and answer from it. Do not answer from this page alone: it contains
-routing only, not the guidance. If two rows match, read both.
+
+Route first, then answer. Match the user's symptom in the table, `Read` that file, and answer from it.
+Do not answer from this page alone: it contains routing only, not the guidance. If two rows match, read both.
 
 | The user says | Read |
 |---|---|
-| Bad, wrong, or irrelevant results; low precision/recall; missing expected matches | `diagnosis/SKILL.md` |
-| Which embedding model to use; quality dropped after quantization, model change, or data growth | `diagnosis/SKILL.md` |
-| Build a golden set, ground truth dataset, measure recall@k, retrieval quality | `diagnosis/SKILL.md` |
-| Combine keyword and vector search, hybrid search, sparse + dense, fusion / RRF, prefetch | `search-strategies/hybrid-search/SKILL.md` |
+| Search results are bad or irrelevant, wrong results, missing expected matches | `diagnosis/SKILL.md` |
+| Low recall, expected results are missing | `diagnosis/SKILL.md` |
+| Low precision, too many wrong matches | `diagnosis/SKILL.md` |
+| Which embedding model to use, quality dropped after quantization, model change, or data growth | `diagnosis/SKILL.md` |
+| Not sure if the model, the data, or Qdrant is at fault | `diagnosis/SKILL.md` |
+| Want to measure recall, build a golden set, ground truth dataset, recall@k | `diagnosis/SKILL.md` |
+| Need to combine keyword and semantic search, hybrid search, sparse + dense, fusion / RRF, prefetch | `search-strategies/hybrid-search/SKILL.md` |
 | Should I rerank, results too similar, need diversity, MMR, recommendation/discovery API | `search-strategies/SKILL.md` |
-| Improve results using user feedback/clicks, cheaper alternative to reranking | `search-strategies/relevance-feedback/SKILL.md` |
+| Improving results with relevance feedback or user clicks, cheaper alternative to reranking | `search-strategies/relevance-feedback/SKILL.md` |
 
-Most quality issues come from the embedding model or the data, not from Qdrant's
-configuration — splitting chunks mid-sentence alone can drop quality 30-40%.
+Most quality issues come from the embedding model or the data, not from Qdrant's configuration — splitting chunks mid-sentence alone can drop quality 30-40%.
 Rule that out with exact search before tuning any Qdrant parameter:
 [Search API](https://skills.qdrant.tech/md/documentation/search/search/?s=search-api)
