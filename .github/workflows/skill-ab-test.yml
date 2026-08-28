@@ -3,8 +3,16 @@ name: skill A/B test
 # Triggered by adding the `A/B test` label to a PR. Compares the skill(s) the
 # PR touches — current main (Version A) vs the PR's amended version
 # (Version B) — using the same weekly scoring harness as skill-scoring.yml
-# (see SCORING.md), scoped to only the scored test-prompt(s) that target the
-# changed skill family/families.
+# (see SCORING.md), scoped to only the scored test-prompt(s) whose target leaf
+# skill was actually changed (not the whole family — a family can have many
+# leaves and a one-leaf change should not re-score its siblings too).
+#
+# Caveat: a change to only a family's top-level hub SKILL.md (shared
+# navigation/routing prose, no leaf changed) matches zero prompts, since no
+# scored prompt targets a hub file directly. That's an accepted gap in this
+# label-triggered test, not a bug — routing-only changes need a hand-designed
+# eval (see evals/pr118-ab in the skill-test repo for prior art), not this
+# per-leaf-prompt harness.
 #
 # Label-add only: no re-run on push, so spend stays bounded and predictable.
 # Re-add the label after pushing changes to re-test. Re-adding edits the same
@@ -50,7 +58,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Determine changed skill families and matched prompts
+      - name: Determine changed leaf skill(s) and matched prompts
         id: match
         run: |
           set -euo pipefail
@@ -59,12 +67,12 @@ jobs:
                                 "${{ github.event.pull_request.head.sha }}" \
                                 -- skills/ \
             | scripts/scoring/match-changed-prompts.sh --out-dir /tmp/ab-prompts \
-            > /tmp/families.txt 2> /tmp/match.log
+            > /tmp/leaves.txt 2> /tmp/match.log
           cat /tmp/match.log >&2
           matched="$(grep -o 'MATCHED=[0-9]*' /tmp/match.log | tail -1 | cut -d= -f2)"
           {
-            echo "families<<EOF"
-            cat /tmp/families.txt
+            echo "leaves<<EOF"
+            cat /tmp/leaves.txt
             echo "EOF"
             echo "matched=$matched"
           } >> "$GITHUB_OUTPUT"
@@ -152,7 +160,7 @@ jobs:
               echo "$COMMENT_MARKER"
               cat /tmp/ab-out/ab-scorecard.md
               echo
-              echo "Families tested: ${{ steps.match.outputs.families }}"
+              echo "Skill(s) tested: ${{ steps.match.outputs.leaves }}"
               echo
               echo "Full transcripts: [workflow run]($run_url) artifact \`ab-test-${{ github.event.pull_request.number }}-${{ github.run_id }}\`."
             } > /tmp/comment-body.md
