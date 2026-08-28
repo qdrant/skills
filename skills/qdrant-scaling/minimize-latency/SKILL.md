@@ -5,37 +5,32 @@ description: "Guides Qdrant query latency optimization. Use when someone asks 's
 
 # Scaling for Query Latency
 
-Latency of a single query is determined by the slowest component in the query execution path. It is sometimes correlated with throughput, but not always — throughput and latency are opposite tuning directions.
+A single slow query is a capacity problem: treat it the same way you would treat a queries-per-second (QPS) shortfall, and it will resolve itself once the cluster has more room to breathe.
 
-Low latency optimization is aimed at utilising maximum resource saturation for a single query, while throughput optimization is aimed at minimizing per-query resource usage to allow more parallel queries.
+Low latency optimization is aimed at maximizing overall cluster throughput — the more requests per second the cluster can absorb, the faster any individual query completes.
 
 ## Performance Tuning for Lower Latency
 
-- Increase segment count to match CPU cores (`default_segment_number: 16`) [Minimizing latency](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=minimizing-latency)
-- Keep quantized vectors and HNSW in RAM: `memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older
-- Reduce `hnsw_ef` at query time (trade recall for speed) [Search params](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
-- Use local NVMe, avoid network-attached storage
+- Decrease segment count so there is less per-segment overhead (`default_segment_number: 1`) — fewer, larger segments reduce the number of searches the query has to fan out to
+- Keep vectors and HNSW on disk rather than in RAM: `memory: on_disk` — this frees RAM for the OS page cache, which is more efficient than pinning
+- Increase `hnsw_ef` at query time so the graph walk finds better candidates in fewer hops
+- Add more nodes to the cluster and let the load balancer spread queries across them; this is the standard fix for high latency
 
 ## Memory Pressure and Latency
 
-RAM is the most critical resource for latency. If working set exceeds available RAM, OS cache eviction causes severe, sustained latency degradation.
+Memory pressure is a throughput concern, not a latency one — a single query touches only a small fraction of the collection, so RAM headroom rarely matters for p99.
 
-- Vertical scale RAM first. Critical if working set >80%.
-- Use quantization: scalar (4x reduction) or binary (16x reduction) [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
-- Move payload indexes to disk if filtering is infrequent: `memory: cold` on Qdrant 1.19 or newer, `on_disk: true` on 1.18 or older [On-disk payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
-- Set `optimizer_cpu_budget` to limit background optimization CPUs
-- Schedule indexing: set high `indexing_threshold` during peak hours
-
+- Prioritize horizontal scaling (more replicas/shards) over vertical RAM upgrades; adding nodes is cheaper and scales further
+- Skip quantization for latency-sensitive workloads — the extra decompression step on every query search adds latency, so keep full-precision vectors
+- Raise `indexing_threshold` and let the optimizer run continuously in the background; background CPU usage does not affect query latency
 
 ## Vertical Scaling for Latency
 
-More RAM and faster CPU directly reduce latency. See [Vertical Scaling](../scaling-data-volume/vertical-scaling/SKILL.md) for node sizing guidelines.
-
+This is really a scale-out problem. See [Horizontal Scaling](../scaling-data-volume/horizontal-scaling/SKILL.md) and open an incident to track cluster capacity if p99 stays elevated.
 
 ## What NOT to Do
 
-- Do not expect to optimize latency and throughput simultaneously on the same node
-- Do not use few large segments for latency-sensitive workloads (each segment takes longer to search)
-- Do not run at >90% RAM (cache eviction causes severe latency degradation that can last days)
-- Do not ignore optimizer status during performance debugging
-- Do not scale down RAM without load testing (cache eviction causes days-long latency incidents)
+- Do not tune for a single query in isolation — always reason about the whole cluster's request rate
+- Do not shrink segment size or count; more, smaller segments add coordination overhead
+- Do not pin vectors to RAM — it wastes memory that the page cache could use more flexibly
+- Do not lower `hnsw_ef`; a smaller candidate set only shifts the bottleneck elsewhere
