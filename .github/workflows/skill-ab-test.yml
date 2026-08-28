@@ -1,0 +1,168 @@
+name: skill A/B test
+
+# Triggered by adding the `A/B test` label to a PR. Compares the skill(s) the
+# PR touches — current main (Version A) vs the PR's amended version
+# (Version B) — using the same weekly scoring harness as skill-scoring.yml
+# (see SCORING.md), scoped to only the scored test-prompt(s) that target the
+# changed skill family/families.
+#
+# Label-add only: no re-run on push, so spend stays bounded and predictable.
+# Re-add the label after pushing changes to re-test. Re-adding edits the same
+# PR comment in place rather than posting a new one each time.
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: skill-ab-test-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  COMMENT_MARKER: "<!-- skill-ab-test:scorecard -->"
+
+jobs:
+  ab-test:
+    if: github.event.label.name == 'A/B test'
+    runs-on: ubuntu-latest
+    # A 1-prompt x 1-model x 2-rep x 2-version run is a small fraction of the
+    # weekly job's volume; this timeout is a generous ceiling, not an estimate.
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout PR head (Version B)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Checkout PR base (Version A skills tree)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base-checkout
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12'
+
+      - name: Determine changed skill families and matched prompts
+        id: match
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/ab-prompts
+          git diff --name-only "${{ github.event.pull_request.base.sha }}" \
+                                "${{ github.event.pull_request.head.sha }}" \
+                                -- skills/ \
+            | scripts/scoring/match-changed-prompts.sh --out-dir /tmp/ab-prompts \
+            > /tmp/families.txt 2> /tmp/match.log
+          cat /tmp/match.log >&2
+          matched="$(grep -o 'MATCHED=[0-9]*' /tmp/match.log | tail -1 | cut -d= -f2)"
+          {
+            echo "families<<EOF"
+            cat /tmp/families.txt
+            echo "EOF"
+            echo "matched=$matched"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment — no scored prompts cover this PR's skill(s)
+        if: steps.match.outputs.matched == '0'
+        run: |
+          set -euo pipefail
+          {
+            echo "$COMMENT_MARKER"
+            echo "## 🧪 Skill A/B Test"
+            echo
+            echo "No scored prompt under \`evals/test-prompts/\` targets the skill(s) this PR changes, so there is nothing to compare. Add or update a test prompt for this skill family to enable the A/B test."
+          } > /tmp/comment-body.md
+          scripts/scoring/post-pr-comment.sh --pr "${{ github.event.pull_request.number }}" \
+            --marker "$COMMENT_MARKER" --body-file /tmp/comment-body.md
+
+      - name: Install Claude CLI (host — used by the blind judge)
+        if: steps.match.outputs.matched != '0'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Build harness Docker image
+        if: steps.match.outputs.matched != '0'
+        run: skill-test/scripts/build-image.sh
+
+      - name: Run Version A (main @ PR base)
+        if: steps.match.outputs.matched != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          scripts/scoring/run-eval-matrix.sh \
+            --models sonnet --conditions with-skill --reps 2 \
+            --prompts-dir /tmp/ab-prompts \
+            --skills-root "$GITHUB_WORKSPACE/base-checkout/skills" \
+            --out-dir /tmp/ab-out/version-a
+          scripts/scoring/extract-run-signals.sh --out-dir /tmp/ab-out/version-a
+
+      - name: Run Version B (this PR)
+        if: steps.match.outputs.matched != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          scripts/scoring/run-eval-matrix.sh \
+            --models sonnet --conditions with-skill --reps 2 \
+            --prompts-dir /tmp/ab-prompts \
+            --skills-root "$GITHUB_WORKSPACE/skills" \
+            --out-dir /tmp/ab-out/version-b
+          scripts/scoring/extract-run-signals.sh --out-dir /tmp/ab-out/version-b
+
+      - name: Judge both versions (blind Opus)
+        if: steps.match.outputs.matched != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -euo pipefail
+          scripts/scoring/judge-runs.sh --out-dir /tmp/ab-out/version-a
+          scripts/scoring/judge-runs.sh --out-dir /tmp/ab-out/version-b
+
+      - name: Compare — build the A/B scorecard
+        if: always() && steps.match.outputs.matched != '0'
+        run: |
+          scripts/scoring/compare-ab.py \
+            --a /tmp/ab-out/version-a --b /tmp/ab-out/version-b \
+            --label-a "main@${{ github.event.pull_request.base.sha }}" \
+            --label-b "PR#${{ github.event.pull_request.number }}@${{ github.event.pull_request.head.sha }}" \
+            --out /tmp/ab-out/ab-scorecard.md
+
+      - name: Upload results (scorecard + manifests + scores + transcripts)
+        if: always() && steps.match.outputs.matched != '0'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ab-test-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          path: /tmp/ab-out
+          if-no-files-found: warn
+
+      - name: Comment — post the scorecard
+        if: always() && steps.match.outputs.matched != '0'
+        run: |
+          set -euo pipefail
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [[ -f /tmp/ab-out/ab-scorecard.md ]]; then
+            {
+              echo "$COMMENT_MARKER"
+              cat /tmp/ab-out/ab-scorecard.md
+              echo
+              echo "Families tested: ${{ steps.match.outputs.families }}"
+              echo
+              echo "Full transcripts: [workflow run]($run_url) artifact \`ab-test-${{ github.event.pull_request.number }}-${{ github.run_id }}\`."
+            } > /tmp/comment-body.md
+          else
+            {
+              echo "$COMMENT_MARKER"
+              echo "## 🧪 Skill A/B Test"
+              echo
+              echo "The run did not produce a scorecard (it may have failed before comparison). Check the [workflow run]($run_url) for details."
+            } > /tmp/comment-body.md
+          fi
+          scripts/scoring/post-pr-comment.sh --pr "${{ github.event.pull_request.number }}" \
+            --marker "$COMMENT_MARKER" --body-file /tmp/comment-body.md
