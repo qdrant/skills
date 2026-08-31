@@ -93,15 +93,35 @@ jobs:
             For each broken 404 (ignore other errors like network errors):
             1. Read lychee/out.json to get the list of broken links and the files that reference them.
             2. Map the broken skills.qdrant.tech/md/<path> URL to the corresponding content file at
-               landing_page/qdrant-landing/content/<path>.
-            3. If that content file EXISTS at exactly that path (nothing renamed or moved), this is
-               not a stale link in this repo. A 404 for content that demonstrably still exists at the
-               correct path is almost always a transient indexing/deploy lag in the skills.qdrant.tech
-               pipeline, not a problem here. Do not check _redirects, netlify.toml, or git history for
-               this URL - those only apply when the content is actually missing. Leave the link
-               unchanged and record it as "likely transient upstream indexing lag" - a different,
-               lower-severity category than "unresolved, needs investigation".
-            4. Only if that content does NOT exist at that path, investigate why, in this priority
+               landing_page/qdrant-landing/content/<path>. If the URL has a `?s=<slug>` query string,
+               that slug targets a specific heading inside the page (its slugified heading text), not
+               the page itself - keep it separate from <path> for the next steps.
+            3. If that content file EXISTS at exactly that path (nothing renamed or moved):
+               a. If the URL has no `?s=<slug>` part, this is not a stale link in this repo. A 404 for
+                  a whole page that demonstrably still exists at the correct path is almost always a
+                  transient indexing/deploy lag in the skills.qdrant.tech pipeline. Do not check
+                  _redirects, netlify.toml, or git history for this URL - those only apply when content
+                  is actually missing. Leave the link unchanged and record it as "likely transient
+                  upstream indexing lag" - a different, lower-severity category than "unresolved, needs
+                  investigation".
+               b. If the URL has a `?s=<slug>` part, check whether `<slug>` matches the slugified text of
+                  any current heading in that content file (lowercase, non-alphanumerics to hyphens). If
+                  it matches, treat it the same as 3a - transient indexing lag, leave unchanged.
+                  If it does NOT match any current heading, the page exists but the section was renamed,
+                  merged, or removed - this is a real stale link, not transient lag. Do not skip it:
+                  i.   Run `git log --follow -p -- <content file>` (within ./landing_page) to find the
+                       revision that removed/renamed the heading matching `<slug>`.
+                  ii.  Read the SKILL.md text surrounding the broken link in this repo (qdrant/skills) to
+                       understand the specific point or claim it is citing the section for.
+                  iii. Find the heading whose content covers
+                       that same point or claim now - don't just pick a similarly-worded heading; read
+                       the section body and confirm it substantively addresses the same point (a rewrite
+                       may have retitled or merged sections while keeping the underlying claim elsewhere).
+                  iv.  Slugify that heading the same way (lowercase, non-alphanumerics to hyphens) to form
+                       the replacement `?s=<slug>`, keeping the rest of the URL unchanged.
+                  v.   Verify the new URL actually resolves before using it, e.g.
+                       `curl -s -o /dev/null -w '%{http_code}' "<new URL>"` returns 200.
+            4. Only if that content file does NOT exist at that path, investigate why, in this priority
                order:
                a. landing_page/qdrant-landing/static/_redirects - the canonical Netlify redirects file,
                   including wildcard/:splat rules (e.g. "/documentation/guides/* /documentation/operations/*:splat 301").
@@ -109,7 +129,8 @@ jobs:
                c. git log --follow / git show history for the content path within ./landing_page, to find
                   renames or moves.
                d. Frontmatter aliases fields on content files under landing_page/qdrant-landing/content/.
-            5. Determine the correct new skills.qdrant.tech/md/<path> URL.
+            5. Determine the correct new skills.qdrant.tech/md/<path> URL (carrying over step 3b's
+               `?s=<slug>` resolution where applicable).
             6. If you cannot confidently determine a replacement, do NOT guess. Leave that link unchanged
                and record it as unresolved.
 
