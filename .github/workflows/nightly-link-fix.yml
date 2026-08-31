@@ -113,7 +113,7 @@ jobs:
                        revision that removed/renamed the heading matching `<slug>`.
                   ii.  Read the SKILL.md text surrounding the broken link in this repo (qdrant/skills) to
                        understand the specific point or claim it is citing the section for.
-                  iii. In the current version of the content file, find the heading whose content covers
+                  iii. Find the heading whose content covers
                        that same point or claim now - don't just pick a similarly-worded heading; read
                        the section body and confirm it substantively addresses the same point (a rewrite
                        may have retitled or merged sections while keeping the underlying claim elsewhere).
