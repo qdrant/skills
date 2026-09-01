@@ -2,7 +2,7 @@
   "name": "qdrant-monitoring",
   "product_area": "monitoring",
   "skill_url": "https://skills.qdrant.tech/qdrant-monitoring/SKILL.md",
-  "prompt": "We've run a self-hosted cluster for about six months with basically no observability - no dashboards, no alerts. Lately we've had a couple of unexplained slow spells and one node restarted on its own overnight. We want to both get proper visibility in place and get to the bottom of what's been happening. Where do we start?",
+  "prompt": "We've run a self-hosted Qdrant cluster for about six months with basically no observability - no dashboards, no alerts. Lately we've had a couple of unexplained slow spells and one node restarted on its own overnight. We want to both get proper visibility in place and get to the bottom of what's been happening. Where do we start?",
   "rubric": [
     {
       "type": "must",
