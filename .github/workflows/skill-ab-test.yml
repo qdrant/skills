@@ -26,7 +26,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: skill-ab-test-${{ github.event.pull_request.number }}
+  group: skill-ab-test-${{ github.event.pull_request.number }}-${{ github.event.label.name }}
   cancel-in-progress: true
 
 env:

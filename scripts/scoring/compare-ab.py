@@ -67,7 +67,7 @@ _T95 = {1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365,
 def t95(df):
     if df < 1:
         return None
-    if df >= 120:
+    if df > 120:
         return 1.960
     best = max((k for k in _T95 if k <= df), default=min(_T95))
     return _T95[best]
@@ -251,9 +251,12 @@ def build_scorecard(dir_a, dir_b, label_a, label_b,
 
     L.append("## Lift per model (B - A)\n")
     eps = 1e-9
-    def nz(key):
-        return any(abs((mq_b.get(m, {}).get(key) or 0) - (mq_a.get(m, {}).get(key) or 0)) > eps
-                   for m in models)
+  def nz(key):
+      def val(d, m):
+          v = d.get(m, {}).get(key)
+          return 0.0 if v is None else v
+      return any(abs(val(mq_b, m) - val(mq_a, m)) > eps for m in models)
+
     show_bonus, show_avoid = nz("bonus_rate"), nz("avoid_violations")
     headers = ["model", "must_coverage A -> B", "delta +/- SE", "95% CI != 0?"]
     if show_bonus:

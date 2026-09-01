@@ -46,7 +46,7 @@ existing_id="$(gh api "repos/{owner}/{repo}/issues/${PR}/comments" --paginate \
 
 if [[ -n "$existing_id" && "$existing_id" != "null" ]]; then
   gh api --method PATCH "repos/{owner}/{repo}/issues/comments/${existing_id}" \
-    -f body="@${BODY_FILE}" >/dev/null
+    -F body="@${BODY_FILE}" >/dev/null
   echo "Updated PR comment $existing_id"
 else
   gh pr comment "$PR" --body-file "$BODY_FILE"
