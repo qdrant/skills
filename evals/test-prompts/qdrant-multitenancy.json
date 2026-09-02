@@ -1,0 +1,56 @@
+{
+  "name": "qdrant-multitenancy",
+  "product_area": "multitenancy",
+  "skill_url": "https://skills.qdrant.tech/qdrant-multitenancy/SKILL.md",
+  "prompt": "We run a B2B SaaS product with Qdrant multi-tenant search — about 5,000 customers, most under 10k documents each, but our three largest enterprise accounts each have 20M+ documents and get indexed continuously throughout the day. Everything currently lives in one collection with a tenant ID on each point. Over the last month, p95 query latency for our small customers has crept up during business hours, and we suspect the big accounts' write volume is the cause. Should we stay on a single collection, move to one collection per tenant, or do something else? Walk me through the tradeoffs and what you'd actually recommend for our situation.",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Rejects collection-per-tenant for ~5,000 tenants, citing per-collection resource overhead and/or the practical collection-count ceiling on a cluster, rather than presenting it as a viable option"
+    },
+    {
+      "type": "must",
+      "text": "Recommends tiered/hybrid multitenancy: promote the three large, continuously-indexed accounts to their own dedicated shard(s) via custom sharding, while the small tenants share a fallback shard"
+    },
+    {
+      "type": "must",
+      "text": "Diagnoses the small-tenant latency creep as resource contention from the large accounts' continuous write/indexing load sharing the same index and shard, not as a symptom of read/query traffic or total tenant count growing"
+    },
+    {
+      "type": "must",
+      "text": "Recommends isolating tenant vector indexes (e.g. disabling the global HNSW graph and building per-tenant graphs) so the large accounts' indexing does not degrade search for tenants sharing the same collection"
+    },
+    {
+      "type": "must",
+      "text": "Notes that switching to custom/tiered sharding requires the collection to be created with that sharding method, so this is a migration (new collection + data move), not an in-place config change"
+    },
+    {
+      "type": "bonus",
+      "text": "Gives a concrete signal or threshold for deciding when a growing tenant should be promoted from the shared fallback shard to its own dedicated shard"
+    },
+    {
+      "type": "bonus",
+      "text": "Recommends a tenant-id payload index for isolation/filtering performance in addition to the sharding change"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes the ~1000 dedicated-shard ceiling per cluster and that the fallback shard must fit on a single node"
+    },
+    {
+      "type": "bonus",
+      "text": "Flags that per-tenant HNSW trades away fast cross-tenant search, and checks whether that's rare enough here to accept"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends collection-per-tenant as the actual fix for this scale"
+    },
+    {
+      "type": "avoid",
+      "text": "Attributes the p95 latency creep mainly to overall data/tenant growth or read volume, missing the continuous write volume from the three large accounts"
+    },
+    {
+      "type": "avoid",
+      "text": "Recommends keeping the current single-collection, single shared-index design unchanged as adequate for this situation"
+    }
+  ]
+}

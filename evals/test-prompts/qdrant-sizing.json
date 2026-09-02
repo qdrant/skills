@@ -1,0 +1,60 @@
+{
+  "name": "qdrant-sizing",
+  "product_area": "sizing",
+  "skill_url": "https://skills.qdrant.tech/qdrant-sizing/SKILL.md",
+  "prompt": "I'm planning a Qdrant deployment for 50 million points. Each point has one 768-dimensional FP32 dense vector and about 2 KB of payload.\nI expect 500 QPS at peak with a p99 latency target of 100 ms. I need replication factor 2 and want the cluster to tolerate one node failure. I'm considering scalar quantization to reduce RAM usage, but I don't want to sacrifice more than a small amount of recall. The dataset is expected to grow by about 50% over the next 12 months.\nHow much RAM and disk should I provision, how many CPU cores and nodes would you recommend, and should I use quantization? Please show your assumptions and calculations and tell me what I should benchmark before committing to the hardware.",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Sizes hardware for the 12-month-projected point count (~75M, from 50M growing by 50%) rather than only today's 50M points"
+    },
+    {
+      "type": "must",
+      "text": "Breaks the estimate into separate components (dense vectors, HNSW graph, ID tracker, payload) scaled by replication_factor=2, instead of a single blended points × dims × bytes figure"
+    },
+    {
+      "type": "must",
+      "text": "Distinguishes total disk footprint from the RAM footprint of what actually needs to be resident/cached for the 100 ms p99 target, and reserves extra headroom (roughly 15-20%) on top of the raw component totals"
+    },
+    {
+      "type": "must",
+      "text": "Conditions the quantization recommendation on measuring recall against the user's 'small amount' tolerance rather than assuming it's safe, and notes that original FP32 vectors are typically retained (usually on disk) for rescoring rather than discarded"
+    },
+    {
+      "type": "must",
+      "text": "Recommends a topology of at least 3 nodes to satisfy replication_factor=2 while still tolerating one node failure"
+    },
+    {
+      "type": "must",
+      "text": "States that CPU core count for hitting 500 QPS at p99 ≤ 100 ms cannot be derived from a fixed formula and must be validated by load-testing representative data and queries"
+    },
+    {
+      "type": "bonus",
+      "text": "Proposes a concrete benchmark plan beyond recall/latency alone — e.g. failover/one-node-down behavior, resident memory under sustained load, or disk growth checked against the 12-month horizon"
+    },
+    {
+      "type": "bonus",
+      "text": "Discusses shard count/topology with room to scale into additional nodes later, not just a single target node count"
+    },
+    {
+      "type": "bonus",
+      "text": "Points to the Qdrant Sizing Calculator (or an equivalent tool-assisted check) to sanity-check the manual estimate before committing"
+    },
+    {
+      "type": "avoid",
+      "text": "Sizes only against the current 50M points and ignores the stated 12-month growth"
+    },
+    {
+      "type": "avoid",
+      "text": "Uses points × dims × 4 bytes as the entire RAM/disk estimate, ignoring the HNSW index, ID tracker, payload, or replication factor"
+    },
+    {
+      "type": "avoid",
+      "text": "States a specific CPU core count as a firm recommendation instead of noting that QPS-per-core is workload-dependent and must be measured"
+    },
+    {
+      "type": "avoid",
+      "text": "States a specific quantization recall-loss percentage without evidence or benchmarking to back it"
+    }
+  ]
+}
