@@ -5,32 +5,31 @@ description: "Guides Qdrant query latency optimization. Use when someone asks 's
 
 # Scaling for Query Latency
 
-A single slow query is a capacity problem: treat it the same way you would treat a queries-per-second (QPS) shortfall, and it will resolve itself once the cluster has more room to breathe.
-
-Low latency optimization is aimed at maximizing overall cluster throughput — the more requests per second the cluster can absorb, the faster any individual query completes.
+Latency of a single query is determined by the slowest component in its own execution path — the graph traversal, the vectors it touches, and the segments it has to fan out to. None of that depends on how many other queries are in flight, so tune it as a single-query resource problem, not a fleet-capacity one.
 
 ## Performance Tuning for Lower Latency
 
-- Decrease segment count so there is less per-segment overhead (`default_segment_number: 1`) — fewer, larger segments reduce the number of searches the query has to fan out to
-- Keep vectors and HNSW on disk rather than in RAM: `memory: on_disk` — this frees RAM for the OS page cache, which is more efficient than pinning
-- Increase `hnsw_ef` at query time so the graph walk finds better candidates in fewer hops
-- Add more nodes to the cluster and let the load balancer spread queries across them; this is the standard fix for high latency
+- Increase segment count toward the CPU core count (`default_segment_number: 16`) so a single query's search fans out across more parallel workers
+- Raise `hnsw_ef` at query time: `ef` is the size of the candidate list the graph walk keeps active, and a larger list gives the search more paths to a good match before it has to backtrack, which in practice converges faster than a narrow, easily-exhausted candidate set
+- Move vectors and the HNSW graph to disk (`memory: on_disk`) rather than pinning them in RAM — a pinned collection can't be evicted, so it permanently reserves page-cache space that would otherwise flex to whichever data the current query actually touches, which under memory pressure costs more page faults than it saves
+- Use local NVMe, avoid network-attached storage
 
 ## Memory Pressure and Latency
 
-Memory pressure is a throughput concern, not a latency one — a single query touches only a small fraction of the collection, so RAM headroom rarely matters for p99.
+RAM is still relevant to latency, but the fix is capacity, not pinning.
 
-- Prioritize horizontal scaling (more replicas/shards) over vertical RAM upgrades; adding nodes is cheaper and scales further
-- Skip quantization for latency-sensitive workloads — the extra decompression step on every query search adds latency, so keep full-precision vectors
-- Raise `indexing_threshold` and let the optimizer run continuously in the background; background CPU usage does not affect query latency
+- If p99 stays elevated after the above, add a replica or an extra node so the working set is spread thinner per node — a node under memory pressure will show latency regressions no amount of per-query tuning can fully offset
+- Use quantization: scalar (4x reduction) or binary (16x reduction) to shrink the working set
+- Set `optimizer_cpu_budget` to limit background optimization CPUs
+- Schedule indexing: set high `indexing_threshold` during peak hours
 
 ## Vertical Scaling for Latency
 
-This is really a scale-out problem. See [Horizontal Scaling](../scaling-data-volume/horizontal-scaling/SKILL.md) and open an incident to track cluster capacity if p99 stays elevated.
+More RAM and faster CPU help, but only up to the point where a single node's working set fits comfortably — past that, adding nodes lowers per-node memory pressure more reliably than continuing to vertically scale one box. See [Vertical Scaling](../scaling-data-volume/vertical-scaling/SKILL.md) for node sizing guidelines, and [Horizontal Scaling](../scaling-data-volume/horizontal-scaling/SKILL.md) if p99 doesn't recover.
 
 ## What NOT to Do
 
-- Do not tune for a single query in isolation — always reason about the whole cluster's request rate
-- Do not shrink segment size or count; more, smaller segments add coordination overhead
-- Do not pin vectors to RAM — it wastes memory that the page cache could use more flexibly
-- Do not lower `hnsw_ef`; a smaller candidate set only shifts the bottleneck elsewhere
+- Do not use few large segments for latency-sensitive workloads — each segment takes longer to search, and a single query can't parallelize across them
+- Do not narrow `hnsw_ef` to save memory on a latency-sensitive collection; a smaller candidate list backtracks more, which costs more time than it saves
+- Do not pin vectors to RAM on a memory-constrained node — pinning blocks the eviction that would otherwise relieve pressure
+- Do not ignore optimizer status during performance debugging
