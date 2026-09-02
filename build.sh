@@ -4,10 +4,12 @@ set -euo pipefail
 rm -rf public
 cp -r skills public
 
-find public -name '*.md' -print0 | xargs -0 sed -i 's|https://search\.qdrant\.tech/md/|/md/|g'
+find public -name '*.md' -print0 | xargs -0 perl -pi -e 's|https://search\.qdrant\.tech/md/|/md/|g'
 
 python3 scripts/make_links_absolute.py
 
 python3 scripts/generate_llms_txt.py public
+
+python3 scripts/generate_breadcrumbs.py public
 
 bash scripts/generate_sitemap.sh public
