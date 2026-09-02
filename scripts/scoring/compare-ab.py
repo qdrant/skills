@@ -251,11 +251,11 @@ def build_scorecard(dir_a, dir_b, label_a, label_b,
 
     L.append("## Lift per model (B - A)\n")
     eps = 1e-9
-  def nz(key):
-      def val(d, m):
-          v = d.get(m, {}).get(key)
-          return 0.0 if v is None else v
-      return any(abs(val(mq_b, m) - val(mq_a, m)) > eps for m in models)
+    def nz(key):
+        def val(d, m):
+            v = d.get(m, {}).get(key)
+            return 0.0 if v is None else v
+        return any(abs(val(mq_b, m) - val(mq_a, m)) > eps for m in models)
 
     show_bonus, show_avoid = nz("bonus_rate"), nz("avoid_violations")
     headers = ["model", "must_coverage A -> B", "delta +/- SE", "95% CI != 0?"]
