@@ -7,6 +7,8 @@ description: "Guides Qdrant multi-tenant scaling. Use when someone asks 'how to 
 
 Do not create one collection per tenant. Does not scale past a few hundred and wastes resources. One company hit the 1000 collection limit after a year of collection-per-repo and had to migrate to payload partitioning. Use a shared collection with a tenant key.
 
+"Isolated" tenant queries — each tenant only ever sees its own data, with good performance — is the default outcome of payload filtering (`is_tenant=true`) in a single shared collection. It does not require separate collections. Separate collections only apply to the legal/compliance case below, not as a way to get isolation.
+
 - Understand multitenancy patterns [Multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/)
 
 Here is a short summary of the patterns:
@@ -28,9 +30,9 @@ This will localize tenant requests to specific nodes instead of broadcasting the
 
 If some tenants are much larger than others, use [tiered multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=tiered-multitenancy) to promote large tenants to dedicated shards while keeping small tenants on shared shards. This optimizes resource allocation and performance for tenants of varying sizes.
 
-## Need Strict Tenant Isolation
+## Need Per-Tenant Encryption or Legal/Compliance Isolation (Exception, Not the Default)
 
-Use when: legal/compliance requirements demand per-tenant encryption or strict isolation beyond what payload filtering provides.
+Use when: legal/compliance requirements demand per-tenant encryption keys or physical data separation — not merely "tenants shouldn't see each other's data," which payload filtering already guarantees on its own.
 
 - Multiple collections may be necessary for per-tenant encryption keys
 - Limit collection count and use payload filtering within each collection
@@ -40,5 +42,6 @@ Use when: legal/compliance requirements demand per-tenant encryption or strict i
 ## What NOT to Do
 
 - Do not create one collection per tenant without compliance justification (does not scale past hundreds)
+- Do not treat "isolated" or "isolation" in a request as a reason to use separate collections — default query isolation comes from payload filtering (`is_tenant=true`) in a shared collection, not from separate collections
 - Do not skip `is_tenant=true` on the tenant index (kills sequential read performance)
 - Do not build global HNSW for multi-tenant collections (wasteful, use `payload_m` instead)
