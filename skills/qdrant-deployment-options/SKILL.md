@@ -17,21 +17,22 @@ Use when: building a prototype, running tests, CI/CD pipelines, or learning Qdra
 - For a real server locally, use Docker [Quick start](https://skills.qdrant.tech/md/documentation/quickstart/?s=download-and-run)
 
 
-## Going to Production (Self-Hosted)
+## Going to Production (Self-Hosted, You Own Ops)
 
-Use when: you need full control over infrastructure, data residency, or custom configuration.
+Use when: you need full control over infrastructure or custom configuration, and are prepared to own operations (upgrades, backups, scaling, monitoring) yourself.
 
-- Docker is the default deployment. Full Qdrant Open Source feature set, minimal setup. [Quick start](https://skills.qdrant.tech/md/documentation/quickstart/?s=download-and-run)
+- Docker is the standard self-hosted deployment. Full Qdrant Open Source feature set, minimal setup. [Quick start](https://skills.qdrant.tech/md/documentation/quickstart/?s=download-and-run)
 - You own operations: upgrades, backups, scaling, monitoring
 - Must set up distributed mode manually for multi-node clusters [Distributed deployment](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/)
-- Consider Hybrid Cloud if you want Qdrant Cloud management on your infrastructure [Hybrid Cloud](https://skills.qdrant.tech/md/documentation/hybrid-cloud/)
+- Have a data-residency or compliance requirement but don't want to own that ops burden? That combination is Hybrid Cloud (next section), not self-hosted Docker.
 
 
 ## Going to Production (Zero-Ops)
 
-Use when: you want managed infrastructure with zero-downtime updates, automatic backups, and resharding without operating clusters yourself.
+Use when: you want managed infrastructure with zero-downtime updates, automatic backups, and resharding without operating clusters yourself — including when data-residency or compliance rules mean the data can't sit on Qdrant-operated infrastructure.
 
 - Qdrant Cloud handles upgrades, scaling, backups, and monitoring [Qdrant Cloud](https://skills.qdrant.tech/md/documentation/cloud-quickstart/)
+- Hybrid Cloud: the same managed control plane, deployed on your own infrastructure/VPC. Use this when data residency or compliance requirements rule out Qdrant Cloud but you still don't want to operate clusters yourself [Hybrid Cloud](https://skills.qdrant.tech/md/documentation/hybrid-cloud/)
 - Supports multi-version upgrades automatically
 - Provides features not available in self-hosted: `/sys_metrics`, managed resharding, pre-configured alerts
 
@@ -50,5 +51,6 @@ Use when: network round-trip to a server is unacceptable. Edge devices, in-proce
 
 - Use local mode for production or benchmarking (not optimized, incompatible data format)
 - Self-host without monitoring and backup strategy (you will lose data or miss outages)
+- Recommend self-managed Docker as the production target when the user says they don't want to operate clusters — that combination needs Hybrid Cloud or Qdrant Cloud, not self-hosted
 - Choose EDGE when you need distributed search (single-node only)
 - Pick Hybrid Cloud unless you have data residency requirements (unnecessary Kubernetes complexity when Qdrant Cloud works)
