@@ -1,32 +1,37 @@
 name: skill A/B test
 
-# Triggered by adding the `A/B test` label to a PR. Compares the skill(s) the
-# PR touches — current main (Version A) vs the PR's amended version
-# (Version B) — using the same weekly scoring harness as skill-scoring.yml
-# (see SCORING.md), scoped to only the scored test-prompt(s) whose target leaf
-# skill was actually changed (not the whole family — a family can have many
-# leaves and a one-leaf change should not re-score its siblings too).
+# Manually triggered: run from the Actions tab (or `gh workflow run`), passing
+# the PR number to test. Compares the skill(s) that PR touches — current main
+# (Version A) vs the PR's amended version (Version B) — using the same weekly
+# scoring harness as skill-scoring.yml (see SCORING.md), scoped to only the
+# scored test-prompt(s) whose target leaf skill was actually changed (not the
+# whole family — a family can have many leaves and a one-leaf change should
+# not re-score its siblings too).
 #
 # Caveat: a change to only a family's top-level hub SKILL.md (shared
 # navigation/routing prose, no leaf changed) matches zero prompts, since no
 # scored prompt targets a hub file directly. That's an accepted gap in this
-# label-triggered test, not a bug — routing-only changes need a hand-designed
-# eval (see evals/pr118-ab in the skill-test repo for prior art), not this
+# test, not a bug — routing-only changes need a hand-designed eval (see
+# evals/pr118-ab in the skill-test repo for prior art), not this
 # per-leaf-prompt harness.
 #
-# Label-add only: no re-run on push, so spend stays bounded and predictable.
-# Re-add the label after pushing changes to re-test. Re-adding edits the same
-# PR comment in place rather than posting a new one each time.
+# Manual-dispatch only: no auto-trigger on push or label, so spend stays
+# bounded and predictable. Re-run against the same PR number to re-test after
+# pushing changes — that edits the same PR comment in place rather than
+# posting a new one each time.
 on:
-  pull_request:
-    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to A/B test"
+        required: true
 
 permissions:
   contents: read
   pull-requests: write
 
 concurrency:
-  group: skill-ab-test-${{ github.event.pull_request.number }}-${{ github.event.label.name }}
+  group: skill-ab-test-${{ inputs.pr_number }}
   cancel-in-progress: true
 
 env:
@@ -34,7 +39,6 @@ env:
 
 jobs:
   ab-test:
-    if: github.event.label.name == 'A/B test'
     runs-on: ubuntu-latest
     # A 1-prompt x 1-model x 2-rep x 2-version run is a small fraction of the
     # weekly job's volume; this timeout is a generous ceiling, not an estimate.
@@ -42,16 +46,27 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Resolve PR (base/head SHAs)
+        id: pr
+        run: |
+          set -euo pipefail
+          json="$(gh pr view "${{ inputs.pr_number }}" --repo "${{ github.repository }}" \
+            --json baseRefOid,headRefOid)"
+          {
+            echo "base_sha=$(jq -r '.baseRefOid' <<<"$json")"
+            echo "head_sha=$(jq -r '.headRefOid' <<<"$json")"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Checkout PR head (Version B)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ steps.pr.outputs.head_sha }}
           fetch-depth: 0
 
       - name: Checkout PR base (Version A skills tree)
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ steps.pr.outputs.base_sha }}
           path: base-checkout
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -63,8 +78,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/ab-prompts
-          git diff --name-only "${{ github.event.pull_request.base.sha }}" \
-                                "${{ github.event.pull_request.head.sha }}" \
+          git diff --name-only "${{ steps.pr.outputs.base_sha }}" \
+                                "${{ steps.pr.outputs.head_sha }}" \
                                 -- skills/ \
             | scripts/scoring/match-changed-prompts.sh --out-dir /tmp/ab-prompts \
             > /tmp/leaves.txt 2> /tmp/match.log
@@ -87,7 +102,7 @@ jobs:
             echo
             echo "No scored prompt under \`evals/test-prompts/\` targets the skill(s) this PR changes, so there is nothing to compare. Add or update a test prompt for this skill family to enable the A/B test."
           } > /tmp/comment-body.md
-          scripts/scoring/post-pr-comment.sh --pr "${{ github.event.pull_request.number }}" \
+          scripts/scoring/post-pr-comment.sh --pr "${{ inputs.pr_number }}" \
             --marker "$COMMENT_MARKER" --body-file /tmp/comment-body.md
 
       - name: Install Claude CLI (host — used by the blind judge)
@@ -138,15 +153,15 @@ jobs:
         run: |
           scripts/scoring/compare-ab.py \
             --a /tmp/ab-out/version-a --b /tmp/ab-out/version-b \
-            --label-a "main@${{ github.event.pull_request.base.sha }}" \
-            --label-b "PR#${{ github.event.pull_request.number }}@${{ github.event.pull_request.head.sha }}" \
+            --label-a "main@${{ steps.pr.outputs.base_sha }}" \
+            --label-b "PR#${{ inputs.pr_number }}@${{ steps.pr.outputs.head_sha }}" \
             --out /tmp/ab-out/ab-scorecard.md
 
       - name: Upload results (scorecard + manifests + scores + transcripts)
         if: always() && steps.match.outputs.matched != '0'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ab-test-${{ github.event.pull_request.number }}-${{ github.run_id }}
+          name: ab-test-${{ inputs.pr_number }}-${{ github.run_id }}
           path: /tmp/ab-out
           if-no-files-found: warn
 
@@ -162,7 +177,7 @@ jobs:
               echo
               echo "Skill(s) tested: ${{ steps.match.outputs.leaves }}"
               echo
-              echo "Full transcripts: [workflow run]($run_url) artifact \`ab-test-${{ github.event.pull_request.number }}-${{ github.run_id }}\`."
+              echo "Full transcripts: [workflow run]($run_url) artifact \`ab-test-${{ inputs.pr_number }}-${{ github.run_id }}\`."
             } > /tmp/comment-body.md
           else
             {
@@ -172,5 +187,5 @@ jobs:
               echo "The run did not produce a scorecard (it may have failed before comparison). Check the [workflow run]($run_url) for details."
             } > /tmp/comment-body.md
           fi
-          scripts/scoring/post-pr-comment.sh --pr "${{ github.event.pull_request.number }}" \
+          scripts/scoring/post-pr-comment.sh --pr "${{ inputs.pr_number }}" \
             --marker "$COMMENT_MARKER" --body-file /tmp/comment-body.md
