@@ -37,6 +37,11 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/*"
+  to = "/:splat/SKILL.md"
+  status = 200
+
 [[headers]]
   for = "/*.md"
   [headers.values]
