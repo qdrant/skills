@@ -1,0 +1,52 @@
+{
+  "name": "qdrant-hybrid-cloud-setup",
+  "product_area": "hybrid-cloud",
+  "skill_url": "https://skills.qdrant.tech/qdrant-hybrid-cloud-setup/SKILL.md",
+  "prompt": "We've decided to run Qdrant Hybrid Cloud on our own Kubernetes cluster (managed LKE on Linode) so data stays in our VPC. I'm about to run the install wizard. Our cluster currently uses an NFS-backed StorageClass for everything else, and we rely on nightly volume backups. We also need our application, which runs outside the Kubernetes cluster, to reach the Qdrant database. What do I need to get right before and during setup so this doesn't blow up, and what are the common mistakes?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Flags that NFS (network/object storage) is unsupported and Hybrid Cloud requires a block-storage CSI driver, so the existing NFS StorageClass must be replaced"
+    },
+    {
+      "type": "must",
+      "text": "Warns that Linode/LKE does not support CSI volume snapshots, so the assumed nightly volume backups will not work and an alternative must be planned"
+    },
+    {
+      "type": "must",
+      "text": "Notes the Kubernetes namespace is the one permanent, unchangeable choice at setup time while other settings can be edited later"
+    },
+    {
+      "type": "must",
+      "text": "States that exposing the cluster externally (LoadBalancer/Ingress/NodePort) requires configuring an API key, since the default ClusterIP service has none"
+    },
+    {
+      "type": "must",
+      "text": "Mentions the agent needs outbound connectivity to grpc.cloud.qdrant.io and api.cloud.qdrant.io on port 443 for the install to complete"
+    },
+    {
+      "type": "bonus",
+      "text": "Recommends creating a StorageClass with allowVolumeExpansion (and a VolumeSnapshotClass where supported) before provisioning to allow scaling and backups"
+    },
+    {
+      "type": "bonus",
+      "text": "Warns that internal node-to-node gRPC on port 6335 is unauthenticated and must never be publicly reachable"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes teardown ordering (delete clusters before the environment) or that regenerating the install command rotates secrets that must be reapplied"
+    },
+    {
+      "type": "avoid",
+      "text": "Tells the user the existing NFS StorageClass or nightly volume backups will work fine with Hybrid Cloud"
+    },
+    {
+      "type": "avoid",
+      "text": "Suggests exposing the database externally without setting an API key"
+    },
+    {
+      "type": "avoid",
+      "text": "Re-argues whether Hybrid Cloud is the right deployment choice instead of helping set it up"
+    }
+  ]
+}

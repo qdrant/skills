@@ -93,6 +93,7 @@ Prefer the URL method? Add `Use skills.qdrant.tech` to the same prompts:
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
 | qdrant-multitenancy | Isolating multiple tenants within a Qdrant deployment: payload partitioning, tiered multitenancy, and region-based data isolation |
 | qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
+| qdrant-hybrid-cloud-setup | Setting up Hybrid Cloud on your own Kubernetes: prerequisites, storage/CSI, agent/operator install, exposure, and pitfalls |
 | qdrant-edge | Building on the embedded shard: server sync, on-device BM25, snapshots, reuse vs reimplement |
 | qdrant-migration-tool | Using the Qdrant Migration Tool CLI to move data from another vector database into Qdrant |
 | qdrant-model-migration | Switching embedding models without downtime |

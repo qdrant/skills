@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-hybrid-cloud-setup-agent-connectivity",
+  "product_area": "hybrid-cloud",
+  "skill_url": "https://skills.qdrant.tech/qdrant-hybrid-cloud-setup/SKILL.md",
+  "prompt": "I ran the Hybrid Cloud install command on our on-prem GKE cluster a couple hours ago and the environment is still stuck 'installing' in the Qdrant Cloud console. The agent and operator pods are running but the environment never goes green. Our network team runs a strict egress firewall and an outbound proxy, and we also mirror all container images into our internal Harbor registry (no direct pulls to the internet allowed). Separately, a teammate re-opened the install wizard and clicked 'generate command' again yesterday while debugging. What's likely wrong and how do I fix it?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Identifies that the agent needs outbound connectivity to grpc.cloud.qdrant.io and api.cloud.qdrant.io on port 443, and that the strict egress firewall/proxy is the most likely cause of the stuck 'installing' state"
+    },
+    {
+      "type": "must",
+      "text": "Points out that regenerating the install command re-generates the secrets, so the previously applied secrets are now stale and the command must be reapplied or the agent-to-Cloud connection stays broken"
+    },
+    {
+      "type": "must",
+      "text": "Notes that with an internal registry the container and Helm chart URLs must be pointed at the mirror (the /qdrant/ images and /qdrant-charts/ charts), with credentials, rather than the default registry.cloud.qdrant.io"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions configuring the proxy URL/credentials in the environment settings so the agent can reach the Qdrant Cloud API through it"
+    },
+    {
+      "type": "bonus",
+      "text": "Warns to mirror all (or the correct) CPU architectures so ARM/x86 nodes don't fail to pull images"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes that the namespace is the only permanent choice while registry URLs and proxy settings can be edited on the existing environment without recreating it"
+    },
+    {
+      "type": "avoid",
+      "text": "Blames the pods themselves or suggests recreating the whole environment before checking egress connectivity and the stale secrets"
+    },
+    {
+      "type": "avoid",
+      "text": "Claims the namespace or other settings can't be changed, or that the fix requires deleting and rebuilding the environment"
+    }
+  ]
+}
