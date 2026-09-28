@@ -7,7 +7,6 @@ Agent skills encoding deep Qdrant knowledge for coding agents.
 For specific tasks, symptoms, or troubleshooting questions, start with the [skills search](https://skills.qdrant.tech/search?query=your+query+here).
 
 Use hierarchical navigation when exploring an area broadly.
-
 ## Qdrant Advisor
 
 - [qdrant-advisor](../meta/qdrant-advisor/SKILL.md) — Meta-skill that loads the relevant Qdrant skill live at trigger time, so you install one skill instead of the full set and always get current guidance. Ships no static content of its own.
