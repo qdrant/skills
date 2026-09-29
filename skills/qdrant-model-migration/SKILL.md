@@ -14,9 +14,13 @@ Vectors from different models are incompatible. You cannot mix old and new embed
 
 Use when: looking for shortcuts before committing to full migration.
 
-You MUST re-embed if: changing model provider (OpenAI to Cohere), changing architecture (CLIP to BGE), incompatible dimension counts across different models, or adding sparse vectors to dense-only collection.
+You MUST re-embed if: changing model provider (OpenAI to Cohere), changing architecture (CLIP to BGE), or switching to a model with a different dimension count.
 
-You CAN avoid re-embedding if: using Matryoshka models (use `dimensions` parameter to output lower-dimensional embeddings, learn linear transformation from sample data, some recall loss, good for 100M+ datasets). Or changing quantization (binary to scalar): Qdrant re-quantizes automatically. [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
+You do NOT need to re-embed existing dense vectors if:
+
+- Adding sparse vectors for hybrid search: generate only the sparse vectors. On v1.18+, add the sparse field to the existing collection and backfill it with `UpdateVectors`. On v1.17 or earlier, copy the dense vectors into the new collection instead of recomputing them [Update vectors](https://skills.qdrant.tech/md/documentation/manage-data/points/?s=update-vectors)
+- Using Matryoshka models: use the `dimensions` parameter to output lower-dimensional embeddings (some recall loss, good for 100M+ datasets)
+- Changing quantization (binary to scalar): Qdrant re-quantizes automatically [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 
 
 ## Need Zero Downtime
@@ -31,11 +35,11 @@ Use when: production must stay available. Recommended for model replacement at s
 
 - If the cluster is v1.17 or earlier OR the collection doesn't have named vectors:
 
-- Create a new collection with the new model's dimensions and distance metric
-- Re-embed all data into the new collection in the background
-- Point your application at a collection alias instead of a direct collection name
-- Atomically swap the alias to the new collection [Switch collection](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=switch-collection)
-- Verify search quality, then delete the old collection
+  - Create a new collection with the new model's dimensions and distance metric
+  - Re-embed all data into the new collection in the background
+  - Point your application at a collection alias instead of a direct collection name
+  - Atomically swap the alias to the new collection [Switch collection](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=switch-collection)
+  - Verify search quality, then delete the old collection
 
 Careful, the alias swap only redirects queries. Payloads must be re-uploaded separately.
 
@@ -66,13 +70,14 @@ If you anticipate future model migrations, define both vector fields upfront at 
 
 Use when: adding sparse/BM25 vectors to an existing dense-only collection. Most common migration pattern.
 
-You cannot add sparse vectors to an existing collection that uses a default (unnamed) dense vector. Must recreate:
+- If the cluster is v1.18 or later, add the sparse vector field directly, even if the dense vector is unnamed [Update vector schema](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=update-vector-schema)
+  - Generate sparse vectors for existing points and backfill with `UpdateVectors`; existing dense vectors stay as they are [Update vectors](https://skills.qdrant.tech/md/documentation/manage-data/points/?s=update-vectors)
 
-- Create new collection with both dense and sparse vector configs defined
-- Re-embed all data with both dense and sparse models
-- Migrate payloads, swap alias
+- If the cluster is v1.17 or earlier, you cannot add sparse vectors to an existing collection. Recreate it:
 
-If the collection already uses named dense vectors and is on v1.18+, add the sparse vector field directly without recreating [Update vector schema](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=update-vector-schema).
+  - Create new collection with both dense and sparse vector configs defined
+  - Scroll the old collection with `with_vectors=True` to copy the dense vectors, and generate only the sparse vectors
+  - Migrate payloads, swap alias
 
 Sparse vectors at chunk level have different TF-IDF characteristics than document level. Test retrieval quality after migration, especially for non-English text without stop-word removal.
 

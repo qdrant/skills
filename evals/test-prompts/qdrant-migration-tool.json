@@ -1,0 +1,40 @@
+{
+  "name": "qdrant-migration-tool",
+  "product_area": "migration",
+  "skill_url": "https://skills.qdrant.tech/qdrant-migration-tool/SKILL.md",
+  "prompt": "We're moving off Weaviate to Qdrant. Both are running on the same box for now (Weaviate and a fresh Qdrant in Docker), and we've got a few hundred million vectors so I care about throughput. I ran the migration container and it exits cleanly with no errors, but afterward there's no collection and no points in Qdrant. What's going on, and how do I make the real run fast?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Identifies that Weaviate is one of the sources (with Redis, MongoDB, Solr) that does NOT auto-create the target collection, so the collection must be created in Qdrant first with matching vector size and distance metric before running the migration"
+    },
+    {
+      "type": "must",
+      "text": "Because both databases are on the same host, tells them to add --net=host to the docker run command so the container can resolve localhost on the host"
+    },
+    {
+      "type": "must",
+      "text": "Uses the weaviate subcommand of the migration tool (Docker container registry.cloud.qdrant.io/library/qdrant-migration) rather than a hand-rolled export/import script"
+    },
+    {
+      "type": "must",
+      "text": "For throughput, recommends raising --migration.batch-size from the default of 50 to something like 256 or 512, since small batches under-use each upsert round trip"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes the vector size and distance metric on the manually created collection must exactly match the source, since Weaviate doesn't expose those to the tool"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes that --migration.num-workers only exists for the pg and qdrant subcommands, so for a Weaviate source throughput is bounded by batch size and network proximity (run the container close to both databases)"
+    },
+    {
+      "type": "avoid",
+      "text": "Assumes the collection is auto-created for Weaviate, or attributes the empty result to a bug rather than the missing pre-created collection"
+    },
+    {
+      "type": "avoid",
+      "text": "Suggests a --migration.num-workers flag for the Weaviate source, or tells them to raise --migration.batch-delay to go faster (it throttles, not accelerates)"
+    }
+  ]
+}
