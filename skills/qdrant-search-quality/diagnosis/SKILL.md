@@ -37,7 +37,7 @@ Payload filtering and sparse vector search are different things. Metadata (dates
 
 Use when: exact search returns good results but HNSW approximation misses them.
 
-- `hnsw_ef` controls ANN search breadth; increase it while recall is still climbing, stop at the lowest value that hits your recall target inside your latency budget [Search params](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters) [Candidate depth](https://skills.qdrant.tech/md/documentation/search-tuning/candidate-depth/?s=raise-hnsw-ef-only-when-recall-is-still-climbing)
+- `hnsw_ef` controls ANN search breadth; increase it while recall is still climbing, stop at the lowest value that hits your recall target inside your latency budget [Search params](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters) [Raise `hnsw_ef` only when recall is still climbing](https://skills.qdrant.tech/md/documentation/search-tuning/candidate-depth/?s=raise-hnsw-ef-only-when-recall-is-still-climbing)
 - Increase `ef_construct` (200+ for high quality) [HNSW config](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Increase `m` (16 default, 32 for high recall) [HNSW config](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Enable oversampling + rescore with quantization [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
@@ -49,11 +49,13 @@ Binary quantization requires rescore. Without it, quality loss is severe. Use ov
 
 Use when: exact search also returns bad results.
 
-Check [Qdrant team recommendations on how to choose an embedding model](https://skills.qdrant.tech/md/documentation/search-patterns/choose-embedding-model/).
+- Check [Qdrant team recommendations on how to choose an embedding model](https://skills.qdrant.tech/md/documentation/search-patterns/choose-embedding-model/).
 
-Test top 3 MTEB models on 100-1000 sample queries [Hosted Qdrant inference](https://skills.qdrant.tech/md/documentation/inference/). Score them against a labeled set to compare apples to apples [Measuring Retrieval Relevance](https://skills.qdrant.tech/md/documentation/search-evaluation/retrieval-relevance/).
+- Test top 3 MTEB models on 100-1000 sample queries [Hosted Qdrant inference](https://skills.qdrant.tech/md/documentation/inference/). Score them against a labeled set to compare apples to apples [Measuring Retrieval Relevance](https://skills.qdrant.tech/md/documentation/search-evaluation/retrieval-relevance/).
 
-Consider fine-tuning an embedding model for your specific use case only after trying better-suited models and retrieval/pipeline tuning and confirming that the embedding model remains the bottleneck. Fine-tuning is most useful when general-purpose embeddings fail to capture important domain- or task-specific distinctions and you have good labeled query-document pairs. Fine-tuning requires re-embedding and re-indexing the collection [Model migration](https://skills.qdrant.tech/qdrant-model-migration/SKILL.md).
+- If your data is strongly hierarchical (taxonomies, product catalogs, part-whole relationships), consider hyperbolic (Poincaré) embeddings. They capture tree structure in far fewer dimensions than flat ones. In Qdrant, use Euclidean HNSW to pull a candidate set from the original Poincaré coordinates, then a Formula Query to rescore with the real hyperbolic distance. [How to serve hyperbolic embeddings with Qdrant](https://skills.qdrant.tech/md/articles/hyperbolic-embeddings-qdrant/).
+
+- Consider fine-tuning an embedding model for your specific use case only after trying better-suited models and retrieval/pipeline tuning and confirming that the embedding model remains the bottleneck. Fine-tuning is most useful when general-purpose embeddings fail to capture important domain- or task-specific distinctions and you have good labeled query-document pairs. Fine-tuning requires re-embedding and re-indexing the collection [Model migration](https://skills.qdrant.tech/qdrant-model-migration/SKILL.md).
 
 ## Unoptimized Search Pipeline
 
