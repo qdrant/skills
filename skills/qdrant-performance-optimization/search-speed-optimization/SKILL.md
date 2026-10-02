@@ -5,7 +5,7 @@ description: "Diagnoses and fixes slow Qdrant search. Use when someone reports '
 
 # Diagnose a problem
 
-There the multiple possible reasons for search performance degradation. The most common ones are:
+There are multiple possible reasons for search performance degradation. The most common ones are:
 
 * Memory pressure: if the working set exceeds available RAM
 * Complex requests (e.g. high `hnsw_ef`, complex filters without payload index)
@@ -19,6 +19,7 @@ Use when: individual queries take too long regardless of load.
 
 ### Diagnostic steps:
 
+- Enable slow request log (v1.17+) to surface queries exceeding a threshold [Slow request log](https://skills.qdrant.tech/md/documentation/ops-monitoring/slow-request-log/)
 - Check if second run of the same request is significantly faster (indicates memory pressure)
 - Try the same query with `with_payload: false` and `with_vectors: false` to see if payload retrieval is the bottleneck
 - If request uses filters, try to remove them one by one to identify if a specific filter condition is the bottleneck
@@ -27,6 +28,7 @@ Use when: individual queries take too long regardless of load.
 
 - Tune HNSW parameters: [Fine-tuning search](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Enable in-memory quantization: [Scalar quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
+- Use `datatype: turbo4` for compact 4-bit on-disk storage to reduce disk reads [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
 - Enable io_uring for disk-heavy workloads on Linux [io_uring](https://skills.qdrant.tech/md/articles/io_uring/)
@@ -65,7 +67,7 @@ Use when: filtered search is significantly slower than unfiltered. Most common S
 - reduce `optimizer_cpu_budget` to reserve more CPU for queries
 - Use `prevent_unoptimized=true` to prevent creating segments with a large amount of unindexed data for searches. Instead, once a segment reaches the so called indexing_threshold, all additional points will be added in ‘deferred state’. 
 
-Learn more [here](https://skills.qdrant.tech/md/documentation/search/low-latency-search/?s=query-indexed-data-only)
+Learn more in the [read-write contention guide](https://skills.qdrant.tech/md/documentation/ops-optimization/read-write-contention/)
 
 
 ## What NOT to Do
