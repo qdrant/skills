@@ -2,7 +2,7 @@
   "name": "qdrant-model-migration",
   "product_area": "model migration",
   "skill_url": "https://skills.qdrant.tech/qdrant-model-migration/SKILL.md",
-  "prompt": "We have a production collection with 180M vectors from OpenAI `text-embedding-ada-002` and want to move to `text-embedding-3-large` while keeping search online. The new vectors have different dimensions, and we'd like to A/B test quality before cutting over. New documents arrive continuously, and existing documents are edited and deleted; we cannot pause those writes. What migration plan should we use, how do we prevent backfill from overwriting newer data or restoring deleted documents, and how do we keep a rollback path?",
+  "prompt": "We have a production collection with 180M vectors from OpenAI `text-embedding-ada-002` and want to move to `text-embedding-3-large` while keeping search online. The new vectors have different dimensions, and we'd like to A/B test quality before cutting over. What migration plan should we use?",
   "rubric": [
     {
       "type": "must",
