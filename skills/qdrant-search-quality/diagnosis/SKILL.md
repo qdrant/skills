@@ -55,13 +55,13 @@ Use when: exact search also returns bad results.
 
 - If your data is strongly hierarchical (taxonomies, product catalogs, part-whole relationships), consider hyperbolic (Poincaré) embeddings. They capture tree structure in far fewer dimensions than flat ones. In Qdrant, use Euclidean HNSW to pull a candidate set from the original Poincaré coordinates, then a Formula Query to rescore with the real hyperbolic distance. [How to serve hyperbolic embeddings with Qdrant](https://skills.qdrant.tech/md/articles/hyperbolic-embeddings-qdrant/).
 
-- Consider fine-tuning an embedding model for your specific use case only after trying better-suited models and retrieval/pipeline tuning and confirming that the embedding model remains the bottleneck. Fine-tuning is most useful when general-purpose embeddings fail to capture important domain- or task-specific distinctions and you have good labeled query-document pairs. Fine-tuning requires re-embedding and re-indexing the collection [Model migration](https://skills.qdrant.tech/qdrant-model-migration/SKILL.md).
+- Consider fine-tuning an embedding model for your specific use case only after trying better-suited models and retrieval/pipeline tuning and confirming that the embedding model remains the bottleneck. Fine-tuning is most useful when general-purpose embeddings fail to capture important domain- or task-specific distinctions and you have good labeled query-document pairs. Fine-tuning requires re-embedding and re-indexing the collection [Model migration](../../qdrant-model-migration/SKILL.md).
 
 ## Unoptimized Search Pipeline
 
 Use when: exact search also returns bad results and model choice is confirmed by user.
 
-- Optimize search according to the advanced [search-strategies skill](https://skills.qdrant.tech/qdrant-search-quality/search-strategies/SKILL.md)
+- Optimize search according to the advanced [search-strategies skill](../search-strategies/SKILL.md)
 - Check candidate depth: if your retrieval pipeline includes a first-stage retriever that feeds a reranker or fusion stage, test whether increasing the prefetch limit improves your quality metric. A downstream ranker cannot recover relevant documents that never enter its candidate set. For hybrid search, start around `limit=100-200` and test larger values against your labeled queries [Candidate depth](https://skills.qdrant.tech/md/documentation/search-tuning/candidate-depth/?s=more-candidates-can-raise-the-best-possible-score)
 
 ## What NOT to Do
