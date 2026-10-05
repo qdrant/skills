@@ -13,7 +13,7 @@ Understand if user wants to run several parallel searches on:
 
 If first, help user to design logic of constructing query or/and filters on application side and then check [Combining Searches](../combining-searches/SKILL.md). Don't forget to create [indices on filterable payload fields](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index), immediately after collection creation, prior to building HNSW, so filterable HNSW could be constructed.
 
-If second, use [named vectors](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=named-vectors), which allow to store multiple vector types per point in one collection. Beware that named vectors currently can be configured only at collection creation. To choose vectors, check following recommendations.
+If second, use [named vectors](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=named-vectors), which allow to store multiple vector types per point in one collection. On Qdrant 1.18 or newer, named vectors can be added to or removed from an existing collection without recreating it [Update vector schema](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=update-vector-schema); on 1.17 or older, they can be configured only at collection creation. To choose vectors, check following recommendations.
 
 ## Missed Keyword Matches
 
@@ -35,7 +35,7 @@ What to remember when using sparse vectors for lexical search:
 What to remember when using Qdrant BM25 and miniCOIL (based on BM25):
 - `avg_len` in formula is not computed server-side, it is a user responsibility and passed as a parameter. Calibrate per field — defaults assume document-length text; short fields (titles, tags) need a much smaller value or BM25 scoring is skewed (`avg_len=256` against a 10-word title overweights term frequency).
 - BM25 might be not good for small chunks of text, as BM25 algorithm was initially created for search on long documents; consider adjusting document statistics in sparse vectors (TF & IDF, k, b).
-- Qdrant BM25 vectors are configured per language, so consider customizing stop words, stemming & tokenization when users documents mix several languages or carefully configure vectors per point when they are monolingual. To disable text processing entirely for language-neutral content: on Qdrant 1.19 or newer, use `stemmer: {"type": "none"}` plus an empty `stopwords` set explicitly (both are disabled by default); on 1.18 or older, use `language: none` (deprecated as of 1.19).
+- Qdrant BM25 vectors are configured per language, so consider customizing stop words, stemming & tokenization when users documents mix several languages or carefully configure vectors per point when they are monolingual. To disable text processing entirely for language-neutral content: on Qdrant 1.19 or newer, use `stemmer: {"type": "none"}` plus an empty `stopwords` set explicitly (by default, BM25 applies English stemming and stopword removal); on 1.18 or older, use `language: none` (deprecated as of 1.19).
 
 More on [Sparse Vectors for Text Search](https://skills.qdrant.tech/md/course/essentials/day-3/sparse-retrieval-demo/)
 

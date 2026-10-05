@@ -5,7 +5,7 @@ description: "Diagnoses and fixes slow Qdrant indexing and data ingestion. Use w
 
 # What to Do When Qdrant Indexing Is Too Slow
 
-Qdrant does NOT build HNSW indexes immediately. Small segments use brute-force until they exceed `indexing_threshold_kb` (default: 20 MB). Search during this window is slower by design, not a bug.
+Qdrant does NOT build HNSW indexes immediately. Small segments use brute-force until they exceed `indexing_threshold_kb` (default: 10000 KB, about 10 MB). Search during this window is slower by design, not a bug.
 
 - Understand the indexing optimizer [Indexing optimizer](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=indexing-optimizer)
 
