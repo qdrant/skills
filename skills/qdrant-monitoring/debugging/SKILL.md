@@ -28,7 +28,7 @@ Use when: memory exceeds expectations, node crashes with OOM, or memory keeps gr
 - Qdrant uses two types of RAM: resident memory (data structures, quantized vectors) and OS page cache (cached disk reads). Page cache filling available RAM is normal. [Memory article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 - If resident memory (RSSAnon) exceeds 80% of total RAM, investigate
 - Check `/telemetry` for per-collection breakdown of point counts and vector configurations
-- Estimate expected memory: `num_vectors * dimensions * 4 bytes * 1.5` for vectors, plus payload and index overhead [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/)
+- Estimate expected memory per component (vectors, HNSW index, ID tracker, payload indexes) for the structures kept in RAM, plus about 20% headroom, and compare it with actual usage [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=calculating-ram-and-disk-size)
 - Common causes of unexpected growth: quantized vectors pinned in RAM (`memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older), too many payload indexes, large `max_segment_size` during optimization
 
 

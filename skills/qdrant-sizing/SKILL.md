@@ -13,7 +13,7 @@ Sizing provisions RAM, disk, CPU, GPU, and node count for a workload before it r
 - GPU (if using GPU-accelerated indexing): indexing workload and required indexing time
 - Node count: fault-tolerance and availability requirements, plus throughput and capacity requirements that cannot be met by a single node
 
-Before sizing, collect these workload requirements and state explicit assumptions for any that are unknown. Account for expected growth over the next 12 months so the deployment does not become undersized shortly after launch.
+Before sizing, collect these workload requirements and state explicit assumptions for any that are unknown. Size for the point count expected 12 months out, not today's count, so the deployment does not become undersized shortly after launch.
 
 ## Sizing RAM and Disk
 
@@ -21,67 +21,36 @@ Use when: someone asks how much RAM or disk they need, how much data should be k
 
 ### Estimate the data footprint
 
-Memory requirements mainly come from Qdrant's data structures, with additional memory needed for metadata and temporary work during optimization and other background operations.
-
-The following estimates break down the data footprint by component. Each component scales with `base = points × replication_factor`. Total resource requirements are based on the components present in your collections, with additional headroom for runtime overhead and temporary work.
-
-- **Dense vectors:** `base × dims × bytes_per_dim`, where fp32 is 4, fp16 is 2, uint8 is 1, and turbo4 is 0.5 [Vector datatypes](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes).
-- **Quantized vectors:** `base × dims × quant_bytes` [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/). Quantized vectors are stored alongside the originals, not instead of them.
-- **HNSW:** `base × m × 2 × 4 × 1.2`, where `m` is the number of edges per node in the index graph (defaults to 16).
-- **Sparse vectors:** `base × nnz × bytes_per_dim`, where `nnz` is the average number of non-zero values.
-- **Sparse index (inverted index):** `base × nnz × bytes_per_dim × 1.5`
-
-For multiple named vectors per point, calculate the footprint separately for each (including index footprint), according to the vector type (dense or sparse), then sum them.
-
-- **Payload:** disk: `base × avg_payload_size × 1.5`; in-RAM: `base × avg_payload_size × 1.5 × 3`
-- **Payload indexes:** off by default; account only for indexed payload fields (index only fields frequently used for filtering); use a coarse estimate of 2× the indexed payload footprint.
-
-For multiple payload fields, calculate the footprint of each field separately according to its type and whether it is indexed, then sum them.
-
-- **ID tracker:** `~52 bytes × base` (always resident in RAM)
+- Read [Calculating RAM and Disk Size](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=calculating-ram-and-disk-size) and compute each component with its formula. Do not estimate from memory: the formulas and defaults change between versions.
+- Size each component separately: dense vectors, quantized vectors, HNSW indexes, sparse vectors and their indexes, payload, payload indexes, and the ID tracker. Every component scales with `base = points × replication_factor`.
+- For multiple named vectors or payload fields per point, size each one separately, then sum them.
+- Count quantized vectors on top of the originals: Qdrant stores the compressed copy alongside the original vectors, not instead of them.
+- Count payload indexes only for fields used for filtering; index only fields that are frequently filtered on.
 
 ### Decide what needs to be loaded in RAM
 
-Qdrant persists all collection data to disk. Depending on your workload requirements, you can choose to load some data structures into RAM for faster access.
-On Qdrant 1.19+, configure this per structure with `memory: pinned`, `cached`, or `cold`; on 1.18 and older, use `always_ram` and `on_disk`. Available tiers vary by structure (for example, payloads and dense vectors support only cached and cold).
-Use Qdrant's [memory tiers](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/) to check which tiers are available for each structure and control the desired memory behavior.
-
-You can choose the desired memory tier for each structure, except:
-
-- **ID tracker:** always resident in RAM
-- **Sparse vectors:** always stored on disk and cannot be configured as a RAM tier
-
-Check the [default memory tiers](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=default-tiers) before overriding them.
+Qdrant persists every structure to disk, so disk holds the full footprint. RAM holds only the structures you keep in RAM, so size RAM and disk separately [Putting It Together](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=putting-it-together).
+On Qdrant 1.19 or newer, set this per structure with `memory: pinned`, `cached`, or `cold`. Check the [default memory tiers](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=default-tiers) before overriding them; on 1.18 or older, see the [legacy settings](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=legacy-settings).
 
 **Recommendations:**
 
-- Pin (HNSW, inverted indexes for sparse vectors, and payload indexes) in RAM for faster search.
-- Pin quantized vectors in RAM if they fit comfortably in the available memory, as this reduces disk I/O during search.
-- If your use case involves splitting vectors into multiple collections or subgroups based on payload values (e.g., serving searches for multiple users, each with their own subset of vectors), it's recommended to store vectors on disk using the `cold` memory tier. In this scenario, only the active subset of vectors will be cached in RAM. See [Subgroup-oriented configuration](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=subgroup-oriented-configuration).
+- Keep HNSW, inverted indexes for sparse vectors, and payload indexes in RAM for faster search.
+- Pin quantized vectors in RAM if they fit comfortably in the available memory, and move the original vectors to `cold` for rescoring. This is the main way quantization reduces RAM.
+- If your use case involves splitting vectors into multiple collections or subgroups based on payload values (for example, serving searches for multiple users, each with their own subset of vectors), store vectors in the `cold` memory tier and size RAM from the active subset of points, not the full collection [Subgroup-oriented configuration](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=subgroup-oriented-configuration).
+- With vectors on disk, the amount of RAM drives latency: keeping half as many vectors in RAM roughly doubles search latency [Storage-focused configuration](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=storage-focused-configuration).
 
-### Size RAM
+### Add headroom
 
-- Calculate the RAM required by the components you intend to keep resident, then reserve additional capacity for OS/page cache, Qdrant runtime overhead, and temporary work during optimization.
-- Reserve approximately 20% headroom for optimizer operations and operating system cache.
-
-- A rough estimate for RAM size when vectors are kept in RAM is:
-
-`memory_size = number_of_vectors × vector_dimension × 4 bytes × 1.5`
-
-- At the end, everything is multiplied by 1.5. This extra 50% accounts for metadata (such as indexes and point versions) and temporary segments created during optimization. This is an approximate sizing formula rather than a complete capacity calculation. Account for the actual components you have and intend to keep in RAM.
-
-### Size disk
-
-Calculate the persistent footprint of the collection and add space for WAL, snapshots, recovery, and other operational requirements.
+- Add about 20% headroom on top of both the RAM and the disk totals. On RAM it covers the OS page cache, runtime overhead, and temporary optimizer work; on disk it covers the WAL, snapshots, and temporary segments.
 
 ## Sizing CPU, GPU, and Node Count
 
 Use when: someone asks how many cores, nodes, shards, or replicas to provision.
 
 - **GPU:** If indexing time is a significant constraint for your workload, you can use GPU-accelerated indexing [Running with GPU](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
-- **CPU cores:** size according to the query and indexing workload and target latency. Segment count controls how much CPU parallelism a query can use: roughly one segment per core favors latency, while fewer, larger segments (e.g., 2) favor throughput.
-- **Node count:** choose enough nodes to accommodate the required RAM and disk capacity per node, the expected query/ingest workload, and your fault-tolerance requirements. Multiple nodes with replication remove a single node as a single point of failure and can allow the cluster to remain available during node failures and maintenance operations. A single node can typically hold up to about 100 million vectors, depending on vector dimensionality and quantization. For production high availability, use at least 3 nodes with `replication_factor: 2` or higher [Resilience](https://skills.qdrant.tech/md/documentation/scaling/resilience/)
-- **Shard count:** if you're planning ahead for future expansion, create at least 2 shards per node. If you anticipate significant growth, 12 shards is a common starting point because it divides evenly as you scale from 1 to 2, 3, 4, 6, and 12 nodes [Distributed deployment](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/)
+- **CPU cores:** there is no formula; derive core count from a load test at the target QPS and latency. Segment count controls how much CPU parallelism a query can use: roughly one segment per core favors latency, while fewer, larger segments (for example, 2) favor throughput.
+- **Node count:** compute the node count from the RAM total and the usable RAM per node with the formula in [Node Count](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=node-count), then check it against the expected query and ingest load and your fault-tolerance requirements. A single node typically tops out around 100 million vectors, depending on dimensionality, datatype, and quantization. For production high availability, use at least 3 nodes with `replication_factor: 2` or higher [Resilience](https://skills.qdrant.tech/md/documentation/scaling/resilience/)
+- **Shard count:** if you're planning ahead for future expansion, create at least 2 shards per node. If you anticipate significant growth, 12 shards is a common starting point because it divides evenly as you scale from 1 to 2, 3, 4, 6, and 12 nodes [Shard Count](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=shard-count)
 - **Resharding:** choose the shard count with future growth in mind. Resharding is available in Qdrant Cloud.
 
 ## Validating the Estimate Before Provisioning
