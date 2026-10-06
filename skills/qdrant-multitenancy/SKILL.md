@@ -45,7 +45,7 @@ It layers two isolation levels: payload-based tenancy for logical isolation, and
 
 Use when: you have a limited number of tenants with different per-tenant embedding models or collection schemas.
 
-- You should only create multiple collections when your data is not homogenous or if users' vectors are created by different embedding models. 
+- You should only create multiple collections when you have a limited number of tenants that need strict isolation, or when tenants' vectors are created by different embedding models. 
 
 
 ## Data Residency and Geographic Isolation (Custom Sharding)
