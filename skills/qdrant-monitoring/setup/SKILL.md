@@ -39,7 +39,7 @@ Use when: configuring Kubernetes health checks.
 
 Use when: setting up alerts for production or Hybrid Cloud deployments.
 
-- Qdrant Cloud emails the account owner automatic alerts for 11 cluster issues. These are email alerts. Build your Prometheus alerts on the scraped metrics when you need routing [Cloud cluster monitoring](https://skills.qdrant.tech/md/documentation/cloud/cluster-monitoring/)
+- Qdrant Cloud provides pre-configured email alerts for 11 cluster issues. Use scraped metrics when you need custom alerts or routing to other targets. See [Cloud cluster monitoring](https://skills.qdrant.tech/md/documentation/cloud/cluster-monitoring/)
 - Use AlertmanagerConfig to route alerts to Slack, PagerDuty, or other targets based on labels
 - At minimum, alert on: optimizer errors, node not ready, replication factor below target, disk usage >80%
 

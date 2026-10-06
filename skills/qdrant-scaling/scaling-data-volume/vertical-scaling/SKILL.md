@@ -5,7 +5,7 @@ description: "Guides Qdrant vertical scaling decisions. Use when someone asks 'h
 
 # What to Do When Qdrant Needs to Scale Vertically
 
-Vertical scaling means increasing CPU, RAM, or disk on existing nodes rather than adding more nodes. This is the recommended first step before considering horizontal scaling. Vertical scaling is simpler and avoids distributed system complexity. CPU and RAM changes can be reversed later, but disk can't be scaled down in Qdrant Cloud.
+Vertical scaling means increasing CPU, RAM, or disk on existing nodes rather than adding more nodes. This is the recommended first step before considering horizontal scaling. Vertical scaling is simpler and avoids distributed system complexity.
 
 - Vertical scaling for Qdrant Cloud is done through the [Qdrant Cloud Console](https://cloud.qdrant.io/)
 - For self-hosted deployments, resize the underlying VM or container resources
