@@ -59,9 +59,9 @@ Here are the main techniques to achieve that:
 
 - For deployments with fast local storage and relatively low requirements for search throughput, it may be possible to store all components of vector store on disk. Read more about the performance implications of on-disk storage in [the article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 
-- For low RAM environments, consider `async_scorer` config, which enables support of `io_uring` for parallel disk access, which can significantly improve performance of on-disk storage. Read more about `async_scorer` in [the article](https://skills.qdrant.tech/md/articles/io_uring/) (only available on Linux with kernel 5.11+)
+- For low RAM environments, enable async I/O (`io_uring`) for concurrent disk reads, which can significantly improve performance of on-disk storage: `storage.performance.io_uring: auto` on Qdrant 1.19 or newer (applies to every `cold` structure), `async_scorer: true` on 1.18 or older (vector rescoring only). Requires Linux with a kernel that supports `io_uring` [Async I/O](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=async-io)
 
-- Consider storing Sparse Vectors and text payload on disk, as they are usually more disk-friendly than dense vectors.
+- Keep payloads on disk: `memory: cold` is the default on Qdrant 1.19 or newer; on 1.18 or older, set `on_disk_payload: true` [Default tiers](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=default-tiers)
 - Configure payload indexes to be stored on disk: `memory: cold` on Qdrant 1.19 or newer, `on_disk: true` on 1.18 or older [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=on-disk-payload-index)
 - Configure sparse vectors to be stored on disk: `memory: cold` on the sparse vector index on Qdrant 1.19 or newer (defaults to `pinned`), `on_disk: true` on 1.18 or older [docs](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=sparse-vector-index)
 

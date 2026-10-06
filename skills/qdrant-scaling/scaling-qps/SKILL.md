@@ -6,7 +6,7 @@ description: "Guides Qdrant query throughput (QPS) scaling. Use when someone ask
 # Scaling for Query Throughput (QPS)
 
 Throughput scaling means handling more parallel queries per second. 
-This is different from latency - throughput and latency are opposite tuning directions and cannot be optimized simultaneously on the same node.
+This is different from latency. Segment count pulls throughput and latency in opposite directions, so pick a priority per collection.
 
 High throughput favors fewer, larger segments so each query touches less overhead.
 
@@ -50,7 +50,7 @@ In this case:
 
 ## What NOT to Do
 
-- Do not expect to optimize throughput and latency simultaneously on the same node
+- Do not expect one segment configuration to maximize both throughput and latency: pick a priority per collection
 - Do not use many small segments for throughput workloads (increases per-query overhead)
 - Do not scale horizontally when IOPS-bound without also upgrading disk tier
 - Do not run at >90% RAM (OS cache eviction = severe performance degradation)

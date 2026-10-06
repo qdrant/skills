@@ -70,7 +70,7 @@ Learn more [here](https://skills.qdrant.tech/md/documentation/search/low-latency
 
 ## What NOT to Do
 
-- Set quantization to not stay in RAM (disk thrashing on every search): avoid `memory: cold`/`cached` on Qdrant 1.19 or newer, `always_ram: false` on 1.18 or older
+- Set quantization to not stay in RAM (disk thrashing on every search): avoid `memory: cold`/`cached` on Qdrant 1.19 or newer; on 1.18 or older, avoid leaving `always_ram` false or unset while the original vectors are `on_disk: true`
 - Put HNSW on disk for latency-sensitive production (only for cold storage)
 - Increase segment count for throughput (opposite: fewer = better)
 - Create payload indexes on every field (wastes memory)

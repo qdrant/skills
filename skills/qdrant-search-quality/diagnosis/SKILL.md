@@ -30,7 +30,7 @@ Use when: exact search returns good results but HNSW approximation misses them.
 - Enable oversampling + rescore with quantization [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
 - ACORN for filtered queries (v1.16+) [ACORN](https://skills.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm)
 
-Binary quantization requires rescore. Without it, quality loss is severe. Use oversampling (3-5x minimum for binary) to recover recall. Always test quantization impact on your data before production. [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
+Binary quantization requires rescore. Without it, quality loss is severe. Use oversampling to recover recall: the docs report 0.98 recall with 2x oversampling on 4096-dimensional and 4x on 1536-dimensional embeddings, so start around 2-4x and tune on your data. Always test quantization impact on your data before production. [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 
 ## Wrong Embedding Model
 
