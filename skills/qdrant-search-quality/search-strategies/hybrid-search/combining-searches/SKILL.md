@@ -14,13 +14,13 @@ Tune in this order, cheapest first: confirm fusion beats each prefetch alone on 
 Use when: searches produce scores on different scales, like BM25 and cosine on dense embeddings.
 
 ### RRF
-- **[RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=reciprocal-rank-fusion-rrf)** (Reciprocal Rank Fusion) — rank-based, ignores scores magnitude.
+- **[RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=reciprocal-rank-fusion-rrf)** (Reciprocal Rank Fusion): rank-based, ignores scores magnitude.
 - Start with RRF at Qdrant's defaults, `k=2` and equal weights.
 - Tune `k` to [control rank sensitivity in RRF fusion](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=setting-rrf-constant-k), choosing the value from your labels [Use labels to choose a `k` range](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=use-labels-to-choose-a-k-range).
 - Add per-prefetch **weights** when one search should dominate, using [Weighted RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=weighted-rrf). Weights should be customized per collection and retrievers' score distributions. [Tune weights last](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=tune-weights-last).
 
 ### DBSF
-- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion) — normalizes score distributions per prefetch before fusing them, for that, instead of min-max, uses mean +- 3 deviations on prefetched list of scores. Avoid relying on resulting absolute scores, as scores in DBSF are normalized per prefetch (aka per a retrieved list of search results), and might be uncomparable across queries.
+- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion): normalizes score distributions per prefetch before fusing them, for that, instead of min-max, uses mean +- 3 deviations on prefetched list of scores. Avoid relying on resulting absolute scores, as scores in DBSF are normalized per prefetch (aka per a retrieved list of search results), and might be uncomparable across queries.
 - DBSF has no parameters to tune, so compare it before hand-tuning RRF `k` and weights. Confirm on your own labels [Compare RRF and DBSF on your labels](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=compare-rrf-and-dbsf-on-your-labels)
 
 ## Need Custom Fusion
