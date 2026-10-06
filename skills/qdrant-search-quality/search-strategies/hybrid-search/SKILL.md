@@ -16,7 +16,7 @@ Prefetches can be nested and searches can be multi-stage, all pipeline happening
 
 Identify the user's problem and pick building blocks:
 - What can go into one prefetch, e.g. power one search, in [Search Types](search-types/SKILL.md)
-- How to combine results of these searches (RRF, DBSF, FormulaQuery, reranking) in [Combining Searches](combining-searches/SKILL.md)
+- How to combine results of these searches and tune the fusion (RRF, DBSF, FormulaQuery, reranking) in [Combining Searches](combining-searches/SKILL.md)
 
 Based on what you've picked, test your approach:
 1. Configure Qdrant collection with [named vectors](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=named-vectors), where each named vector usually corresponds to one representation (different embedding models or different vector types) of a data point.
