@@ -5,7 +5,7 @@ description: "Guides building on Qdrant Edge, the embedded in-process shard. Use
 
 # Building on Qdrant Edge
 
-Edge is the Qdrant engine embedded in your process (Python or Rust), not a thin local vector store to wrap. The failure mode is rebuilding what the shard already ships: keyword scoring, snapshot apply, faceting, counting. Before writing any of that, check the shard API. Two things Edge does NOT give you are a one-call cloud sync and query-time fusion, so knowing which is which keeps you from both reinventing built-ins and expecting capabilities Edge lacks. Edge is single-node and shares the server's data format.
+Edge is the Qdrant engine embedded in your process (Python or Rust), not a thin local vector store to wrap. The failure mode is rebuilding what the shard already ships: keyword scoring, snapshot apply, faceting, counting. Before writing any of that, check the shard API. One thing Edge does NOT give you is a one-call cloud sync, so knowing what is built in keeps you from both reinventing built-ins and expecting capabilities Edge lacks. Edge is single-node and shares the server's data format.
 
 - Edge is in beta: pin your version, the API drifts between releases [Qdrant Edge](https://skills.qdrant.tech/md/documentation/edge/).
 
@@ -28,7 +28,7 @@ Use when: you need exact-term or BM25 matching, alone or alongside vectors.
 
 - BM25 is built into Edge (`Bm25`, `Bm25Config`, `embed_document`, `embed_query`) with the IDF `Modifier` on `EdgeSparseVectorParams`, and is wire-compatible with server BM25: a shard seeded from a server snapshot answers local BM25 queries without re-indexing. Do not ship a second BM25 library [Edge BM25](https://skills.qdrant.tech/md/documentation/edge/edge-bm25/)
 - Dense embeddings are NOT in Edge: generate them on device with the separate `fastembed` package [FastEmbed embeddings](https://skills.qdrant.tech/md/documentation/edge/edge-fastembed-embeddings/)
-- Edge queries one vector field per request (`using`) and does not fuse dense and sparse at query time. Run each leg separately and combine the rankings in application code [Edge quickstart](https://skills.qdrant.tech/md/documentation/edge/edge-quickstart/)
+- For hybrid search, run the dense and sparse legs as `prefetches` and fuse them with a `Fusion` query in a single `query` call, instead of combining rankings in application code [Reading data](https://skills.qdrant.tech/md/documentation/edge/edge-api/reading-data/)
 
 
 ## Operating the Shard
@@ -46,7 +46,7 @@ Use when: writes have accumulated, search looks stale after inserts, or a backup
 - Untar or merge snapshot segments by hand instead of using `unpack_snapshot` and `update_from_snapshot`
 - Ship a custom or third-party BM25 when Edge has one built in
 - Use `embed_document` for queries or `embed_query` for documents: the weighting differs and results go wrong
-- Assume Edge fuses dense and sparse or consumes Prefetch: combine the rankings in application code
+- Combine dense and sparse rankings in application code: Edge `query` accepts `prefetches` and fuses them with a `Fusion` query
 - Assume a background optimizer like the server's: nothing is indexed or compacted until you call `optimize`
 - Reach for Edge when you need distributed or multi-node search: it is single-node [Qdrant Edge](https://skills.qdrant.tech/md/documentation/edge/)
 - Claim support for a language beyond Python and Rust, or an OS or accelerator the Edge docs do not state
