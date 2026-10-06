@@ -56,7 +56,7 @@ Use when: you can provide positive and negative example points to steer search c
 
 - Recommendation API: positive/negative examples to recommend fitting vectors [Recommendation API](https://skills.qdrant.tech/md/documentation/search/explore/?s=recommendation-api)
   - Best score strategy: better for diverse examples, supports negative-only [Best score](https://skills.qdrant.tech/md/documentation/search/explore/?s=best-score-strategy)
-- Discovery API: context pairs (positive/negative) to constrain search regions without a request target [Discovery](https://skills.qdrant.tech/md/documentation/search/explore/?s=discovery-api)
+- Discovery API: context pairs (positive/negative) constrain the search region, either around a target (discovery search) or without one (context search) [Discovery](https://skills.qdrant.tech/md/documentation/search/explore/?s=discovery-api)
 
 ## Have Business Logic Behind Results Relevance
 

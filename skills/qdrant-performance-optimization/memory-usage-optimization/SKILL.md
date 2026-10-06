@@ -7,7 +7,7 @@ description: "Diagnoses and reduces Qdrant memory usage. Use when someone report
 
 Qdrant operates with two types of memory:
 
-- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM. On Qdrant 1.19 or newer this is controlled per-component with `memory: pinned` (e.g. quantized vectors, payload indexes); on 1.18 or older the equivalent is `always_ram: true`.
+- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM. On Qdrant 1.19 or newer this is controlled per-component with `memory: pinned` (e.g. quantized vectors, payload indexes); see [memory tier legacy settings](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers?s=legacy-settings) for deployments on version 1.18 or older.
 
 - OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade. On Qdrant 1.19 or newer this corresponds to `memory: cached` (pre-warmed into page cache at startup) or `memory: cold` (lazy disk reads, not pre-warmed); on 1.18 or older it's controlled via the `on_disk` boolean on vectors, HNSW config, sparse vector index, and payload index. See [Memory Tiers docs](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/) (available on 1.19+).
 
@@ -51,7 +51,7 @@ Here are the main techniques to achieve that:
 
 - Use quantization to store only compressed vectors in RAM [Quantization docs](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 
-- Use float16 or int8 datatypes to reduce memory usage of vectors by 2x or 4x respectively, with some tradeoff in precision. On Qdrant 1.19 or newer, the `turbo4` datatype (TurboQuant-based, 4 bits/dimension, dense vectors only) reduces memory by ~8x, and can be paired with 1-bit quantization for cheaper rescoring than pairing 1-bit quantization with full-precision vectors. Read more about vector datatypes in [documentation](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
+- Use float16 or uint8 datatypes to reduce memory usage of vectors by 2x or 4x respectively, with some tradeoff in precision. On Qdrant 1.19 or newer, the `turbo4` datatype (TurboQuant-based, 4 bits/dimension, dense vectors only) reduces memory by ~8x, and can be paired with 1-bit quantization for cheaper rescoring than pairing 1-bit quantization with full-precision vectors. Read more about vector datatypes in [documentation](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
 
 - Leverage Matryoshka Representation Learning (MRL) to store only small vectors in RAM while keeping large vectors on disk. Examples of how to use MRL with Qdrant Cloud inference: [MRL docs](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 
