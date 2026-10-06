@@ -7,7 +7,7 @@ description: "Diagnoses and reduces Qdrant memory usage. Use when someone report
 
 Qdrant operates with two types of memory:
 
-- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM. On Qdrant 1.19 or newer this is controlled per-component with `memory: pinned` (e.g. quantized vectors, payload indexes); on 1.18 or older the equivalent is `always_ram: true` for quantized vectors and `on_disk: false` for payload indexes.
+- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM. On Qdrant 1.19 or newer this is controlled per-component with `memory: pinned` (e.g. quantized vectors, payload indexes); see [memory tier legacy settings](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers?s=legacy-settings) for deployments on version 1.18 or older.
 
 - OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade. On Qdrant 1.19 or newer this corresponds to `memory: cached` (pre-warmed into page cache at startup) or `memory: cold` (lazy disk reads, not pre-warmed); on 1.18 or older it's controlled via the `on_disk` boolean on vectors, HNSW config, sparse vector index, and payload index. See [Memory Tiers docs](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/) (available on 1.19+).
 
