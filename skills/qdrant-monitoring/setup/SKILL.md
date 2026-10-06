@@ -39,7 +39,7 @@ Use when: configuring Kubernetes health checks.
 
 Use when: setting up alerts for production or Hybrid Cloud deployments.
 
-- Hybrid Cloud provides ~11 pre-configured Prometheus alerts out of the box [Cloud cluster monitoring](https://skills.qdrant.tech/md/documentation/cloud/cluster-monitoring/)
+- Qdrant Cloud emails the account owner automatic alerts for 11 cluster issues. These are email alerts, not Prometheus rules, so build your own Prometheus alerts on the scraped metrics when you need routing [Cloud cluster monitoring](https://skills.qdrant.tech/md/documentation/cloud/cluster-monitoring/)
 - Use AlertmanagerConfig to route alerts to Slack, PagerDuty, or other targets based on labels
 - At minimum, alert on: optimizer errors, node not ready, replication factor below target, disk usage >80%
 

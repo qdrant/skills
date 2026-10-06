@@ -5,7 +5,7 @@ description: "Guides Qdrant vertical scaling decisions. Use when someone asks 'h
 
 # What to Do When Qdrant Needs to Scale Vertically
 
-Vertical scaling means increasing CPU, RAM, or disk on existing nodes rather than adding more nodes. This is the recommended first step before considering horizontal scaling. Vertical scaling is simpler, avoids distributed system complexity, and is reversible.
+Vertical scaling means increasing CPU, RAM, or disk on existing nodes rather than adding more nodes. This is the recommended first step before considering horizontal scaling. Vertical scaling is simpler and avoids distributed system complexity. CPU and RAM changes can be reversed later, but disk can't be scaled down in Qdrant Cloud.
 
 - Vertical scaling for Qdrant Cloud is done through the [Qdrant Cloud Console](https://cloud.qdrant.io/)
 - For self-hosted deployments, resize the underlying VM or container resources
@@ -39,10 +39,10 @@ Vertical scaling is managed through the Qdrant Cloud Console.
 RAM is the most critical resource for Qdrant performance. Use these guidelines to right-size.
 
 - Exact estimation of RAM usage is difficult; use this simple approximate formula: `num_vectors * dimensions * 4 bytes * 1.5` for full-precision vectors in RAM
-- With scalar quantization: divide by 4 (INT8 reduces each float32 to 1 byte) [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
-- With binary quantization: divide by 32 [Binary quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=binary-quantization)
+- Quantization adds a compressed copy alongside the original vectors. RAM for vectors drops only when the originals move to disk (`memory: cold`) and the quantized copy stays in RAM. With scalar quantization, the copy is 1/4 the size (INT8 reduces each float32 to 1 byte) [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
+- With binary quantization, the copy is 1/32 the size [Binary quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=binary-quantization)
 - On Qdrant 1.19 or newer, the `turbo4` datatype (dense vectors only) divides by ~8 on its own, without needing separate quantization [Vector datatypes](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
-- Add overhead for HNSW index (~20-30% of vector data), payload indexes, and WAL
+- Add overhead for the HNSW index (about 150 bytes per point at the default `m: 16`) and payload indexes; the WAL counts against disk, not RAM [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/)
 - Reserve 20% headroom for optimizer operations and OS cache
 - Monitor actual usage via Grafana/Prometheus before and after resizing [Monitoring](../../../qdrant-monitoring/SKILL.md)
 

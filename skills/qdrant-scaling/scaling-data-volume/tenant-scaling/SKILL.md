@@ -44,4 +44,4 @@ Use when: legal/compliance requirements demand per-tenant encryption keys or phy
 - Do not create one collection per tenant without compliance justification (does not scale past hundreds)
 - Do not treat "isolated" or "isolation" in a request as a reason to use separate collections — default query isolation comes from payload filtering (`is_tenant=true`) in a shared collection, not from separate collections
 - Do not skip `is_tenant=true` on the tenant index (kills sequential read performance)
-- Do not build global HNSW for multi-tenant collections (wasteful, use `payload_m` instead)
+- Do not disable the global HNSW index (`m: 0` with `payload_m`) by default: do it only when indexing speed is the bottleneck and cross-tenant search is rare, because global queries without a tenant filter get slower [Multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance)

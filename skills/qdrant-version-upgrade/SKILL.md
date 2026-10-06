@@ -9,7 +9,7 @@ Qdrant has the following guarantees about version compatibility:
 
 - Major and minor versions of Qdrant and SDK are expected to match. For example, Qdrant 1.17.x is compatible with SDK 1.17.x.
 
-- Qdrant is tested for backward compatibility between minor versions. For example, Qdrant 1.17.x should be compatible with SDK 1.16.x. Qdrant server 1.16.x is also expected to be compatible with SDK 1.17.x, but only for the subset of features that were available in 1.16.x.
+- Client SDKs are tested to be backward compatible with the latest 3 minor versions of Qdrant. For example, SDK 1.17.x works with Qdrant 1.15.x to 1.17.x, but only for the features the server version supports [Upgrades](https://skills.qdrant.tech/md/documentation/upgrades/)
 
 - For migration to the next minor version, it is recommended to first upgrade the SDK to the next minor version and then upgrade the Qdrant server.
 
