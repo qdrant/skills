@@ -32,6 +32,8 @@ Suitable for initial bulk load of large datasets:
 
 Careful, fast unindexed upload might temporarily use more RAM and degrade search performance until optimizer catches up.
 
+- If `replication_factor > 1`, every upsert writes to all replicas — effective write throughput drops proportionally. Consider lowering replication during bulk load and restoring after.
+
 See https://skills.qdrant.tech/md/documentation/manage-data/bulk-upload/
 
 
@@ -52,7 +54,7 @@ Use when: HNSW index build dominates total indexing time.
 - Reduce `m` (default 16, good for most cases, 32+ rarely needed) [HNSW params](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Reduce `ef_construct` (100-200 sufficient) [HNSW config](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=indexing-vectors-in-hnsw)
 - Keep `max_indexing_threads` proportional to CPU cores [Configuration](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/)
-- Use GPU for indexing [GPU indexing](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
+- Use GPU for indexing — requires NVIDIA GPU with CUDA support and the `qdrant/qdrant-gpu` Docker image [GPU indexing](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
 
 ## HNSW index for multi-tenant collections
 
@@ -75,6 +77,6 @@ Read more about ACORN in [documentation](https://skills.qdrant.tech/md/documenta
 
 ## What NOT to Do
 
-- Do not create payload indexes AFTER HNSW is built (breaks filterable vector index)
+- Do not create payload indexes AFTER HNSW is built without triggering a re-index afterward — filterable HNSW edges won't exist for the new index until segments are re-optimized
 - Do not use `m=0` for bulk uploads into an existing collection, it might drop the existing HNSW and cause long reindexing 
 - Do not upload one point at a time (per-request overhead dominates)
