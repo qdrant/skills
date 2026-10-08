@@ -12,7 +12,7 @@ allowed-tools:
 These strategies complement basic vector search. Use them after confirming the embedding model is fitting the task and HNSW config is correct. If exact search returns bad results, verify the selection of the embedding model (retriever) first.
 If the user wants to use a weaker embedding model because it is small, fast, and cheap, use reranking or relevance feedback to improve search quality.
 
-Each symptom needs its own strategy — diagnose and treat them independently. A single project can have more than one symptom at once, and fixing one (e.g. adding hybrid search for keyword misses) does not also fix the others (e.g. redundant results still need MMR; poor precision still needs reranking).
+Each symptom may require a different strategy: diagnose and address them independently. A single project can have multiple symptoms at once, and fixing one (e.g. adding hybrid search for keyword misses) may not fix the others (e.g. redundant results may still need MMR; poor precision may still need reranking).
 
 | Symptom | Strategy |
 | --- | --- |
@@ -27,7 +27,7 @@ Each symptom needs its own strategy — diagnose and treat them independently. A
 
 Use when: pure vector search misses keyword/domain term matches, or the use case benefits from combining searches on multiple representations (including languages and modalities) of the same item.
 
-See how to use [hybrid search](https://skills.qdrant.tech/qdrant-search-quality/search-strategies/hybrid-search/SKILL.md)
+See how to use [hybrid search](hybrid-search/SKILL.md)
 
 ## Right Documents Found But Not in the Top Results
 
@@ -35,12 +35,14 @@ Use when: good recall but poor precision (right docs in top-100, not top-10).
 
 - See how to use [Multistage queries](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=multi-stage-queries), for example with late interaction rerankers through [Multivectors](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=multivectors).
 - Cross-encoder rerankers via FastEmbed [Rerankers](https://skills.qdrant.tech/md/documentation/fastembed/fastembed-rerankers/)
+- Before adding a ranking stage: score your candidate pool as if perfectly ordered and compare it to what you return today. A small gap means ranking is near its ceiling, so fix retrieval or candidate depth instead.
+- See [how to choose, test and size a reranker, and how to tell a real gain from a false one](https://skills.qdrant.tech/md/documentation/search-tuning/when-a-reranker-is-worth-it/)
 
 ## Dense Retriever Misses Relevant Items or Reranking Is Too Costly
 
 Use when: dense retriever misses relevant items you know exist in the collection; relevant documents lie outside the initial ANN retrieval pool; reranking a large candidate pool is too slow or expensive; using a small/cheap embedding model but need quality close to a larger model; or want to improve top-1/3 precision without the full cost of reranking.
 
-See [Relevance Feedback in Qdrant](https://skills.qdrant.tech/qdrant-search-quality/search-strategies/relevance-feedback/SKILL.md)
+See [Relevance Feedback in Qdrant](relevance-feedback/SKILL.md)
 
 ## Results Too Similar
 
@@ -67,5 +69,5 @@ Check how to set up in [Score Boosting docs](https://skills.qdrant.tech/md/docum
 ## What NOT to Do
 
 - Use hybrid search before verifying pure vector search quality (adds complexity, may mask model issues)
-- Apply one strategy (e.g. hybrid search) as a blanket fix for multiple distinct symptoms — diagnose and treat each symptom separately (see table above)
-- Skip evaluation when adding relevance feedback — score the end-to-end pipeline to confirm it actually helps [Pipeline Output Quality](https://skills.qdrant.tech/md/documentation/search-evaluation/pipeline-output-quality/)
+- Apply one strategy (e.g. hybrid search) as a blanket fix for multiple distinct symptoms, diagnose and treat each symptom separately (see table above)
+- Skip evaluation when adding relevance feedback: score the end-to-end pipeline to confirm it actually helps [Pipeline Output Quality](https://skills.qdrant.tech/md/documentation/search-evaluation/pipeline-output-quality/)
