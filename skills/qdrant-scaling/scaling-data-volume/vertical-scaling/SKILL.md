@@ -38,7 +38,7 @@ Vertical scaling is managed through the Qdrant Cloud Console.
 
 RAM is the most critical resource for Qdrant performance. Use these guidelines to right-size.
 
-- Exact estimation of RAM usage is difficult; use this simple approximate formula: `num_vectors * dimensions * 4 bytes * 1.5` for full-precision vectors in RAM
+- Estimate RAM per component (vectors, HNSW index, ID tracker, payload indexes) for the structures you keep in RAM, using the formulas in [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=calculating-ram-and-disk-size). For a full sizing walkthrough, see [qdrant-sizing](../../../qdrant-sizing/SKILL.md)
 - Quantization adds a compressed copy alongside the original vectors. RAM for vectors drops only when the originals move to disk (`memory: cold`) and the quantized copy stays in RAM. With scalar quantization, the copy is 1/4 the size (INT8 reduces each float32 to 1 byte) [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 - With binary quantization, the copy is 1/32 the size [Binary quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=binary-quantization)
 - On Qdrant 1.19 or newer, the `turbo4` datatype (dense vectors only) divides by ~8 on its own, without needing separate quantization [Vector datatypes](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=datatypes)
