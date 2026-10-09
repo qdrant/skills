@@ -9,3 +9,7 @@ https://skills.qdrant.tech/\.\.\./SKILL.md
 # shared runner IPs
 https://qdrant.tech/
 https://qdrant.tech/documentation/
+
+# Returns 403 to non-browser/bot traffic (confirmed via lychee in CI), not an
+# actually-broken link
+https://platform.openai.com/

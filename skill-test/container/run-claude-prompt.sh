@@ -102,6 +102,7 @@ set -e
 finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 jq -n \
+  --arg agent "claude" \
   --arg run_id "$CLAUDE_RUN_ID" \
   --arg started_at "$started_at" \
   --arg finished_at "$finished_at" \
@@ -112,6 +113,7 @@ jq -n \
   --arg max_budget_usd "$CLAUDE_MAX_BUDGET_USD" \
   --argjson exit_code "$status" \
   '{
+    agent: $agent,
     run_id: $run_id,
     started_at: $started_at,
     finished_at: $finished_at,
