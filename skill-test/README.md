@@ -406,7 +406,7 @@ wrong, or if `codex -h` lists something this menu doesn't.
 Claude-only for now — `scripts/scoring/` doesn't know about `--agent` yet.
 
 `scripts/scoring/` carries the same periodic (monthly) scoring harness described in
-[`SCORING.md`](SCORING.md) (`run-eval-matrix.sh` → `extract-run-signals.sh` →
+[`SCORING.md`](../SCORING.md) (`run-eval-matrix.sh` → `extract-run-signals.sh` →
 `judge-runs.sh`). That pipeline measures **lift** — a skill installed vs not —
 by diffing the `no-skill` and `with-skill` conditions inside one run.
 
