@@ -5,6 +5,10 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE="${CLAUDE_TEST_IMAGE:-claude-code-skill-test:latest}"
 CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-latest}"
+# Pinned, not latest: the Codex CLI's flags were observed to change between
+# patch releases during harness development. See the Dockerfile's CODEX_VERSION
+# comment.
+CODEX_VERSION="${CODEX_VERSION:-0.160.1}"
 NODE_IMAGE="${CLAUDE_TEST_NODE_IMAGE:-node:22-bookworm-slim}"
 BUILD_ATTEMPTS="${CLAUDE_TEST_BUILD_ATTEMPTS:-3}"
 PULL_BASE="0"
@@ -16,6 +20,8 @@ Usage: scripts/build-image.sh [options]
 Options:
   --image NAME                 Docker image tag to build.
   --claude-code-version VER    Claude Code npm package version or "latest".
+  --codex-version VER          Codex CLI npm package version or "latest".
+                               Default: 0.160.1 (pinned; see Dockerfile).
   --node-image IMAGE           Base Node image. Default: node:22-bookworm-slim.
   --attempts N                 Retry docker build up to N times. Default: 3.
   --pull                       Always attempt to pull a newer base image.
@@ -24,6 +30,7 @@ Options:
 Environment:
   CLAUDE_TEST_IMAGE            Default image tag.
   CLAUDE_CODE_VERSION          Default Claude Code package version.
+  CODEX_VERSION                Default Codex CLI package version.
   CLAUDE_TEST_NODE_IMAGE       Default base Node image.
   CLAUDE_TEST_BUILD_ATTEMPTS   Default retry count.
 USAGE
@@ -48,6 +55,11 @@ while [[ $# -gt 0 ]]; do
     --claude-code-version)
       require_value "$1" "${2:-}"
       CLAUDE_CODE_VERSION="$2"
+      shift 2
+      ;;
+    --codex-version)
+      require_value "$1" "${2:-}"
+      CODEX_VERSION="$2"
       shift 2
       ;;
     --node-image)
@@ -85,6 +97,7 @@ docker_args=(
   build
   --build-arg "NODE_IMAGE=$NODE_IMAGE"
   --build-arg "CLAUDE_CODE_VERSION=$CLAUDE_CODE_VERSION"
+  --build-arg "CODEX_VERSION=$CODEX_VERSION"
   -t "$IMAGE"
 )
 

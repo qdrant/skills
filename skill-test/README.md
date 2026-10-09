@@ -1,7 +1,12 @@
 # Claude Code Skill Test Harness
 
-This skill test framework runs Claude Code inside a fresh Docker container for each prompt, captures
-the answer, and avoids reusing local Claude state between tests.
+This repo runs an agent CLI — Claude Code or Codex — inside a fresh Docker
+container for each prompt, captures the answer, and avoids reusing local
+agent state between tests. Claude Code is the default; pass `--agent codex`
+to any `run-claude-test.sh` command to use Codex instead (see "Choose An
+Agent" below). Everything in this README defaults to Claude Code unless a
+section says otherwise — the periodic scoring pipeline (`scripts/scoring/`,
+`SCORING.md`) in particular is Claude-only for now.
 
 ## Why This Is Fresh
 
@@ -36,11 +41,19 @@ To pin Claude Code:
 scripts/build-image.sh --claude-code-version 2.1.89
 ```
 
+The image bundles both agent CLIs, so one build covers `--agent claude` and
+`--agent codex`. Codex is pinned by default (`--codex-version 0.160.1`) rather
+than floating on `latest` — its flags were observed to change between patch
+releases during development:
+
+```bash
+scripts/build-image.sh --codex-version 0.160.1
+```
+
 ## Auth
 
-Use an API key for scripted runs:
-
-Generate a Claude Platform API key at https://platform.claude.com/. Next, add this key to your local `.env` file:
+**Claude Code** (default): generate a Claude Platform API key at
+https://platform.claude.com/, then add it to your local `.env` file:
 
 ```bash
 cp .env.example .env
@@ -54,6 +67,13 @@ script.
 If a run exits with `Not logged in · Please run /login`, the fresh container did
 not receive usable credentials. Check that `.env` contains a non-empty
 `ANTHROPIC_API_KEY`, or pass `--env-file /path/to/env`.
+
+**Codex** (`--agent codex`): generate an API key at https://platform.openai.com/,
+then set `OPENAI_API_KEY` (or `CODEX_API_KEY`) in `.env` the same way. Codex's
+`exec` doesn't read the key directly — the container runs `codex login
+--with-api-key` from it before the actual test, which is why a Codex auth
+failure shows up as a `401 Unauthorized` in `stdout.txt` rather than the
+`Not logged in` message Claude Code prints.
 
 ## Run A Smoke Test
 
@@ -73,13 +93,17 @@ Each run writes:
 runs/<run-id>/
   metadata.json
   prompt.md
-  readable.md
+  readable.md   (--agent claude only — see below)
   stderr.txt
   stdout.txt
+  final.txt     (--agent codex only — the clean final answer)
 ```
 
-`readable.md` is generated automatically after each run. To regenerate it, or to
-turn an older Claude Code `stream-json` output into a readable transcript:
+`metadata.json` always carries an `agent` field (`"claude"` or `"codex"`).
+
+`readable.md` is generated automatically after each `--agent claude` run. To
+regenerate it, or to turn an older Claude Code `stream-json` output into a
+readable transcript:
 
 ```bash
 scripts/render-claude-stdout.js runs/<run-id>
@@ -97,10 +121,39 @@ To save the transcript:
 scripts/render-claude-stdout.js runs/<run-id> --output runs/<run-id>/readable.md
 ```
 
+This renderer only understands Claude Code's `stream-json` shape. `--agent
+codex` runs are not rendered yet — read `stdout.txt` (Codex's own `--json`
+event stream) or `final.txt` (just the final answer) directly.
+
+## Choose An Agent
+
+```bash
+scripts/run-claude-test.sh --agent codex --model gpt-6-sol prompts/qdrant-smoke.md
+```
+
+`--agent` defaults to `claude`, so every example elsewhere in this README that
+doesn't pass `--agent` runs Claude Code exactly as before. Switching to `codex`
+changes a few things:
+
+- **Models** are a disjoint namespace from Claude's (`gpt-6-sol`, not
+  `sonnet`/`haiku`/`opus`) and have been observed to churn between CLI
+  releases — pass `--model` explicitly if `--choose-model`'s menu looks stale.
+- **`--skills-dir`** works the same way for both agents (a directory with
+  `SKILL.md`, or several such subdirectories); Codex discovers skills at
+  `.codex/skills/<name>/SKILL.md` under the workspace rather than Claude's
+  `~/.claude/skills/<name>/`, but the harness handles that difference for you.
+- **`--plugin-dir`/`--plugin-url`** are Claude-only and are ignored (with a
+  warning) under `--agent codex`.
+- **`--max-turns`/`--max-budget-usd`** are Claude-only too — Codex's `exec`
+  has no turn-cap or budget-cap flag, so these are ignored (with a warning)
+  rather than silently doing nothing.
+- **`--permission-mode`** still takes the same six values; see "Permission
+  Modes" below for how they map onto Codex's own sandbox/approval flags.
+
 ## Run A JSON Test-Prompt
 
 The prompt file may also be a JSON test-prompt (for example the files under
-`evals/test-prompts/`) that carries the prompt plus scoring metadata:
+`skills/evals/test-prompts/`) that carries the prompt plus scoring metadata:
 
 ```json
 {
@@ -115,7 +168,7 @@ The prompt file may also be a JSON test-prompt (for example the files under
 Pass the `.json` file directly:
 
 ```bash
-scripts/run-claude-test.sh ../evals/test-prompts/qdrant-hybrid-search.json
+scripts/run-claude-test.sh ../skills/evals/test-prompts/qdrant-hybrid-search.json
 ```
 
 The runner validates that the file parses and has a non-empty string `prompt`
@@ -135,7 +188,7 @@ To run several test-prompts in one go, use the batch wrapper. Each argument is
 either a file or a directory (every `*.json` inside it is run, sorted by name):
 
 ```bash
-scripts/run-claude-test-batch.sh ../evals/test-prompts
+scripts/run-claude-test-batch.sh ../skills/evals/test-prompts
 ```
 
 Options placed before a literal `--` are forwarded verbatim to every underlying
@@ -143,8 +196,8 @@ Options placed before a literal `--` are forwarded verbatim to every underlying
 
 ```bash
 scripts/run-claude-test-batch.sh --model sonnet --max-turns 20 -- \
-  ../evals/test-prompts/qdrant-hybrid-search.json \
-  ../evals/test-prompts/qdrant-tenant-scaling.json
+  ../skills/evals/test-prompts/qdrant-hybrid-search.json \
+  ../skills/evals/test-prompts/qdrant-tenant-scaling.json
 ```
 
 Build the image once first (`scripts/build-image.sh`) rather than passing
@@ -157,7 +210,7 @@ If you have a local skill directory containing `SKILL.md`:
 
 ```bash
 scripts/run-claude-test.sh \
-  --skills-dir ../skills/qdrant-scaling \
+  --skills-dir ./skills/qdrant \
   prompts/qdrant-smoke.md
 ```
 
@@ -166,7 +219,8 @@ If you have a directory containing multiple skills, each child directory with a
 
 ## Test Plugin URLs
 
-If `skills.qdrant.tech` provides a Claude Code plugin zip URL, pass it directly:
+Claude Code only (Codex has no plugin-zip equivalent). If `skills.qdrant.tech`
+provides a Claude Code plugin zip URL, pass it directly:
 
 ```bash
 scripts/run-claude-test.sh \
@@ -212,11 +266,12 @@ scripts/run-claude-test.sh \
 
 ## Interrogate Further
 
+Claude-only for now — there's no Codex equivalent of `run-claude-session.sh` yet.
 For an interactive same-instance investigation, start a disposable session:
 
 ```bash
 scripts/run-claude-session.sh \
-  --skills-dir ../skills/qdrant-scaling \
+  --skills-dir ./skills/qdrant \
   prompts/qdrant-smoke.md
 ```
 
@@ -247,6 +302,21 @@ spelling.
 
 For the full reference, see the Claude Code docs:
 <https://code.claude.com/docs/en/permission-modes>.
+
+### With `--agent codex`
+
+Codex has no single `--permission-mode` flag — it has two independent ones
+instead, `--sandbox {read-only,workspace-write,danger-full-access}` and
+`--approve-for-me`/the full-bypass flag. The container maps the same six mode
+names onto them:
+
+| `--permission-mode` | Codex flags | Why |
+|---|---|---|
+| `bypassPermissions`, `dontAsk` | `--dangerously-bypass-approvals-and-sandbox` | Codex's `exec` has no interactive approval prompt or tool allow-list to fall back to non-interactively, so both modes collapse to a full bypass — the outer disposable container is the real isolation boundary either way. |
+| `auto`, `acceptEdits` | `--approve-for-me` | `workspace-write` sandbox with Codex auto-reviewing its own actions. |
+| `plan`, `default`, `manual` | `--sandbox read-only` | No one is present to approve an edit or a command, so the most faithful analog of "asks before acting" is "can't write at all." |
+
+The chosen mode is recorded in `metadata.json`'s `permission_mode` field either way.
 
 ## Useful Options
 
@@ -324,3 +394,73 @@ Select a Claude model:
 
 Type `1`, `2`, or `3` and press Enter. The test will run with your chosen model.
 The selected model is recorded in the run's `metadata.json` for reference.
+
+With `--agent codex`, the same flag offers a short Codex model menu instead
+(`gpt-6-sol`, `gpt-6-astra`, `gpt-6-luna` as of this writing). Codex model
+names have been observed to change between CLI releases faster than this
+menu is likely to be updated — pass `--model` explicitly if the options look
+wrong, or if `codex -h` lists something this menu doesn't.
+
+## A/B Test Two Skill Versions
+
+Claude-only for now — `scripts/scoring/` doesn't know about `--agent` yet.
+
+`scripts/scoring/` carries the same periodic (monthly) scoring harness described in
+[`SCORING.md`](SCORING.md) (`run-eval-matrix.sh` → `extract-run-signals.sh` →
+`judge-runs.sh`). That pipeline measures **lift** — a skill installed vs not —
+by diffing the `no-skill` and `with-skill` conditions inside one run.
+
+`scripts/scoring/compare-ab.py` answers a different question: **which of two
+versions of the same skill is better** — e.g. the current skill on `main`
+against a candidate change on a PR branch. It diffs two separate run
+directories that each used the `with-skill` condition, one per skill version,
+scored against the same prompts.
+
+### 1. Run each version through the normal pipeline
+
+Point `--skills-root` at a checkout of each version and score only the
+prompt(s) that exercise the skill under test (via `--prompts-dir`, pointed at
+a directory containing just those `*.json` files — copy the relevant ones out
+of `evals/test-prompts/` or `../skills/evals/test-prompts/` for this):
+
+```bash
+# Version A — e.g. the skill as it stands on main
+scripts/scoring/run-eval-matrix.sh \
+  --conditions with-skill \
+  --skills-root /path/to/main-checkout/skills \
+  --prompts-dir ./ab-prompts \
+  --out-dir evals/ab/version-a
+scripts/scoring/extract-run-signals.sh --out-dir evals/ab/version-a
+scripts/scoring/judge-runs.sh --out-dir evals/ab/version-a
+
+# Version B — e.g. the skill as amended by a PR branch
+scripts/scoring/run-eval-matrix.sh \
+  --conditions with-skill \
+  --skills-root /path/to/pr-checkout/skills \
+  --prompts-dir ./ab-prompts \
+  --out-dir evals/ab/version-b
+scripts/scoring/extract-run-signals.sh --out-dir evals/ab/version-b
+scripts/scoring/judge-runs.sh --out-dir evals/ab/version-b
+```
+
+`--models`, `--reps`, `--max-turns`, and `--max-budget-usd` all default the
+same way as a periodic run (see `run-eval-matrix.sh --help`); scope them down
+for a cheap local check, e.g. `--models sonnet --reps 2`.
+
+### 2. Compare
+
+```bash
+scripts/scoring/compare-ab.py \
+  --a evals/ab/version-a \
+  --b evals/ab/version-b \
+  --label-a main \
+  --label-b pr-123
+```
+
+This writes `ab-scorecard.md` next to the `--b` directory (override with
+`--out`) and prints it to stdout: a per-model `must_coverage` delta (B − A)
+with a paired standard error and a 95%-CI-excludes-zero flag, a per-prompt
+breakdown, `avoid`-violation detail for each version, and a coverage section
+listing any dropped runs — the same shape as the periodic `scorecard.md`, just
+diffing two named versions instead of two conditions. Nothing here gates; it's
+a report to read before deciding whether to merge.
