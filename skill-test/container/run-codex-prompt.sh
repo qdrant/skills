@@ -5,23 +5,36 @@ set -Eeuo pipefail
 # (same env var names where the concept is shared, same runs/<id>/ output
 # shape) so the host-side harness can treat the two agents interchangeably.
 #
-# Differences from run-claude-prompt.sh, learned from the Phase 0 spike:
-#   - Auth: `codex exec` does not read OPENAI_API_KEY itself. It must be
-#     handed to `codex login --with-api-key` (via stdin) first, which writes
-#     $CODEX_HOME/auth.json; exec then picks that up.
-#   - Skills: Codex has no ~/.claude/skills-style global install step used by
-#     the model automatically here. Skills are discovered from
-#     <cwd>/.codex/skills/<name>/SKILL.md, resolved relative to the process's
-#     cwd — so they're installed under the workspace, not $HOME.
-#   - No single --permission-mode on `codex exec`; it has two independent
-#     flags instead (--sandbox and --approve-for-me / the full-bypass flag).
-#     CODEX_PERMISSION_MODE maps the harness's six permission-mode names onto
-#     them (see map_permission_mode below) — run-claude-test.sh's --help has
-#     the full table. The outer Docker container (--rm, no host mount beyond
-#     /workspace and /runs) is already the real isolation boundary, which is
-#     why even the "safe" modes don't bother fighting Codex's internal bwrap
-#     sandbox (it needs Linux user-namespaces the container may not grant) —
-#     they just restrict the sandbox/approval flags Codex itself exposes.
+# Differences from run-claude-prompt.sh:
+#   - Auth: `codex exec` does not read OPENAI_API_KEY/CODEX_API_KEY/
+#     CODEX_ACCESS_TOKEN itself. One of them must be handed to `codex login`
+#     (via stdin) first, which writes $CODEX_HOME/auth.json; exec then picks
+#     that up. A login failure exits immediately (see login-stderr.txt)
+#     instead of burning the exec timeout on a run that can only 401.
+#   - Skills: confirmed via `codex debug prompt-input` that Codex discovers
+#     skills from several roots at once — $CODEX_HOME/skills (global),
+#     $CODEX_HOME/skills/.system (bundled), <cwd>/.codex/skills, and
+#     <cwd>/.agents/skills. This installs into $CODEX_HOME/skills/<name>/,
+#     mirroring run-claude-prompt.sh's $HOME/.claude/skills/<name>/ exactly —
+#     NOT under the workspace. A workspace-relative install broke any run with
+#     a read-only --workspace mount (the install step's mkdir/cp failed before
+#     Codex even started).
+#   - Permissions: confirmed empirically, inside this same Docker image, that
+#     Codex's own sandbox cannot run here at all — its bwrap backend needs
+#     unprivileged Linux user-namespaces that Docker's default seccomp profile
+#     blocks. `--sandbox read-only` (mapped from plan/default/manual) hard-fails
+#     every shell command with a `bwrap: No permissions...` error surfaced as
+#     the model's actual final answer. `--approve-for-me` (mapped from auto/
+#     acceptEdits) degrades rather than hard-fails — Codex silently retries
+#     each shell command once outside the broken sandbox — but that still
+#     means every command runs twice, and approvals route through Codex's own
+#     auto-review model, adding cost and nondeterminism to eval runs. Given
+#     neither "safe" mode actually constrains anything in this container, every
+#     permission mode maps to the same full bypass; the outer disposable
+#     Docker container (--rm, no host mount beyond /workspace and /runs) is
+#     the real isolation boundary regardless. CODEX_PERMISSION_MODE is still
+#     recorded in metadata.json for traceability even though it no longer
+#     changes which Codex flag gets used.
 #   - No --max-turns / --max-budget-usd equivalent either. A wall-clock
 #     `timeout` is the only run-length backstop available.
 #   - Output: stdout.txt holds the --json event stream (same idea as Claude's
@@ -46,8 +59,13 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
   exit 64
 fi
 
+# CODEX_HOME defaults to ~/.codex, same default the installed `codex` binary
+# itself uses when the env var is unset.
+CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+CODEX_SKILLS_DIR="$CODEX_HOME/skills"
+
 run_dir="$RUNS_DIR/$CLAUDE_RUN_ID"
-mkdir -p "$run_dir" "$CLAUDE_WORKSPACE" "$CLAUDE_WORKSPACE/.codex/skills"
+mkdir -p "$run_dir" "$CLAUDE_WORKSPACE" "$CODEX_SKILLS_DIR"
 
 cp "$PROMPT_FILE" "$run_dir/prompt.md"
 
@@ -56,8 +74,8 @@ install_skill_dir() {
   local skill_name="$2"
 
   if [[ -f "$source_dir/SKILL.md" ]]; then
-    mkdir -p "$CLAUDE_WORKSPACE/.codex/skills/$skill_name"
-    cp -R "$source_dir/." "$CLAUDE_WORKSPACE/.codex/skills/$skill_name/"
+    mkdir -p "$CODEX_SKILLS_DIR/$skill_name"
+    cp -R "$source_dir/." "$CODEX_SKILLS_DIR/$skill_name/"
   fi
 }
 
@@ -74,29 +92,26 @@ if [[ -d /input-skills ]]; then
   fi
 fi
 
-# Translates the harness's six shared --permission-mode names onto Codex's own
-# --sandbox / --approve-for-me / full-bypass flags. --sandbox and
-# --approve-for-me are mutually exclusive on `codex exec`, so each mode picks
-# exactly one path. See the Dockerfile-era comment above for why bypass is a
-# reasonable default even for the "safe" modes.
-map_permission_mode() {
-  case "$1" in
-    bypassPermissions|dontAsk)
-      echo "--dangerously-bypass-approvals-and-sandbox"
-      ;;
-    auto|acceptEdits)
-      echo "--approve-for-me"
-      ;;
-    plan|default|manual)
-      echo "--sandbox read-only"
-      ;;
-    *)
-      echo "--dangerously-bypass-approvals-and-sandbox"
-      ;;
-  esac
-}
+# All six shared --permission-mode names currently map to the same full
+# bypass: confirmed (see the file header) that Codex's own --sandbox/
+# --approve-for-me flags cannot meaningfully run inside this container, so
+# there is nothing a finer-grained mapping would actually buy. Still validated
+# explicitly (rather than skipping straight to the flag) so a mode name that
+# isn't one of the six the host validates fails loudly instead of silently
+# running unsandboxed. Assigned directly in this top-level case (not inside a
+# function called via command substitution) so `exit` here actually exits the
+# script instead of just the subshell a `$(...)` capture would create.
+case "$CODEX_PERMISSION_MODE" in
+  bypassPermissions|dontAsk|auto|acceptEdits|plan|default|manual)
+    permission_flags=(--dangerously-bypass-approvals-and-sandbox)
+    ;;
+  *)
+    echo "Unknown permission mode: '$CODEX_PERMISSION_MODE'" >&2
+    exit 64
+    ;;
+esac
 
-login_status="skipped (no API key)"
+login_status="skipped (no credentials)"
 api_key="${OPENAI_API_KEY:-${CODEX_API_KEY:-}}"
 if [[ -n "$api_key" ]]; then
   if printf '%s' "$api_key" | codex login --with-api-key >/dev/null 2>"$run_dir/login-stderr.txt"; then
@@ -104,9 +119,26 @@ if [[ -n "$api_key" ]]; then
   else
     login_status="failed"
   fi
+elif [[ -n "${CODEX_ACCESS_TOKEN:-}" ]]; then
+  if printf '%s' "$CODEX_ACCESS_TOKEN" | codex login --with-access-token >/dev/null 2>"$run_dir/login-stderr.txt"; then
+    login_status="ok"
+  else
+    login_status="failed"
+  fi
 fi
 
-permission_flags=($(map_permission_mode "$CODEX_PERMISSION_MODE"))
+if [[ "$login_status" == "failed" ]]; then
+  echo "codex login failed; see $run_dir/login-stderr.txt" >&2
+  finished_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  jq -n \
+    --arg agent "codex" \
+    --arg run_id "$CLAUDE_RUN_ID" \
+    --arg finished_at "$finished_at" \
+    --arg login_status "$login_status" \
+    '{agent: $agent, run_id: $run_id, finished_at: $finished_at, login_status: $login_status, exit_code: 78}' \
+    > "$run_dir/metadata.json"
+  exit 78
+fi
 
 args=(
   exec

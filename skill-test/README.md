@@ -140,8 +140,12 @@ changes a few things:
   releases — pass `--model` explicitly if `--choose-model`'s menu looks stale.
 - **`--skills-dir`** works the same way for both agents (a directory with
   `SKILL.md`, or several such subdirectories); Codex discovers skills at
-  `.codex/skills/<name>/SKILL.md` under the workspace rather than Claude's
+  `~/.codex/skills/<name>/SKILL.md` rather than Claude's
   `~/.claude/skills/<name>/`, but the harness handles that difference for you.
+  Codex also always lists its own bundled skills (`openai-docs`,
+  `skill-creator`, `skill-installer`) alongside whatever's mounted — worth
+  knowing before comparing Claude vs. Codex activation rates on the same
+  prompt, since Codex has more to choose from by default.
 - **`--plugin-dir`/`--plugin-url`** are Claude-only and are ignored (with a
   warning) under `--agent codex`.
 - **`--max-turns`/`--max-budget-usd`** are Claude-only too — Codex's `exec`
@@ -168,7 +172,7 @@ The prompt file may also be a JSON test-prompt (for example the files under
 Pass the `.json` file directly:
 
 ```bash
-scripts/run-claude-test.sh ../skills/evals/test-prompts/qdrant-hybrid-search.json
+scripts/run-claude-test.sh ../evals/test-prompts/qdrant-hybrid-search.json
 ```
 
 The runner validates that the file parses and has a non-empty string `prompt`
@@ -188,7 +192,7 @@ To run several test-prompts in one go, use the batch wrapper. Each argument is
 either a file or a directory (every `*.json` inside it is run, sorted by name):
 
 ```bash
-scripts/run-claude-test-batch.sh ../skills/evals/test-prompts
+scripts/run-claude-test-batch.sh ../evals/test-prompts
 ```
 
 Options placed before a literal `--` are forwarded verbatim to every underlying
@@ -196,8 +200,8 @@ Options placed before a literal `--` are forwarded verbatim to every underlying
 
 ```bash
 scripts/run-claude-test-batch.sh --model sonnet --max-turns 20 -- \
-  ../skills/evals/test-prompts/qdrant-hybrid-search.json \
-  ../skills/evals/test-prompts/qdrant-tenant-scaling.json
+  ../evals/test-prompts/qdrant-hybrid-search.json \
+  ../evals/test-prompts/qdrant-tenant-scaling.json
 ```
 
 Build the image once first (`scripts/build-image.sh`) rather than passing
@@ -210,7 +214,7 @@ If you have a local skill directory containing `SKILL.md`:
 
 ```bash
 scripts/run-claude-test.sh \
-  --skills-dir ./skills/qdrant \
+  --skills-dir ../skills/qdrant-scaling \
   prompts/qdrant-smoke.md
 ```
 
@@ -271,7 +275,7 @@ For an interactive same-instance investigation, start a disposable session:
 
 ```bash
 scripts/run-claude-session.sh \
-  --skills-dir ./skills/qdrant \
+  --skills-dir ../skills/qdrant-scaling \
   prompts/qdrant-smoke.md
 ```
 
@@ -307,16 +311,20 @@ For the full reference, see the Claude Code docs:
 
 Codex has no single `--permission-mode` flag — it has two independent ones
 instead, `--sandbox {read-only,workspace-write,danger-full-access}` and
-`--approve-for-me`/the full-bypass flag. The container maps the same six mode
-names onto them:
-
-| `--permission-mode` | Codex flags | Why |
-|---|---|---|
-| `bypassPermissions`, `dontAsk` | `--dangerously-bypass-approvals-and-sandbox` | Codex's `exec` has no interactive approval prompt or tool allow-list to fall back to non-interactively, so both modes collapse to a full bypass — the outer disposable container is the real isolation boundary either way. |
-| `auto`, `acceptEdits` | `--approve-for-me` | `workspace-write` sandbox with Codex auto-reviewing its own actions. |
-| `plan`, `default`, `manual` | `--sandbox read-only` | No one is present to approve an edit or a command, so the most faithful analog of "asks before acting" is "can't write at all." |
-
-The chosen mode is recorded in `metadata.json`'s `permission_mode` field either way.
+`--approve-for-me`/the full-bypass flag. **All six mode names currently map to
+the same `--dangerously-bypass-approvals-and-sandbox`.** This was tested, not
+assumed: Codex's own sandbox (`bwrap`) needs Linux user-namespaces that
+Docker's default seccomp profile blocks, so inside this container
+`--sandbox read-only` hard-fails every shell command (the model's final
+answer ends up being the raw `bwrap: No permissions...` error) and
+`--approve-for-me` silently retries each shell command once outside the
+broken sandbox — functional, but every command runs twice, at extra cost, and
+`--approve-for-me` approvals also route through Codex's own auto-review
+model, adding nondeterminism. Since neither "safe" mode actually constrains
+anything here, there's nothing a finer-grained mapping would buy — the outer
+disposable container is the real isolation boundary regardless. The
+requested mode is still recorded in `metadata.json`'s `permission_mode` field
+even though it no longer changes which Codex flag runs.
 
 ## Useful Options
 
@@ -421,7 +429,7 @@ scored against the same prompts.
 Point `--skills-root` at a checkout of each version and score only the
 prompt(s) that exercise the skill under test (via `--prompts-dir`, pointed at
 a directory containing just those `*.json` files — copy the relevant ones out
-of `evals/test-prompts/` or `../skills/evals/test-prompts/` for this):
+of `../evals/test-prompts/` for this):
 
 ```bash
 # Version A — e.g. the skill as it stands on main

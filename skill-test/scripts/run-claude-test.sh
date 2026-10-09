@@ -11,12 +11,15 @@ if [[ -f "$REPO_ROOT/.env" ]]; then
 fi
 
 PROMPT_FILE=""
-AGENT="${AGENT:-claude}"
+# Reads SKILL_TEST_AGENT, not a bare AGENT, so an unrelated AGENT already set
+# in someone's shell can't silently switch which CLI this harness runs.
+AGENT="${SKILL_TEST_AGENT:-claude}"
 SKILLS_DIR=""
 PLUGIN_DIR=""
 WORKSPACE_DIR=""
 WORKSPACE_MODE="ro"
 OUTPUT_FORMAT="stream-json"
+OUTPUT_FORMAT_EXPLICIT="0"
 PERMISSION_MODE="auto"
 MAX_TURNS="20"
 MAX_TURNS_EXPLICIT="0"
@@ -106,18 +109,15 @@ Auth:
   the key directly at call time.
 
 Permission Modes with --agent codex:
-  Codex has no single --permission-mode flag; the container maps the same six
-  mode names onto Codex's own --sandbox/--approve-for-me/
-  --dangerously-bypass-approvals-and-sandbox flags:
-    bypassPermissions, dontAsk  -> --dangerously-bypass-approvals-and-sandbox
-                                   (Codex's `exec` has no interactive approval
-                                   prompt or tool allow-list to fall back to, so
-                                   both modes collapse to the same full bypass —
-                                   the outer disposable container is the real
-                                   isolation boundary either way.)
-    auto, acceptEdits           -> --approve-for-me (workspace-write + automatic
-                                   self-review)
-    plan, default, manual       -> --sandbox read-only
+  All six mode names currently map to the same
+  --dangerously-bypass-approvals-and-sandbox. Confirmed empirically (inside
+  this image) that Codex's own --sandbox/--approve-for-me flags cannot
+  meaningfully run in this container: Codex's bwrap sandbox needs Linux
+  user-namespaces Docker's default seccomp profile blocks, so --sandbox
+  read-only hard-fails every shell command and --approve-for-me silently
+  retries each one outside the sandbox (working, but twice the cost and
+  nondeterminism). The outer disposable container is the real isolation
+  boundary regardless. The requested mode is still recorded in metadata.json.
 USAGE
 }
 
@@ -299,6 +299,7 @@ while [[ $# -gt 0 ]]; do
     --output-format)
       require_value "$1" "${2:-}"
       OUTPUT_FORMAT="$2"
+      OUTPUT_FORMAT_EXPLICIT="1"
       shift 2
       ;;
     --permission-mode)
@@ -394,6 +395,9 @@ if [[ "$AGENT" == "codex" ]]; then
   fi
   if [[ -n "$PLUGIN_DIR" || "${#PLUGIN_URLS[@]}" -gt 0 ]]; then
     echo "Note: --plugin-dir/--plugin-url have no effect with --agent codex; ignoring." >&2
+  fi
+  if [[ "$OUTPUT_FORMAT_EXPLICIT" == "1" ]]; then
+    echo "Note: --output-format has no effect with --agent codex (its event stream is always --json); ignoring." >&2
   fi
 fi
 
