@@ -16,11 +16,13 @@ High throughput favors fewer, larger segments so each query touches less overhea
 - Use fewer, larger segments (`default_segment_number: 2`) [Maximizing throughput](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=maximizing-throughput)
 - Enable quantization pinned in RAM to reduce disk IO: `memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older [Quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/)
 - Use batch search API to amortize overhead [Batch search](https://skills.qdrant.tech/md/documentation/search/search/?s=batch-search-api)
+- Prefer gRPC over REST for high-QPS workloads -- lower per-request overhead and connection multiplexing
 
 ## Minimize impact of Update Workloads
 
 - Configure update throughput control (v1.17+) to prevent unoptimized searches degrading reads [Low latency search](https://skills.qdrant.tech/md/documentation/search/low-latency-search/)
 - Set `optimizer_cpu_budget` to limit indexing CPUs (e.g. `2` on an 8-CPU node reserves 6 for queries)
+- Use `prevent_unoptimized=true` to block searches on large unindexed segments -- new points enter a deferred state until indexing catches up [Read-write contention](https://skills.qdrant.tech/md/documentation/ops-optimization/read-write-contention/)
 - Configure delayed read fan-out (v1.17+) for tail latency [Delayed fan-outs](https://skills.qdrant.tech/md/documentation/search/low-latency-search/?s=use-delayed-fan-outs)
 
 
@@ -43,8 +45,10 @@ In this case:
 
 - Upgrade to provisioned IOPS or local NVMe first. See impact of disk performance to vector search in [Disk performance article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 - Use `io_uring` on Linux (kernel 5.11+) [io_uring article](https://skills.qdrant.tech/md/articles/io_uring/)
+- Use `datatype: turbo4` to store vectors in 4-bit on-disk representation (8× smaller), drastically reducing disk reads [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - In case of quantized vectors, prefer global rescoring over per-segment rescoring to reduce disk reads. Example in the [tutorial](https://skills.qdrant.tech/md/documentation/tutorials-operations/large-scale-search/?s=search-query)
 - Configure higher number of search threads to parallelize disk reads. Default is `cpu_count - 1`, which is optimal for RAM-based search but may be too low for disk-based search. See [configuration reference](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/?s=configuration-options)
+- Use slow request log (v1.17+) to identify which queries are bottlenecked on disk [Slow request log](https://skills.qdrant.tech/md/documentation/ops-monitoring/slow-request-log/)
 - If still saturated, scale out horizontally (each node adds independent IOPS)
 
 

@@ -3,7 +3,7 @@ name: qdrant-relevance-feedback
 description: "Expanding the candidate pool via relevance feedback, as an alternative to reranking when a dense retriever is too weak. Use when someone asks about 'Qdrant's Relevance Feedback API', 'improving dense search relevance/recall', 'how to discover/get more relevant results from vector search', 'cheaper/better alternative to reranking', 'using a more heavy/big embedding model for dense search but can't afford it', 'finding more relevant documents beyond the initial search pool', or 'feedback loops'. Also trigger when the user has a search quality problem due to a dense retriever being weak and is considering reranking as a solution — this API may be a better fit"
 ---
 
-Reranking reorders documents that have already been retrieved. Qdrant's Relevance Feedback (RF) instead modifies the vector search process itself based on a small amount of reranker feedback, distilling reranker (feedback model) knowledge into the search step. This allows RF to surface documents that the initial ANN search did not score highly enough.
+Reranking reorders documents that have already been retrieved. Qdrant's Relevance Feedback (RF), available since **v1.14**, instead modifies the vector search process itself based on a small amount of reranker feedback, distilling reranker (feedback model) knowledge into the search step. This allows RF to surface documents that the initial ANN search did not score highly enough.
 
 The RF is intended for tasks where relevance correlates with similarity in vector space.
 
@@ -55,7 +55,7 @@ These weights must be learned from your data before use. You cannot safely use a
   - Inform user on cost and quality trade-offs of training.
 - Check train metrics which show if RF had a signal  (disagreement between retriever and feedback model) to distill and learn from. If there was no signal to learn from, adapt training parameters, queries or change a feedback model and retrain until RF learns well. 
 - Store the resulting RF parameters in your configuration and use them during inference. Retrain if your query distribution or corpus changes significantly.
-- Evaluate resulting formula with `Evaluator` on a separate test set of representative, real, non-synthetic queries. If results seem unsatisfactory, investigate and inform user.  
+- Evaluate resulting formula with `Evaluator` on a separate test set of representative, real, non-synthetic queries. If results seem unsatisfactory, try: adjusting `limit` to retrieve more candidates during training, changing the feedback model, or curating a more representative query set.
 
 The retriever, feedback model, and related parameters defined during training are assumed to remain the same during inference.
 
@@ -109,7 +109,7 @@ Using a point ID in `example` causes the RF API to automatically exclude that do
 ## What NOT to Do
 
 - Do not skip calibration and use random formula weights. Untrained weights produce arbitrary results. (`a=1, b=0, c=0` can be used if you only want vanilla ANN behavior through the RF API.)
-- Do not use the RF API on sparse vectors.
+- Do not use the RF API on sparse vectors. The formula operates in continuous vector space where direction between points has geometric meaning — sparse representations do not preserve this property.
 - Do not use a feedback model where higher scores mean lower relevance. Scores must be monotonic: higher = more relevant.
 - Do not use fewer than 2 feedback seeds. A single seed provides no contrastive signal. The formula needs at least one relatively more relevant and one relatively less relevant example to establish direction. Two is the minimum; five is the recommended default.
 - Do not use significantly more than 5 seeds expecting better quality. Additional seeds usually add noise and increase scoring cost without meaningful gains.
