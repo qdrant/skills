@@ -127,6 +127,12 @@ Run manually from the repo root:
 cd scripts && python3 -m unittest test_make_links_absolute -v
 ```
 
+`scripts/test_generate_llms_txt.py` covers how `scripts/generate_llms_txt.py` nests skills in `llms.txt`: a sub-skill is indented under its hub, and a skill under a plain container directory such as `meta/` stays at the top level.
+
+```
+cd scripts && python3 -m unittest test_generate_llms_txt -v
+```
+
 ### Skill validation
 
 `scripts/validate_skills.py` checks all `SKILL.md` files against the quality rules described in the Writing a skill section above. Run it from the repo root:
