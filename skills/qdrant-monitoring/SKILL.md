@@ -17,10 +17,13 @@ Do not answer from this page alone: it contains routing only, not the guidance. 
 | Want to set up Prometheus, Grafana, or health checks | `setup/SKILL.md` |
 | Need to know which metrics to track | `setup/SKILL.md` |
 | Setting up alerting, log centralization, or Hybrid Cloud metrics | `setup/SKILL.md` |
+| Setting up Datadog monitoring for Hybrid Cloud | `setup/SKILL.md` |
 | Optimizer stuck or running forever | `debugging/SKILL.md` |
 | Memory keeps growing in production | `debugging/SKILL.md` |
 | Requests are slow and I need to find out why | `debugging/SKILL.md` |
 | Is Qdrant healthy right now | `debugging/SKILL.md` |
+| Want to find which queries are slow (slow request log) | `debugging/SKILL.md` |
+| Need a per-collection memory or vector breakdown | `debugging/SKILL.md` |
 
 Qdrant monitoring tracks performance and health, and catches issues before they become outages. See the metric reference before tuning anything:
 [Monitoring docs](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/)
