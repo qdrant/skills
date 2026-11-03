@@ -9,9 +9,13 @@ merges hand-maintained overrides, and writes a deterministic JSON map.
 The docs-to-skills automation (qdrant/documentation#167) uses the map to
 find the candidate skills for a merged docs PR in qdrant/landing_page.
 
+The map is not committed. build.sh generates it on every deploy, so the current version is always
+at https://skills.qdrant.tech/docs-map.json, and the docs-to-skills workflow in qdrant/docs-automation
+generates it from its own checkout before each run.
+
 Usage:
-  python3 scripts/build_docs_map.py                      # write docs-map.json
-  python3 scripts/build_docs_map.py --check              # fail if out of date
+  python3 scripts/build_docs_map.py                      # write docs-map.json (gitignored)
+  python3 scripts/build_docs_map.py --output public/docs-map.json
   python3 scripts/build_docs_map.py --docs-root ../landing_page/qdrant-landing/content
                                                          # also verify pages and sections exist
 
@@ -23,6 +27,8 @@ Overrides (docs-map.overrides.json, hand-edited):
     }
   }
 """
+
+from __future__ import annotations
 
 import argparse
 import json
@@ -111,7 +117,7 @@ def build(skills: dict[str, dict[str, set[str]]]) -> dict:
         for page in pages:
             by_page.setdefault(page, []).append(sid)
     return {
-        "_generated": "by scripts/build_docs_map.py; do not edit, use docs-map.overrides.json",
+        "_generated": "by scripts/build_docs_map.py from qdrant/skills; edit docs-map.overrides.json instead",
         "skills": by_skill,
         "pages": {page: sorted(sids) for page, sids in sorted(by_page.items())},
     }
@@ -170,7 +176,7 @@ def verify(result: dict, content_root: Path) -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--check", action="store_true", help="fail if docs-map.json is out of date")
+    ap.add_argument("--output", type=Path, default=OUTPUT, help="where to write the map (default: docs-map.json)")
     ap.add_argument("--docs-root", type=Path, help="landing_page/qdrant-landing/content, to verify links")
     ap.add_argument("--strict", action="store_true", help="with --docs-root, fail on missing pages or sections")
     args = ap.parse_args()
@@ -199,17 +205,10 @@ def main() -> int:
     if errors or (args.strict and problems):
         return 1
 
-    if args.check:
-        current = OUTPUT.read_text(encoding="utf-8") if OUTPUT.exists() else ""
-        if current != text:
-            print("docs-map.json is out of date; run scripts/build_docs_map.py", file=sys.stderr)
-            return 1
-        print("docs-map.json is up to date")
-        return 0
-
-    OUTPUT.write_text(text, encoding="utf-8")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(text, encoding="utf-8")
     n_pages = len(result["pages"])
-    print(f"wrote {OUTPUT.name}: {len(result['skills'])} skills, {n_pages} docs pages")
+    print(f"wrote {args.output}: {len(result['skills'])} skills, {n_pages} docs pages")
     return 0
 
 
