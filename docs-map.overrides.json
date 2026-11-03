@@ -83,8 +83,10 @@
       "/documentation/ops-monitoring/hybrid-cloud-datadog/",
       "/documentation/hybrid-cloud/networking-logging-monitoring/",
       "/documentation/private-cloud/logging-monitoring/",
-      "/documentation/observability/datadog/"
-    ]
+      "/documentation/observability/datadog/",
+      "/documentation/cloud/configure-cluster/?s=audit-logging"
+    ],
+    "_note": "The skill covers audit log output but links only the self-hosted security page; Cloud and Hybrid Cloud audit logging settings live on configure-cluster."
   },
   "qdrant-multitenancy": {
     "add": [

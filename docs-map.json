@@ -204,6 +204,9 @@
       "/documentation/cloud/cluster-metrics-reference/": [],
       "/documentation/cloud/cluster-monitoring-prometheus/": [],
       "/documentation/cloud/cluster-monitoring/": [],
+      "/documentation/cloud/configure-cluster/": [
+        "audit-logging"
+      ],
       "/documentation/hybrid-cloud/networking-logging-monitoring/": [],
       "/documentation/observability/datadog/": [],
       "/documentation/ops-configuration/configuration/": [],
@@ -756,7 +759,8 @@
       "qdrant-version-upgrade"
     ],
     "/documentation/cloud/configure-cluster/": [
-      "qdrant-managed-cloud-quickstart"
+      "qdrant-managed-cloud-quickstart",
+      "qdrant-monitoring/setup"
     ],
     "/documentation/cloud/create-cluster/": [
       "qdrant-managed-cloud-quickstart"
