@@ -17,7 +17,7 @@ Do not answer from this page alone: it contains routing only, not the guidance. 
 | Want to set up Prometheus, Grafana, or health checks | `setup/SKILL.md` |
 | Need to know which metrics to track | `setup/SKILL.md` |
 | Setting up alerting, log centralization, or Hybrid Cloud metrics | `setup/SKILL.md` |
-| Setting up Datadog monitoring for Hybrid Cloud | `setup/SKILL.md` |
+| Want to send Qdrant metrics to Datadog | `setup/SKILL.md` |
 | Optimizer stuck or running forever | `debugging/SKILL.md` |
 | Memory keeps growing in production | `debugging/SKILL.md` |
 | Requests are slow and I need to find out why | `debugging/SKILL.md` |
