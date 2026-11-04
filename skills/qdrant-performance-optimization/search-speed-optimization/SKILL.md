@@ -28,7 +28,7 @@ Use when: individual queries take too long regardless of load.
 
 - Tune HNSW parameters: [Fine-tuning search](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Enable in-memory quantization: [Scalar quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
-- Use `datatype: turbo4` for compact 4-bit on-disk storage to reduce disk reads [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
+- On v1.19+, store vectors as `datatype: turbo4` (4-bit, about 8x smaller) to cut disk reads. Lossy: the originals are no longer full precision, so check recall. Set it when creating the collection or adding a new named vector, so existing data must be re-ingested [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
 - Enable io_uring for disk-heavy workloads on Linux [io_uring](https://skills.qdrant.tech/md/articles/io_uring/)
