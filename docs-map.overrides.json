@@ -1,0 +1,229 @@
+{
+  "_comment": "Hand-edited. Per skill: 'add' docs pages it depends on without linking, 'exclude' links that are only passing mentions. Paths are /documentation/<page>/ with an optional ?s=<anchor>. '_note' keys are ignored by the generator. Run scripts/build_docs_map.py --docs-root ../landing_page/qdrant-landing/content after editing.",
+  "qdrant-clients-sdk": {
+    "add": [
+      "/documentation/interfaces/",
+      "/documentation/common-errors/?s=using-python-grpc-client-with-multiprocessing"
+    ]
+  },
+  "qdrant-deployment-options": {
+    "add": [
+      "/documentation/installation/",
+      "/documentation/cloud/",
+      "/documentation/private-cloud/",
+      "/documentation/shared-responsibility/",
+      "/documentation/edge/edge-vs-qdrant-cluster/"
+    ]
+  },
+  "qdrant-edge": {
+    "add": [
+      "/documentation/edge/edge-api/",
+      "/documentation/edge/edge-api/configuration/",
+      "/documentation/edge/edge-api/shard-lifecycle/",
+      "/documentation/edge/edge-api/snapshots/",
+      "/documentation/edge/edge-api/updating-data/",
+      "/documentation/edge/edge-vs-qdrant-cluster/"
+    ]
+  },
+  "qdrant-hybrid-cloud-setup": {
+    "add": [
+      "/documentation/hybrid-cloud/",
+      "/documentation/hybrid-cloud/configure-scale-upgrade/",
+      "/documentation/hybrid-cloud/troubleshooting/",
+      "/documentation/shared-responsibility/",
+      "/documentation/common-errors/?s=hybrid-cloud-problems"
+    ]
+  },
+  "qdrant-managed-cloud-quickstart": {
+    "add": [
+      "/documentation/cloud-getting-started/",
+      "/documentation/cloud/production-checklist/",
+      "/documentation/cloud-automation/",
+      "/documentation/common-errors/?s=unauthorized-and-forbidden-http-401-and-403",
+      "/documentation/ops-configuration/administration/?s=strict-mode",
+      "/documentation/inference/cloud-inference/"
+    ]
+  },
+  "qdrant-migration-tool": {
+    "add": [
+      "/documentation/migrate-to-qdrant/from-dynamodb/",
+      "/documentation/migrate-to-qdrant/from-turbopuffer/",
+      "/documentation/migration-recovery-options/",
+      "/documentation/migration-guidance/pre-migration-baseline/",
+      "/documentation/migration-guidance/data-integrity/",
+      "/documentation/migration-guidance/search-quality/",
+      "/documentation/migration-guidance/diagnosing-discrepancies/",
+      "/documentation/data-synchronization/with-postgres/"
+    ],
+    "_note": "from-dynamodb and from-turbopuffer exist in the docs but the skill doesn't mention them; consider adding them to the skill itself."
+  },
+  "qdrant-model-migration": {
+    "add": [
+      "/documentation/manage-data/vectors/?s=named-vectors",
+      "/documentation/search-patterns/choose-embedding-model/",
+      "/documentation/search/hybrid-queries/",
+      "/documentation/search-tuning/hybrid-search/"
+    ]
+  },
+  "qdrant-monitoring/debugging": {
+    "add": [
+      "/documentation/ops-monitoring/memory-usage/",
+      "/documentation/ops-monitoring/slow-request-log/",
+      "/documentation/ops-monitoring/monitoring/",
+      "/documentation/ops-optimization/read-write-contention/",
+      "/documentation/cloud/cluster-alerts/",
+      "/documentation/common-errors/"
+    ]
+  },
+  "qdrant-monitoring/setup": {
+    "add": [
+      "/documentation/cloud/cluster-monitoring-prometheus/",
+      "/documentation/cloud/cluster-metrics-reference/",
+      "/documentation/cloud/cluster-alerts/",
+      "/documentation/ops-monitoring/hybrid-cloud-datadog/",
+      "/documentation/hybrid-cloud/networking-logging-monitoring/",
+      "/documentation/private-cloud/logging-monitoring/",
+      "/documentation/observability/datadog/",
+      "/documentation/cloud/configure-cluster/?s=audit-logging"
+    ],
+    "_note": "The skill covers audit log output but links only the self-hosted security page; Cloud and Hybrid Cloud audit logging settings live on configure-cluster."
+  },
+  "qdrant-multitenancy": {
+    "add": [
+      "/documentation/production-operations/multitenant-search/",
+      "/documentation/search-patterns/vector-search-filtering/?s=use-one-collection-for-many-tenants",
+      "/documentation/production-operations/access-control/",
+      "/documentation/security/?s=authentication"
+    ]
+  },
+  "qdrant-performance-optimization/indexing-performance-optimization": {
+    "add": [
+      "/documentation/production-operations/bulk-data-import/",
+      "/documentation/ops-optimization/read-write-contention/",
+      "/documentation/production-operations/predictable-search-latency/"
+    ]
+  },
+  "qdrant-performance-optimization/memory-usage-optimization": {
+    "add": [
+      "/documentation/ops-monitoring/memory-usage/",
+      "/documentation/production-operations/memory-tiers/",
+      "/documentation/manage-data/storage/",
+      "/documentation/search-tuning/when-your-collection-outgrows-ram/",
+      "/documentation/ops-configuration/quotas/",
+      "/documentation/faq/database-optimization/"
+    ]
+  },
+  "qdrant-performance-optimization/search-speed-optimization": {
+    "add": [
+      "/documentation/ops-monitoring/slow-request-log/",
+      "/documentation/ops-optimization/read-write-contention/",
+      "/documentation/search-patterns/vector-search-filtering/",
+      "/documentation/production-operations/predictable-search-latency/"
+    ]
+  },
+  "qdrant-scaling/minimize-latency": {
+    "add": [
+      "/documentation/search/low-latency-search/",
+      "/documentation/ops-monitoring/slow-request-log/",
+      "/documentation/production-operations/predictable-search-latency/",
+      "/documentation/production-operations/memory-tiers/",
+      "/documentation/scaling/vertical-scaling/"
+    ]
+  },
+  "qdrant-scaling/scaling-data-volume/horizontal-scaling": {
+    "add": [
+      "/documentation/scaling/horizontal-scaling/",
+      "/documentation/scaling/resilience/",
+      "/documentation/scaling/consistency-guarantees/",
+      "/documentation/hybrid-cloud/configure-scale-upgrade/?s=scale-clusters",
+      "/documentation/private-cloud/qdrant-cluster-management/?s=resharding"
+    ]
+  },
+  "qdrant-scaling/scaling-data-volume/sliding-time-window": {
+    "add": [
+      "/documentation/ops-configuration/memory-tiers/"
+    ]
+  },
+  "qdrant-scaling/scaling-data-volume/tenant-scaling": {
+    "add": [
+      "/documentation/production-operations/multitenant-search/",
+      "/documentation/search-patterns/vector-search-filtering/?s=use-one-collection-for-many-tenants"
+    ]
+  },
+  "qdrant-scaling/scaling-data-volume/vertical-scaling": {
+    "add": [
+      "/documentation/scaling/vertical-scaling/",
+      "/documentation/hybrid-cloud/configure-scale-upgrade/?s=scale-clusters",
+      "/documentation/private-cloud/qdrant-cluster-management/?s=scaling-a-cluster"
+    ]
+  },
+  "qdrant-scaling/scaling-qps": {
+    "add": [
+      "/documentation/ops-optimization/read-write-contention/",
+      "/documentation/scaling/horizontal-scaling/"
+    ]
+  },
+  "qdrant-scaling/scaling-query-volume": {
+    "add": [
+      "/documentation/search/search/?s=pagination",
+      "/documentation/manage-data/points/?s=scroll-points",
+      "/documentation/scaling/distributed_deployment/?s=sharding"
+    ],
+    "_note": "The per-shard subsampling this skill describes isn't documented anywhere in landing_page; these are the nearest pages."
+  },
+  "qdrant-search-quality/diagnosis": {
+    "add": [
+      "/documentation/search-tuning/when-your-collection-outgrows-ram/",
+      "/documentation/search-patterns/vector-search-filtering/"
+    ]
+  },
+  "qdrant-search-quality/search-strategies": {
+    "add": [
+      "/documentation/search-precision/reranking-semantic-search/",
+      "/documentation/search-tuning/hybrid-search/",
+      "/documentation/fastembed/fastembed-colbert/",
+      "/documentation/fastembed/fastembed-postprocessing/"
+    ]
+  },
+  "qdrant-search-quality/search-strategies/hybrid-search": {
+    "add": [
+      "/documentation/search/text-search/hybrid-search/",
+      "/documentation/search-tuning/how-to-tune-hybrid-search/",
+      "/documentation/inference/inference-bm25/"
+    ]
+  },
+  "qdrant-search-quality/search-strategies/hybrid-search/combining-searches": {
+    "add": [
+      "/documentation/search-tuning/when-a-reranker-is-worth-it/",
+      "/documentation/fastembed/fastembed-colbert/"
+    ]
+  },
+  "qdrant-search-quality/search-strategies/hybrid-search/search-types": {
+    "add": [
+      "/documentation/search/text-search/hybrid-search/",
+      "/documentation/search/text-search/text-filtering/",
+      "/documentation/inference/inference-bm25/"
+    ]
+  },
+  "qdrant-search-quality/search-strategies/relevance-feedback": {
+    "add": [
+      "/documentation/search-tuning/when-a-reranker-is-worth-it/"
+    ]
+  },
+  "qdrant-sizing": {
+    "add": [
+      "/documentation/scaling/vertical-scaling/?s=ram-sizing-guidelines",
+      "/documentation/scaling/horizontal-scaling/?s=how-many-qdrant-nodes-should-i-run",
+      "/documentation/production-operations/memory-tiers/",
+      "/documentation/cloud-getting-started/?s=size-your-cluster"
+    ]
+  },
+  "qdrant-version-upgrade": {
+    "add": [
+      "/documentation/release-notes/",
+      "/documentation/hybrid-cloud/configure-scale-upgrade/?s=update-clusters",
+      "/documentation/private-cloud/qdrant-cluster-management/?s=upgrading-the-qdrant-version",
+      "/documentation/cloud/production-checklist/?s=upgrades"
+    ]
+  }
+}
