@@ -27,7 +27,7 @@ Use when: memory exceeds expectations, node crashes with OOM, or memory keeps gr
 - Process memory metrics available via `/metrics` (RSS, allocated bytes, page faults)
 - Qdrant uses two types of RAM: resident memory (data structures, quantized vectors) and OS page cache (cached disk reads). Page cache filling available RAM is normal. [Memory article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 - If resident memory (RSSAnon) exceeds 80% of total RAM, investigate
-- Check `/telemetry` for per-collection breakdown of point counts and vector configurations
+- Check `/telemetry` for per-collection breakdown of point counts and vector configurations, and monitor per-collection memory breakdown [Memory usage](https://skills.qdrant.tech/md/documentation/ops-monitoring/memory-usage/)
 - Estimate expected memory per component (vectors, HNSW index, ID tracker, payload indexes) for the structures kept in RAM, plus about 20% headroom, and compare it with actual usage [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=calculating-ram-and-disk-size)
 - Common causes of unexpected growth: quantized vectors pinned in RAM (`memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older), too many payload indexes, large `max_segment_size` during optimization
 
@@ -36,6 +36,7 @@ Use when: memory exceeds expectations, node crashes with OOM, or memory keeps gr
 
 Use when: queries slower than expected and you need to identify the cause.
 
+- Slow request log (v1.16+, always on): surfaces individual slow queries with timing breakdown. It's per node and resets on restart, so query every node in a cluster by using `GET /profiler/slow_requests` [Slow request log](https://skills.qdrant.tech/md/documentation/ops-monitoring/slow-request-log/)
 - Track `rest_responses_avg_duration_seconds` and `rest_responses_max_duration_seconds` per endpoint
 - Use histogram metric `rest_responses_duration_seconds` (v1.8+) for percentile analysis in Grafana
 - Equivalent gRPC metrics with `grpc_responses_` prefix

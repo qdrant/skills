@@ -17,4 +17,7 @@ python3 scripts/build_docs_map.py --output public/docs-map.json
 
 python3 scripts/generate_breadcrumbs.py public
 
+# Last of the SKILL.md steps: the index carries a digest of each served file.
+python3 scripts/generate_agent_skills_index.py public
+
 bash scripts/generate_sitemap.sh public

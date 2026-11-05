@@ -1,6 +1,6 @@
 ---
 name: qdrant-monitoring-setup
-description: "Guides Qdrant monitoring setup including Prometheus scraping, health probes, Hybrid Cloud metrics, alerting, and log centralization. Use when someone asks 'how to set up monitoring', 'Prometheus config', 'Grafana dashboard', 'health check endpoints', 'how to scrape Hybrid Cloud', 'what alerts to set', 'how to centralize logs', or 'audit logging'."
+description: "Guides Qdrant monitoring setup including Prometheus scraping, Datadog integration, health probes, Hybrid Cloud metrics, alerting, and log centralization. Use when someone asks 'how to set up monitoring', 'Prometheus config', 'send metrics to Datadog', 'Grafana dashboard', 'health check endpoints', 'how to scrape Hybrid Cloud', 'what alerts to set', 'how to centralize logs', or 'audit logging'."
 ---
 
 # How to Set Up Qdrant Monitoring
@@ -16,6 +16,7 @@ Use when: setting up metric collection for the first time or adding a new deploy
 - Cluster metrics at `/sys_metrics` (Qdrant Cloud only)
 - Prefix customization via `service.metrics_prefix` config or `QDRANT__SERVICE__METRICS_PREFIX` env var
 - Example self-hosted setup with Prometheus + Grafana [prometheus-monitoring repo](https://github.com/qdrant/prometheus-monitoring)
+- Datadog integration: collect metrics via the OpenMetrics `/metrics` endpoint [Datadog integration](https://skills.qdrant.tech/md/documentation/observability/datadog/)
 
 
 ## Hybrid Cloud Scraping
