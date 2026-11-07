@@ -27,7 +27,7 @@ Use when: creating the first cluster, or deciding between Free, Standard, and Pr
 
 Use when: the first request to the cluster fails, or an SDK reports an authentication or TLS error.
 
-- Send a Database API key with every REST and gRPC request, as the `api-key` header or `Authorization: Bearer`. Each key works only on the cluster it was created in. It is shown once at creation; if it's lost, create a new one [Authentication](https://skills.qdrant.tech/md/documentation/cloud/authentication/) [Database API keys](https://skills.qdrant.tech/md/documentation/production-operations/access-control/?s=database-api-keys)
+- Send a Database API key with every REST and gRPC request, as the `api-key` header or `Authorization: Bearer`. Each key works only on the cluster it was created in. It is shown once at creation; if it's lost, create a new one [Authentication](https://skills.qdrant.tech/md/documentation/cloud/authentication/) [Database API keys](https://skills.qdrant.tech/md/documentation/deploy-and-scale/access-control/?s=database-api-keys)
 - Don't use a Cloud Management Key here. Those authorize the Cloud platform API for managing clusters and backups, not the database [Cloud API](https://skills.qdrant.tech/md/documentation/cloud-api/?s=authentication)
 - Connect over HTTPS to the cluster endpoint: port 6333 or 443 for REST, 6334 for gRPC. For working connection code in each language, use the [clients-sdk skill](../qdrant-clients-sdk/SKILL.md) snippet search [Cluster access](https://skills.qdrant.tech/md/documentation/cloud/cluster-access/)
 - Test access with a single request to the cluster root URL with the key in the header [Test cluster access](https://skills.qdrant.tech/md/documentation/cloud/authentication/?s=authenticate-with-a-key)

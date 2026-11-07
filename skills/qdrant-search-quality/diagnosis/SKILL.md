@@ -25,7 +25,7 @@ Use when: results are irrelevant or missing expected matches and you need to iso
 - For a no-code quick check, use the Web UI's ANN Recall tab to compare approximate vs exact `recall@k` [Web UI ANN Recall](https://skills.qdrant.tech/md/documentation/tutorials-search-engineering/ann-recall/?s=measure-ann-recall-with-the-web-ui)
 - For the same comparison in code (CI gating, regression tests), run each query twice: once approximate, once with `exact=true`. Compute `recall@k` from the overlap [ANN recall in CI](https://skills.qdrant.tech/md/documentation/tutorials-search-engineering/ann-recall/?s=automate-in-ci-with-python)
 - Target >95% `recall@k` in production. Exact search bad = model, data, or search pipeline problem. Exact good, approximate bad = tune HNSW.
-- Match the embedding model to your data: the context window should fit your chunk length with room for special tokens, the model must cover every language in your corpus, and its training domain should resemble yours (e.g. a code-trained model for code) [How to choose an embedding model](https://skills.qdrant.tech/md/documentation/search-patterns/choose-embedding-model/)
+- Match the embedding model to your data: the context window should fit your chunk length with room for special tokens, the model must cover every language in your corpus, and its training domain should resemble yours (e.g. a code-trained model for code) [How to choose an embedding model](https://skills.qdrant.tech/md/documentation/search-design/choose-embedding-model/)
 - Make sure documents are properly chunked; splitting chunks mid-sentence alone can drop quality by 30-40%
 - Check if quantization degrades quality (compare with and without)
 - Check if filters are too restrictive (then you might need to use ACORN)
@@ -49,7 +49,7 @@ Binary quantization requires rescore. Without it, quality loss is severe. Use ov
 
 Use when: exact search also returns bad results.
 
-- Check [Qdrant team recommendations on how to choose an embedding model](https://skills.qdrant.tech/md/documentation/search-patterns/choose-embedding-model/).
+- Check [Qdrant team recommendations on how to choose an embedding model](https://skills.qdrant.tech/md/documentation/search-design/choose-embedding-model/).
 
 - Test top 3 MTEB models on 100-1000 sample queries [Hosted Qdrant inference](https://skills.qdrant.tech/md/documentation/inference/). Score them against a labeled set to compare apples to apples [Measuring Retrieval Relevance](https://skills.qdrant.tech/md/documentation/search-evaluation/retrieval-relevance/).
 
