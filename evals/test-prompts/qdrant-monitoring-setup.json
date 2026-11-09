@@ -26,7 +26,7 @@
     },
     {
       "type": "bonus",
-      "text": "Covers log centralization (JSON log format; audit logs need a PV + sidecar to reach stdout)"
+      "text": "Covers log centralization (JSON log format; audit logs need a PV + sidecar to reach stdout on v1.19 or older, or audit.output on v1.20+)"
     },
     {
       "type": "avoid",
