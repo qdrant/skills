@@ -22,7 +22,7 @@
     },
     {
       "type": "must",
-      "text": "Keep the custom RRF: Edge queries one vector field per request (using) and doesn't fuse at query time, so combining rankings in application code is correct."
+      "text": "Replace the custom RRF: Edge `query` accepts dense and sparse `prefetches` and fuses them with a `Fusion` query in one call, so rankings don't need combining in application code."
     },
     {
       "type": "bonus",
@@ -46,7 +46,7 @@
     },
     {
       "type": "avoid",
-      "text": "Drops the custom fusion because \"Edge handles hybrid,\" or swaps embed_document/embed_query."
+      "text": "Keeps combining dense and sparse rankings in application code instead of prefetches with a Fusion query, or swaps embed_document/embed_query."
     }
   ]
 }
