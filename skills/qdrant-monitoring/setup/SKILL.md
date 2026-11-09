@@ -14,7 +14,7 @@ Use when: setting up metric collection for the first time or adding a new deploy
 
 - Node metrics at `/metrics` endpoint [Monitoring docs](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/)
 - Cluster metrics at `/sys_metrics` (Qdrant Cloud only)
-- Prefix customization via `service.metrics_prefix` config or `QDRANT__SERVICE__METRICS_PREFIX` env var
+- To add a prefix to metric names, see [Metrics configuration](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/?s=metrics-configuration)
 - Example self-hosted setup with Prometheus + Grafana [prometheus-monitoring repo](https://github.com/qdrant/prometheus-monitoring)
 - Datadog integration: collect metrics via the OpenMetrics `/metrics` endpoint [Datadog integration](https://skills.qdrant.tech/md/documentation/observability/datadog/)
 
@@ -51,7 +51,7 @@ Use when: enterprise compliance requires centralized logs or audit trails.
 
 - Enable JSON log format for structured analysis: set `logger.format` to `json` in config [Configuration](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/)
 - Use FluentD/OpenSearch for log aggregation
-- Audit logs (v1.17+) write to local filesystem (`/qdrant/storage/audit/`) by default. On v1.20 or newer, set `audit.output` to `stdout`, `stderr`, `file_and_stdout`, or `file_and_stderr` (env var `QDRANT__AUDIT__OUTPUT`) so a DaemonSet can collect them with no sidecar or Persistent Volume. Each line carries `"kind": "audit"` to tell it from regular logs, and the `/audit/logs` API returns nothing on a node that writes only to a stream. On v1.19 or older, mount a Persistent Volume and deploy a sidecar container to tail the files to stdout. [Audit logging](https://skills.qdrant.tech/md/documentation/security/?s=audit-log-output)
+- Audit logging (v1.17+) is off by default; turn it on with `audit.enabled: true` [Audit logging](https://skills.qdrant.tech/md/documentation/security/?s=audit-logging). Audit logs write to local filesystem (`/qdrant/storage/audit/`) by default. On v1.20 or newer, set `audit.output` to `stdout`, `stderr`, `file_and_stdout`, or `file_and_stderr` (env var `QDRANT__AUDIT__OUTPUT`) so a DaemonSet can collect them with no sidecar or Persistent Volume. Each line carries `"kind": "audit"` to tell it from regular logs, and the `/audit/logs` API returns nothing on a node that writes only to a stream. On v1.19 or older, mount a Persistent Volume and deploy a sidecar container to tail the files to stdout. [Audit logging](https://skills.qdrant.tech/md/documentation/security/?s=audit-log-output)
 
 
 ## What NOT to Do

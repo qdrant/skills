@@ -7,17 +7,16 @@ description: "Diagnoses and reduces Qdrant memory usage. Use when someone report
 
 Qdrant operates with two types of memory:
 
-- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM. As of Qdrant 1.20 the ID tracker has its own `memory` tier (default `pinned`; `cached` lets the OS evict it, `cold` needs no up-front RAM), where it was always resident before. On Qdrant 1.19 or newer this is controlled per-component with `memory: pinned` (e.g. quantized vectors, payload indexes); see [memory tier legacy settings](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers?s=legacy-settings) for deployments on version 1.18 or older.
+- Resident memory (aka RSSAnon) - memory used for internal data structures like the ID tracker, plus components that stay fully in RAM (the `pinned` tier), such as quantized vectors and payload indexes. On Qdrant 1.20 or newer, the ID tracker has its own `memory` tier and can leave resident memory; before 1.20 it was always resident.
 
-- OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade. On Qdrant 1.19 or newer this corresponds to `memory: cached` (pre-warmed into page cache at startup) or `memory: cold` (lazy disk reads, not pre-warmed); on 1.18 or older it's controlled via the `on_disk` boolean on vectors, HNSW config, sparse vector index, and payload index. See [Memory Tiers docs](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/) (available on 1.19+).
+- OS page cache - memory used for caching disk reads, which can be released when needed. Original vectors are normally stored in page cache, so the service won't crash if RAM is full, but performance may degrade. This is the `cached` and `cold` tiers. See the [default tiers](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=default-tiers) for each component, and the [legacy settings](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=legacy-settings) for Qdrant 1.18 or older.
 
 It is normal for the OS page cache to occupy all available RAM, but if resident memory is above 80% of total RAM, it is a sign of a problem.
 
 ## Memory usage monitoring
 
-- Qdrant exposes memory usage through the `/metrics` endpoint. See [Monitoring docs](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/).
-
-<!-- ToDo: Talk about memory usage of each components once API is available -->
+- Qdrant exposes process memory through the `/metrics` endpoint. See [Monitoring docs](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/).
+- For a per-collection breakdown of RAM, page cache, and disk use by component, call `GET /collections/{collection_name}/memory` or open the Web UI's Memory tab (v1.18+) [Memory usage](https://skills.qdrant.tech/md/documentation/ops-monitoring/memory-usage/)
 
 
 ## How much memory is needed for Qdrant?
@@ -28,7 +27,7 @@ Optimal memory usage depends on the use case.
 
 For a detailed breakdown of memory usage at large scale, see [Large scale memory usage example](https://skills.qdrant.tech/md/documentation/tutorials-operations/large-scale-search/?s=memory-usage).
 
-Payload indexes and HNSW graph also require memory, along with vectors themselves, so it's important to consider them in calculations.
+Count payload indexes and the HNSW graph, not just the vectors: [Calculating RAM and disk size](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=calculating-ram-and-disk-size) lists every component.
 
 Additionally, Qdrant requires some extra memory for optimizations. During optimization, optimized segments are fully loaded into RAM, so it is important to leave enough headroom.
 The larger `max_segment_size` is, the more headroom is needed.

@@ -12,9 +12,7 @@ First check optimizer status. Most production issues trace back to active optimi
 
 Use when: optimizer running for hours, not finishing, or showing errors.
 
-- Use `/collections/{collection_name}/optimizations` endpoint (v1.17+) to check status [Optimization monitoring](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=optimization-monitoring)
-- Query with optional detail flags: `?with=queued,completed,idle_segments`
-- Returns: queued optimizations count, active optimizer type, involved segments, progress tracking
+- Use the `/collections/{collection_name}/optimizations` endpoint (v1.17+) to see queued and running optimizations and their progress; add `?with=queued,completed,idle_segments` for the full lists [Optimization monitoring](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=optimization-monitoring)
 - Web UI has an Optimizations tab with timeline view and per-task duration metrics [Web UI](https://skills.qdrant.tech/md/documentation/ops-optimization/optimizer/?s=web-ui)
 - If `optimizer_status` shows an error in collection info, check logs for disk full or corrupted segments
 - Large merges and HNSW rebuilds legitimately take hours on big datasets. Check progress before assuming it's stuck.
@@ -24,10 +22,10 @@ Use when: optimizer running for hours, not finishing, or showing errors.
 
 Use when: memory exceeds expectations, node crashes with OOM, or memory keeps growing.
 
-- Process memory metrics available via `/metrics` (RSS, allocated bytes, page faults)
+- Watch the process memory metrics on `/metrics`: `memory_resident_bytes`, `memory_allocated_bytes`, and `process_major_page_faults_total` [Node metrics](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/?s=node-metrics-metrics)
 - Qdrant uses two types of RAM: resident memory (data structures, quantized vectors) and OS page cache (cached disk reads). Page cache filling available RAM is normal. [Memory article](https://skills.qdrant.tech/md/articles/memory-consumption/)
 - If resident memory (RSSAnon) exceeds 80% of total RAM, investigate
-- Check `/telemetry` for per-collection breakdown of point counts and vector configurations, and monitor per-collection memory breakdown [Memory usage](https://skills.qdrant.tech/md/documentation/ops-monitoring/memory-usage/)
+- Check `/telemetry` for per-collection point counts and vector configurations. For a per-component breakdown of RAM, page cache, and disk use, call `GET /collections/{collection_name}/memory` or open the Web UI's Memory tab (v1.18+) [Memory usage](https://skills.qdrant.tech/md/documentation/ops-monitoring/memory-usage/)
 - Estimate expected memory per component (vectors, HNSW index, ID tracker, payload indexes) for the structures kept in RAM, plus about 20% headroom, and compare it with actual usage [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/?s=calculating-ram-and-disk-size)
 - Common causes of unexpected growth: quantized vectors pinned in RAM (`memory: pinned` on Qdrant 1.19 or newer, `always_ram: true` on 1.18 or older), too many payload indexes, large `max_segment_size` during optimization
 
@@ -37,9 +35,7 @@ Use when: memory exceeds expectations, node crashes with OOM, or memory keeps gr
 Use when: queries slower than expected and you need to identify the cause.
 
 - Slow request log (v1.16+, always on): surfaces individual slow queries with timing breakdown. It's per node and resets on restart, so query every node in a cluster by using `GET /profiler/slow_requests` [Slow request log](https://skills.qdrant.tech/md/documentation/ops-monitoring/slow-request-log/)
-- Track `rest_responses_avg_duration_seconds` and `rest_responses_max_duration_seconds` per endpoint
-- Use histogram metric `rest_responses_duration_seconds` (v1.8+) for percentile analysis in Grafana
-- Equivalent gRPC metrics with `grpc_responses_` prefix
+- Use the `rest_responses_duration_seconds` histogram (v1.8+; `grpc_responses_duration_seconds` for gRPC) for latency percentiles, rather than the avg and max gauges. Add `?per_collection=true` to `/metrics` to break them down by collection [Per-collection API metrics](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/?s=per-collection-api-metrics)
 - Check optimizer status first. Active optimizations compete for CPU and I/O, degrading search latency.
 - Check segment count via collection info. Too many unmerged segments after bulk upload causes slower search.
 - Compare filtered vs unfiltered query times. Large gap means missing payload index. [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)

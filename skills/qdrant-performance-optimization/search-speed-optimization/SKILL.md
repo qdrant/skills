@@ -31,7 +31,7 @@ Use when: individual queries take too long regardless of load.
 - On v1.19+, store vectors as `datatype: turbo4` (4-bit, about 8x smaller) to cut disk reads. Lossy: the originals are no longer full precision, so check recall. Set it when creating the collection or adding a new named vector, so existing data must be re-ingested [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
-- Enable io_uring for disk-heavy workloads on Linux [io_uring](https://skills.qdrant.tech/md/articles/io_uring/)
+- Enable async I/O (`io_uring`) for disk-heavy workloads on Linux: `storage.performance.io_uring: auto` on Qdrant 1.19 or newer, `async_scorer: true` on 1.18 or older [Async I/O](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=async-io)
 
 
 ## Can't Handle Enough QPS (Throughput)
@@ -66,7 +66,7 @@ Use when: filtered search is significantly slower than unfiltered. Most common S
 ### Recommended configuration changes
 
 - reduce `optimizer_cpu_budget` to reserve more CPU for queries
-- Use `prevent_unoptimized=true` to prevent creating segments with a large amount of unindexed data for searches. Instead, once a segment reaches the so called indexing_threshold, all additional points will be added in ‘deferred state’. 
+- As an alternative to `indexed_only`, set `prevent_unoptimized: true` (v1.17.1+, experimental) to prevent searching over unindexed data. When it's on, set `wait=false` on all write requests, or writes block until indexing catches up.
 
 Learn more in the [read-write contention guide](https://skills.qdrant.tech/md/documentation/ops-optimization/read-write-contention/)
 
