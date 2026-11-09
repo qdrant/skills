@@ -14,7 +14,7 @@
     },
     {
       "type": "must",
-      "text": "Since quantization is already enabled, recommends further footprint levers: original vectors / HNSW / payload indexes on disk, float16 or uint8 datatypes (2x/4x reduction), or MRL to keep only small vectors in RAM"
+      "text": "Since quantization is already enabled, recommends further footprint levers: original vectors / HNSW / payload indexes on disk, datatypes, or MRL to keep only small vectors in RAM"
     },
     {
       "type": "bonus",

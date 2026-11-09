@@ -66,7 +66,7 @@ Use when: filtered search is significantly slower than unfiltered. Most common S
 ### Recommended configuration changes
 
 - reduce `optimizer_cpu_budget` to reserve more CPU for queries
-- As an alternative to `indexed_only`, set `prevent_unoptimized: true` (v1.17.1+, experimental) so large unindexed segments don't form: points beyond the indexing threshold wait in a deferred state until they're indexed. When it's on, set `wait=false` on all write requests, or writes block until indexing catches up.
+- As an alternative to `indexed_only`, set `prevent_unoptimized: true` (v1.17.1+, experimental) to prevent searching over unindexed data. When it's on, set `wait=false` on all write requests, or writes block until indexing catches up.
 
 Learn more in the [read-write contention guide](https://skills.qdrant.tech/md/documentation/ops-optimization/read-write-contention/)
 

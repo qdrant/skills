@@ -35,7 +35,7 @@ Use when: memory exceeds expectations, node crashes with OOM, or memory keeps gr
 Use when: queries slower than expected and you need to identify the cause.
 
 - Slow request log (v1.16+, always on): surfaces individual slow queries with timing breakdown. It's per node and resets on restart, so query every node in a cluster by using `GET /profiler/slow_requests` [Slow request log](https://skills.qdrant.tech/md/documentation/ops-monitoring/slow-request-log/)
-- Use the `rest_responses_duration_seconds` histogram (v1.8+; `grpc_responses_duration_seconds` for gRPC) for latency percentiles in Grafana, rather than the avg and max gauges. Add `?per_collection=true` to `/metrics` to break them down by collection [Per-collection API metrics](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/?s=per-collection-api-metrics)
+- Use the `rest_responses_duration_seconds` histogram (v1.8+; `grpc_responses_duration_seconds` for gRPC) for latency percentiles, rather than the avg and max gauges. Add `?per_collection=true` to `/metrics` to break them down by collection [Per-collection API metrics](https://skills.qdrant.tech/md/documentation/ops-monitoring/monitoring/?s=per-collection-api-metrics)
 - Check optimizer status first. Active optimizations compete for CPU and I/O, degrading search latency.
 - Check segment count via collection info. Too many unmerged segments after bulk upload causes slower search.
 - Compare filtered vs unfiltered query times. Large gap means missing payload index. [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
