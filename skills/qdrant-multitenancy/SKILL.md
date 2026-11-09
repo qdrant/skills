@@ -15,27 +15,24 @@ description: "Guides tenant isolation architecture in Qdrant for multi-tenant or
 
 Use when: you have many tenants of roughly similar, modest size. This is the recommended default for most users.
 
-One collection holds every tenant. A payload field marks ownership, and a filter on that field at query time is what isolates each tenant's results.
-
 ### How It Works
 
-- Create a keyword payload index on the tenant field with `is_tenant=true` (the flag requires v1.11+). `is_tenant` tells Qdrant the field identifies tenants, so each tenant's vectors are stored together and served by sequential reads. Check [](https://api.qdrant.tech/api-reference/indexes/create-field-index).
-- At query time, isolate each tenant with a `must` filter on the tenant field. Without it, a query searches every tenant's data. Check [Payload-based multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=partition-by-payload).
+- Create a keyword payload index on the tenant field with `is_tenant=true` (v1.11+), so each tenant's points are stored together and read sequentially [Partition by payload](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=partition-by-payload).
+- Filter every query with a `must` condition on the tenant field. Without it, a query searches every tenant's data.
 - Text relevance (BM25 or sparse vectors with the IDF modifier) is scored with statistics computed over the whole shard, so tenants with different vocabularies distort each other's scores. On Qdrant 1.19 or newer, pass the `idf` search parameter with the tenant filter and index the tenant field; on 1.20 or newer this covers BM25 `text` queries on a full-text index too [Per-tenant scoring statistics](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=per-tenant-scoring-statistics).
-- With this strategy, the indexing speed might become a bottleneck at scale because every tenant indexes into the same collection. To avoid this, you can disable the global HNSW creation (for the entire collection) and only build per-tenant indexes: set `m=0` and `payload_m` to a non-zero value. Although this accelerates the indexing process, keep in mind that requests without a tenant filter will become slower as they must scan all groups. So only make this trade if you hit the bottleneck and cross-tenant search is rare. [Calibrate performance](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance).
+- Every tenant indexes into the same collection, so indexing can become a bottleneck at scale. Build per-tenant HNSW graphs instead of a global one: set `payload_m` to a non-zero value explicitly (it defaults to `m`), then set `m=0`. Queries without a tenant filter get slower, so only make this trade if you hit the bottleneck and cross-tenant search is rare [Calibrate performance](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance).
 
 
 ## A Few Large Tenants Plus a Long Tail (Tiered Multitenancy)
 
 Use when: you have a realistic SaaS distribution: a few large customers and many small ones, possibly with small tenants that grow over time. Available in v1.16+. It avoids the noisy-neighbor problem, where one big tenant forces the whole cluster to scale, raising costs and degrading performance for everyone else.
 
-Tiered multitenancy keeps small tenants together in a shared fallback shard while isolating large tenants in their own dedicated shards, all in one collection. 
-It layers two isolation levels: payload-based tenancy for logical isolation, and custom sharding for physical/ resource-based isolation of the large tenants. A tenant that outgrows the shared shard can be promoted to a dedicated shard later with no downtime. 
+Small tenants share a fallback shard and large tenants get dedicated shards, all in one collection. A tenant that outgrows the fallback shard can be promoted to a dedicated shard later with no downtime.
 
 ### How It Works
 
-- Create the collection with custom (user-defined) sharding, and configure payload-based tenancy. A single shared fallback shard holds all the small tenants. If you have large tenants, create dedicated shards (one per tenant). Check [Tiered multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=tiered-multitenancy).
-- When to promote a tenant? If a tenant becomes large enough to warrant dedicated resources (a reasonable promotion trigger is when a tenant approaches the indexing threshold), promote it to a dedicated shard. Qdrant moves its data into a new shard transparently, serving reads and writes throughout. Check [how to promote tenant to dedicated shard](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=promote-tenant-to-dedicated-shard).
+- Create the collection with custom sharding and `shard_number: 1`, add a fallback shard for the small tenants, and keep the `is_tenant` payload index from payload partitioning [Configure tiered multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=configure-tiered-multitenancy).
+- Promote a tenant to a dedicated shard once it approaches the indexing threshold, about 20,000 points. Qdrant moves its data with a shard transfer and keeps serving reads and writes [Promote tenant to dedicated shard](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=promote-tenant-to-dedicated-shard).
 - Keep in mind that re-sharding can be an expensive and time-consuming process, so consider your tenant growth patterns carefully when deciding which tenants should receive dedicated shards.
 - It's not recommended to exceed ~1000 dedicated shards per cluster (resource overhead).
 - The fallback shard (small tenants) must fit on a single node.
