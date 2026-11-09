@@ -17,15 +17,12 @@ Identify bottleneck: client-side (network, batching) vs server-side (CPU, disk I
 
 For client-side, optimize batching and parallelism:
 
-- Use batch upserts (64-256 points per request) [Points API](https://skills.qdrant.tech/md/documentation/manage-data/points/?s=upload-points)
-- Use 2-4 parallel upload streams
+- Use batch upserts (64-256 points per request) and 2-4 parallel upload streams [Bulk upload](https://skills.qdrant.tech/md/documentation/manage-data/bulk-upload/)
 
 For server-side, optimize Qdrant configuration and indexing strategy:
 
-- Create more shards (3-12), each shard has an independent update worker [Sharding](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/?s=sharding)
+- Create 2 to 4 shards per machine; each shard has an independent update worker, so give each one its own upload stream [Multiple shards](https://skills.qdrant.tech/md/documentation/manage-data/bulk-upload/?s=create-collections-with-multiple-shards)
 - Create payload indexes before HNSW builds (needed for filterable vector index) [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
-
-See [Bulk upload documentation](https://skills.qdrant.tech/md/documentation/manage-data/bulk-upload/)
 
 
 ## Optimizer Stuck or Taking Too Long
@@ -43,27 +40,21 @@ Use when: optimizer running for hours, not finishing.
 Use when: HNSW index build dominates total indexing time.
 
 - Reduce `m` (default 16, good for most cases, 32+ rarely needed) [HNSW params](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
-- Reduce `ef_construct` (100-200 sufficient) [HNSW config](https://skills.qdrant.tech/md/documentation/manage-data/collections/?s=indexing-vectors-in-hnsw)
-- Keep `max_indexing_threads` proportional to CPU cores [Configuration](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/)
+- Reduce `ef_construct` (100-200 sufficient) [HNSW params](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
+- Leave `max_indexing_threads` at 0 (auto) or cap it; the configuration reference suggests 8 to 16 [Configuration](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/)
 - Use GPU for indexing (v1.13+): run a `gpu-nvidia` or `gpu-amd` image tag (e.g. `qdrant/qdrant:gpu-nvidia-latest`) on a Vulkan 1.3 GPU and set `gpu.indexing: true` [GPU indexing](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
 
-## HNSW index for multi-tenant collections
+## HNSW Index for Multi-Tenant Collections
 
-If you have a multi-tenant use case where all data is split by some payload field (e.g. `tenant_id`), you can avoid building a global HNSW index and instead rely on `payload_m` to build HNSW index only for subsets of data.
-Skipping global HNSW index can significantly reduce indexing time.
+Use when: every query filters by a tenant field and the global HNSW build dominates indexing time.
 
-See [Multi-tenant collections](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/) for details.
+- Skip the global HNSW and build per-tenant graphs: at collection creation, set `payload_m` to a non-zero value, then `m: 0`. Queries without a tenant filter get slower, so only do this when cross-tenant search is rare [Calibrate performance](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance)
 
 ## Additional Payload Indexes Are Too Slow
 
-Qdrant builds extra HNSW links for all payload indexes to ensure that quality of filtered vector search does not degrade.
-Some payload indexes (e.g. `text` fields with long texts) can have a very high number of unique values per point, which can lead to long HNSW build time.
+Use when: HNSW builds slowly after adding payload indexes, especially on high-cardinality fields such as long `text`.
 
-You can disable building extra HNSW links for specific payload index and instead rely on slightly slower query-time strategies like ACORN.
-
-Read more about disabling extra HNSW links in [documentation](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=disable-the-creation-of-extra-edges-for-payload-fields)
-
-Read more about ACORN in [documentation](https://skills.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm)
+- Qdrant adds extra HNSW links for every payload index so filtered search keeps its quality. For a field with many unique values per point, disable those links and rely on the slower query-time [ACORN](https://skills.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm) strategy instead [Disable extra edges](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=disable-the-creation-of-extra-edges-for-payload-fields)
 
 
 ## What NOT to Do

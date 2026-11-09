@@ -20,7 +20,7 @@ Use when: searches produce scores on different scales, like BM25 and cosine on d
 - Add per-prefetch **weights** when one search should dominate, using [Weighted RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=weighted-rrf). Weights should be customized per collection and retrievers' score distributions. [Tune weights last](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=tune-weights-last).
 
 ### DBSF
-- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion): normalizes score distributions per prefetch before fusing them, for that, instead of min-max, uses mean +- 3 deviations on prefetched list of scores. Avoid relying on resulting absolute scores, as scores in DBSF are normalized per prefetch (aka per a retrieved list of search results), and might be uncomparable across queries.
+- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion): normalizes each prefetch's scores (mean ± 3 standard deviations) before fusing, so pick it when you trust the retrievers' raw scores to carry magnitude. Normalization is per query, so don't compare absolute DBSF scores across queries, and raise the prefetch `limit` if one outlier makes rankings unstable.
 - DBSF has no parameters to tune, so compare it before hand-tuning RRF `k` and weights. Confirm on your own labels [Compare RRF and DBSF on your labels](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=compare-rrf-and-dbsf-on-your-labels)
 
 ## Need Custom Fusion

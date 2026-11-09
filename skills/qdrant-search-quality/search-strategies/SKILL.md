@@ -69,5 +69,4 @@ Check how to set up in [Score Boosting docs](https://skills.qdrant.tech/md/docum
 ## What NOT to Do
 
 - Use hybrid search before verifying pure vector search quality (adds complexity, may mask model issues)
-- Apply one strategy (e.g. hybrid search) as a blanket fix for multiple distinct symptoms, diagnose and treat each symptom separately (see table above)
 - Skip evaluation when adding relevance feedback: score the end-to-end pipeline to confirm it actually helps [Pipeline Output Quality](https://skills.qdrant.tech/md/documentation/search-evaluation/pipeline-output-quality/)
