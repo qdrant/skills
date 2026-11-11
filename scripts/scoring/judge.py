@@ -366,6 +366,7 @@ class RunMeta:
     prompt_name: str
     skill: str
     model: str
+    agent: str
     condition: str
     rep: str
 
@@ -392,6 +393,7 @@ def grade_run(run_dir: Path, backend: JudgeFn, meta: RunMeta) -> list[dict]:
                 "prompt": meta.prompt_name,
                 "skill": meta.skill,
                 "model": meta.model,
+                "agent": meta.agent,
                 "condition": meta.condition,
                 "rep": meta.rep,
                 "contested": "",  # reserved for multi-sample voting
@@ -402,7 +404,7 @@ def grade_run(run_dir: Path, backend: JudgeFn, meta: RunMeta) -> list[dict]:
 
 
 CSV_COLUMNS = [
-    "prompt", "skill", "model", "condition", "rep",
+    "prompt", "skill", "model", "agent", "condition", "rep",
     "item_type", "item_text", "verdict", "credit", "contribution",
     "contested", "evidence_quote",
 ]
@@ -477,6 +479,10 @@ def infer_meta(run_dir: Path, args) -> RunMeta:
         prompt_name=name or run_dir.name,
         skill=args.skill or name or run_dir.name,
         model=model or "unknown",
+        # Reuses _run_agent's own default-to-"claude" handling (absent/corrupt
+        # metadata.json), so pre-multi-agent runs are labeled consistently
+        # with how extract_final_answer already treats them.
+        agent=_run_agent(run_dir),
         condition=args.condition,
         rep=args.rep,
     )

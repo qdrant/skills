@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -134,23 +135,33 @@ def aggregate_cost(manifest):
     by_cell = defaultdict(lambda: {"cost": [], "turns": []})
     excluded = 0
     for r in manifest:
-        # Errored or budget-capped runs are truncated: their cost is a floor, not
-        # the real figure, so they never enter the cost mean.
+        # Errored or budget-capped runs are truncated: their cost/turns are a
+        # floor, not the real figure, so they never enter either mean.
         if r.get("exit_code") != "0" or r.get("budget_hit") == "1":
             excluded += 1
             continue
         cost, turns = r.get("total_cost_usd", ""), r.get("num_turns", "")
-        if cost in (None, ""):
+        # Tracked independently, not gated on each other: a codex row has no
+        # total_cost_usd by design (no price table yet -- see
+        # extract-run-signals.sh) but num_turns is a real, independently
+        # trustworthy signal there -- SCORING.md's own Guardrails note that
+        # turns is in some ways the *more* reliable "sooner" signal, since
+        # unlike cost it isn't inflated by a skill's context size. The
+        # previous version skipped turns too whenever cost was blank, losing
+        # that signal for every codex row for no reason tied to its validity.
+        if cost in (None, "") and turns in (None, ""):
             excluded += 1
             continue
         key = (r.get("model"), r.get("condition"))
-        by_cell[key]["cost"].append(float(cost))
+        if cost not in (None, ""):
+            by_cell[key]["cost"].append(float(cost))
         if turns not in (None, ""):
             by_cell[key]["turns"].append(float(turns))
     cell = {}
     for key, v in by_cell.items():
         cell[key] = {"cost": mean(v["cost"]) if v["cost"] else None,
-                     "turns": mean(v["turns"]) if v["turns"] else None, "n": len(v["cost"])}
+                     "turns": mean(v["turns"]) if v["turns"] else None,
+                     "n": max(len(v["cost"]), len(v["turns"]))}
     return cell, excluded
 
 
@@ -332,6 +343,39 @@ def models_present(cell_q, cell_cost):
     return [m for m in MODELS_ORDER if m in seen] + sorted(m for m in seen if m not in MODELS_ORDER)
 
 
+def agent_map(manifest):
+    """Maps a bare model string to its agent, from the manifest's own "agent"
+    column (added when run-eval-matrix.sh gained --agent support; absent in
+    older manifests, where every row is implicitly claude).
+
+    Grouping elsewhere in this file still keys on the bare model string, not
+    (agent, model) -- model namespaces are disjoint by construction (e.g.
+    "gpt-6-sol" vs "sonnet"/"haiku"/"opus"), so this remains a *display* label,
+    not a new grouping dimension; a real collision is a data problem worth
+    surfacing, not silently resolving, hence the warning below rather than a
+    silent "last one wins"."""
+    amap = {}
+    conflicts = set()
+    for r in manifest:
+        m, a = r.get("model"), r.get("agent") or "claude"
+        if m in amap and amap[m] != a:
+            conflicts.add(m)
+        amap.setdefault(m, a)
+    if conflicts:
+        print(
+            f"WARNING: model name(s) {sorted(conflicts)} appear under more than one "
+            "agent in this manifest -- lift/cost tables below label by the first "
+            "agent seen for that name, which may be misleading.",
+            file=sys.stderr,
+        )
+    return amap
+
+
+def model_label(m, amap):
+    """Display-only "agent:model" label. Never used as a lookup key."""
+    return f"{amap.get(m, 'claude')}:{m}"
+
+
 def activation_section(manifest):
     ws = [r for r in manifest if r.get("condition") == "with-skill"]
     L = ["## Activation / trigger misses\n"]
@@ -458,7 +502,7 @@ def _fnum(v):
     return float(v) if v not in ("", None) else None
 
 
-def wow_section(path: Path, run_key, current_lifts, se_info, models):
+def wow_section(path: Path, run_key, current_lifts, se_info, models, amap):
     rows = load_history(path)
     keys_sorted = sorted({r["run_key"] for r in rows},
                          key=lambda k: max((r["window_end"] for r in rows if r["run_key"] == k), default=""))
@@ -499,7 +543,7 @@ def wow_section(path: Path, run_key, current_lifts, se_info, models):
             actionable = "n/a"
         else:
             actionable = "yes" if abs(d) > threshold else "no (within noise)"
-        trows.append([m, f"{fmt(pv)} → {fmt(now)}", signed(d), fmt(within),
+        trows.append([model_label(m, amap), f"{fmt(pv)} → {fmt(now)}", signed(d), fmt(within),
                       fmt(between), fmt(threshold), actionable])
     L += md_table(["model", "must lift (prev → now)", "Δ", "t·SE_Δ (within)",
                    "σ (between)", "threshold", "actionable?"], trows)
@@ -513,6 +557,7 @@ def wow_section(path: Path, run_key, current_lifts, se_info, models):
 def build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
                     cost_excluded, prov, manifest, scores, wow_lines, current_lifts, se_info):
     models = models_present(cell_q, cell_cost)
+    amap = agent_map(manifest)
     L = [f"# Weekly Skill Scorecard — {weekdir.name}\n"]
 
     # lift per model
@@ -536,7 +581,7 @@ def build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
         se_str = f"{signed(v['must_lift'])} ± {fmt(se.get('se')) if se.get('se') is not None else 'n/a'}"
         flag = "n/a (need >=2 prompts)" if se.get("se") is None else \
             ("yes" if se.get("excludes_zero") else "no")
-        row = [m, arrow, se_str, flag]
+        row = [model_label(m, amap), arrow, se_str, flag]
         if show_bonus:
             row.append(signed(v.get("bonus_delta")))
         if show_avoid:
@@ -564,7 +609,7 @@ def build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
             if not q:
                 continue
             c = cell_cost.get((m, cond), {})
-            rows.append([m, cond, fmt(q['must_coverage']), fmt(q['bonus_rate']),
+            rows.append([model_label(m, amap), cond, fmt(q['must_coverage']), fmt(q['bonus_rate']),
                          fmt(q['avoid_violations'], 2), fmt(q['composite']),
                          fmt(c.get('cost'), 4), fmt(c.get('turns'), 1), q['n_prompts']])
     L += md_table(["model", "condition", "must_cov", "bonus_rate", "avoid_viol",
@@ -583,7 +628,7 @@ def build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
             mc_wi = wi.get("must_coverage") if wi else None
             cp_no = no.get("composite") if no else None
             cp_wi = wi.get("composite") if wi else None
-            rows.append([prompt, m, f"{fmt(mc_no)} → {fmt(mc_wi)}",
+            rows.append([prompt, model_label(m, amap), f"{fmt(mc_no)} → {fmt(mc_wi)}",
                          signed(delta(mc_wi, mc_no)), f"{fmt(cp_no)} → {fmt(cp_wi)}"])
     L += md_table(["prompt", "model", "must no→with", "must lift", "comp no→with"], rows)
     L.append("")
@@ -668,7 +713,7 @@ def main() -> int:
     history_path = args.history or (weekdir.parent / "scorecard-history.csv")
     window_end = prov[3][1] if prov[3] else ""
     upsert_history(history_path, weekdir.name, window_end, current_lifts, se_info)
-    wow_lines = wow_section(history_path, weekdir.name, current_lifts, se_info, models)
+    wow_lines = wow_section(history_path, weekdir.name, current_lifts, se_info, models, agent_map(manifest))
 
     report = build_scorecard(weekdir, prompt_q, cell_q, cell_cost, contested, ungraded,
                              cost_excluded, prov, manifest, scores, wow_lines, current_lifts, se_info)

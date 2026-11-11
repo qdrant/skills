@@ -59,6 +59,12 @@ if [[ ! -f "$PROMPT_FILE" ]]; then
   exit 64
 fi
 
+# Unlike Claude Code's init event, nothing in `codex exec`'s --json stream
+# reports the CLI version in use -- captured once here instead, local-only,
+# no auth/network needed.
+cli_version="$(codex --version 2>/dev/null | awk '{print $2}')"
+[[ -n "$cli_version" ]] || cli_version="unknown"
+
 # CODEX_HOME defaults to ~/.codex, same default the installed `codex` binary
 # itself uses when the env var is unset.
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
@@ -89,6 +95,32 @@ if [[ -d /input-skills ]]; then
         install_skill_dir "$skill_dir" "$(basename "$skill_dir")"
       fi
     done
+  fi
+fi
+
+# Optional skill-availability preflight probe. Codex's `exec --json` stream has
+# no skills-inventory event the way Claude's init event does (confirmed, not
+# assumed), so there's no way to confirm a mounted skill actually registered
+# from the real run's own transcript. `codex debug prompt-input` renders the
+# model-visible prompt -- including the exact same skills_instructions listing
+# the real run would see -- without needing auth or a network call (confirmed
+# in the Phase 0 spike), so it stands in as a side-channel hard-availability
+# check, run once here before the real exec call. Opt-in via
+# CODEX_PROBE_SKILL so single-run/manual testing (which doesn't set it) pays
+# no extra cost; only the scoring matrix sets it, one family at a time (the
+# with-skill arm installs exactly one family, mirroring Claude's isolation).
+skill_probe_requested=false
+skill_probe_available=false
+if [[ -n "${CODEX_PROBE_SKILL:-}" ]]; then
+  skill_probe_requested=true
+  probe_output="$(cd "$CLAUDE_WORKSPACE" && timeout 30s codex debug prompt-input "x" 2>/dev/null || true)"
+  # Entries render as "- <name>: <description> (file: ...)" (confirmed empirically
+  # against 0.160.1); matching "- $family:" requires the exact name immediately
+  # followed by a colon, so a longer sibling skill name sharing a prefix can't
+  # false-positive. grep -F (fixed string): a family name is a plain slug, never
+  # a regex pattern, and quoting it that way removes any ambiguity.
+  if printf '%s' "$probe_output" | grep -qF -- "- ${CODEX_PROBE_SKILL}:"; then
+    skill_probe_available=true
   fi
 fi
 
@@ -135,7 +167,11 @@ if [[ "$login_status" == "failed" ]]; then
     --arg run_id "$CLAUDE_RUN_ID" \
     --arg finished_at "$finished_at" \
     --arg login_status "$login_status" \
-    '{agent: $agent, run_id: $run_id, finished_at: $finished_at, login_status: $login_status, exit_code: 78}' \
+    --arg cli_version "$cli_version" \
+    --argjson skill_probe_requested "$skill_probe_requested" \
+    --argjson skill_probe_available "$skill_probe_available" \
+    '{agent: $agent, run_id: $run_id, finished_at: $finished_at, login_status: $login_status, cli_version: $cli_version, exit_code: 78}
+     + (if $skill_probe_requested then {skill_probe_available: $skill_probe_available} else {} end)' \
     > "$run_dir/metadata.json"
   exit 78
 fi
@@ -193,8 +229,11 @@ jq -n \
   --arg permission_mode "$CODEX_PERMISSION_MODE" \
   --arg login_status "$login_status" \
   --arg timeout_secs "$CODEX_TIMEOUT_SECS" \
+  --arg cli_version "$cli_version" \
   --argjson exit_code "$status" \
   --argjson timed_out "$timed_out" \
+  --argjson skill_probe_requested "$skill_probe_requested" \
+  --argjson skill_probe_available "$skill_probe_available" \
   '{
     agent: $agent,
     run_id: $run_id,
@@ -205,8 +244,10 @@ jq -n \
     permission_mode: $permission_mode,
     login_status: $login_status,
     timeout_secs: $timeout_secs,
-    timed_out: $timed_out
-  }' > "$run_dir/metadata.json"
+    timed_out: $timed_out,
+    cli_version: $cli_version
+  } + (if $skill_probe_requested then {skill_probe_available: $skill_probe_available} else {} end)' \
+  > "$run_dir/metadata.json"
 
 echo "Run directory: $run_dir"
 echo "Exit code: $status"
