@@ -15,6 +15,7 @@ PROMPT_FILE=""
 # in someone's shell can't silently switch which CLI this harness runs.
 AGENT="${SKILL_TEST_AGENT:-claude}"
 SKILLS_DIR=""
+PROBE_SKILL=""
 PLUGIN_DIR=""
 WORKSPACE_DIR=""
 WORKSPACE_MODE="ro"
@@ -73,6 +74,13 @@ Options:
   --no-env-file                Do not pass an env-file.
   --skills-dir DIR             Mount a local skill or directory of skills (SKILL.md-based;
                                installed for whichever --agent is selected).
+  --probe-skill NAME           --agent codex only. Before the real run, checks (no auth/
+                               network needed) that NAME actually registered as a
+                               discoverable skill, recording the result in metadata.json's
+                               skill_probe_available. Codex has no equivalent of Claude's
+                               init-event skill list, so this is how the periodic matrix
+                               gets a hard availability signal for codex cells. Ignored
+                               (no-op) for --agent claude, which doesn't need it.
   --plugin-dir DIR             Mount a local Claude Code plugin directory (--agent claude only).
   --plugin-url URL             Load a plugin zip URL for this run (--agent claude only). Repeatable.
   --workspace DIR              Mount a host workspace read-only at /workspace.
@@ -275,6 +283,11 @@ while [[ $# -gt 0 ]]; do
     --skills-dir)
       require_value "$1" "${2:-}"
       SKILLS_DIR="$2"
+      shift 2
+      ;;
+    --probe-skill)
+      require_value "$1" "${2:-}"
+      PROBE_SKILL="$2"
       shift 2
       ;;
     --plugin-dir)
@@ -546,6 +559,7 @@ docker_args=(
   -e "CODEX_MODEL=$MODEL"
   -e "CODEX_PERMISSION_MODE=$PERMISSION_MODE"
   -e "CODEX_EXTRA_ARGS=$CLAUDE_EXTRA_ARGS"
+  -e "CODEX_PROBE_SKILL=$PROBE_SKILL"
   -e OPENAI_API_KEY
   -e CODEX_API_KEY
   -e CODEX_ACCESS_TOKEN

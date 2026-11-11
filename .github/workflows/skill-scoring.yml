@@ -3,11 +3,15 @@ name: skill scoring (manual)
 # Manual-only for now: run the weekly skill-lift scoring pipeline on demand from
 # the Actions tab. No `schedule:` trigger yet — periodic runs come later, once
 # manual runs are trusted. Inputs let you scope a run (start small, scale up).
+#
+# Supports codex: cells in `models` (e.g. "sonnet,codex:gpt-6-sol") since the
+# harness image bundles both agent CLIs -- see SCORING.md's Codex Cells
+# section for what's scored and what isn't yet (cost, tool-allow-list parity).
 on:
   workflow_dispatch:
     inputs:
       models:
-        description: "Comma list of models"
+        description: "Comma list of \"agent:model\" entries (bare = claude, e.g. sonnet,haiku). codex:MODEL cells need the OPENAI_API_KEY (or CODEX_API_KEY) secret set on this repo, and run with no tool-allow-list / cost-estimate parity yet -- see SCORING.md's Codex Cells section."
         default: "sonnet,haiku"
       conditions:
         description: "Comma list: no-skill,with-skill"
@@ -33,6 +37,9 @@ on:
       claude_code_version:
         description: "Claude Code version for the harness image + host judge CLI"
         default: "latest"
+      codex_version:
+        description: "Codex CLI version for the harness image (only exercised by codex: cells). Pinned, not latest, to match scripts/build-image.sh's own default -- Codex's flags have been observed to change between patch releases."
+        default: "0.160.1"
       commit_results:
         description: "Commit derived scorecard/CSVs + history back to this branch (off = artifacts only)"
         type: boolean
@@ -71,7 +78,8 @@ jobs:
       - name: Build harness Docker image
         env:
           CCV: ${{ inputs.claude_code_version }}
-        run: skill-test/scripts/build-image.sh --claude-code-version "$CCV"
+          CODEXV: ${{ inputs.codex_version }}
+        run: skill-test/scripts/build-image.sh --claude-code-version "$CCV" --codex-version "$CODEXV"
 
       - name: Compute output dir
         run: echo "OUT_DIR=evals/weekly/$(date -u +%Y%m%dT%H%M%SZ)" >> "$GITHUB_ENV"
@@ -82,6 +90,10 @@ jobs:
       - name: Generate — run the scoring matrix
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Only exercised by codex: cells; harmless/unused otherwise. Secret
+          # must be added to this repo separately for a codex: cell to log in.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
           MODELS: ${{ inputs.models }}
           CONDITIONS: ${{ inputs.conditions }}
           REPS: ${{ inputs.reps }}

@@ -366,6 +366,7 @@ class RunMeta:
     prompt_name: str
     skill: str
     model: str
+    agent: str
     condition: str
     rep: str
 
@@ -392,6 +393,7 @@ def grade_run(run_dir: Path, backend: JudgeFn, meta: RunMeta) -> list[dict]:
                 "prompt": meta.prompt_name,
                 "skill": meta.skill,
                 "model": meta.model,
+                "agent": meta.agent,
                 "condition": meta.condition,
                 "rep": meta.rep,
                 "contested": "",  # reserved for multi-sample voting
@@ -402,7 +404,7 @@ def grade_run(run_dir: Path, backend: JudgeFn, meta: RunMeta) -> list[dict]:
 
 
 CSV_COLUMNS = [
-    "prompt", "skill", "model", "condition", "rep",
+    "prompt", "skill", "model", "agent", "condition", "rep",
     "item_type", "item_text", "verdict", "credit", "contribution",
     "contested", "evidence_quote",
 ]
@@ -477,6 +479,10 @@ def infer_meta(run_dir: Path, args) -> RunMeta:
         prompt_name=name or run_dir.name,
         skill=args.skill or name or run_dir.name,
         model=model or "unknown",
+        # Reuses _run_agent's own default-to-"claude" handling (absent/corrupt
+        # metadata.json), so pre-multi-agent runs are labeled consistently
+        # with how extract_final_answer already treats them.
+        agent=_run_agent(run_dir),
         condition=args.condition,
         rep=args.rep,
     )
@@ -527,6 +533,22 @@ def main() -> int:
     csv_text = rows_to_csv(rows)
     if args.out:
         new = not args.out.exists()
+        if not new:
+            # A pre-existing scores.csv written before CSV_COLUMNS gained
+            # "agent" still has its own (now stale) header; appending new
+            # rows under it would silently misalign every row, not just the
+            # new ones, under the wrong column names. Fail loudly instead
+            # (the "No silent caps" guardrail) rather than let it corrupt
+            # the ledger -- caught on PR review, not by the original live
+            # test, since that test always started from a fresh scores.csv.
+            existing_header = args.out.open().readline().rstrip("\n").split(",")
+            if existing_header != CSV_COLUMNS:
+                raise SystemExit(
+                    f"{args.out} has a stale header {existing_header} that no longer "
+                    f"matches the current schema {CSV_COLUMNS} (e.g. missing \"agent\"). "
+                    "Appending would misalign rows under the wrong columns. Re-run "
+                    "judge-runs.sh with --fresh to regenerate it."
+                )
         with args.out.open("a") as f:
             f.write(csv_text if new else csv_text.split("\n", 1)[1])
         print(f"wrote {len(rows)} rows -> {args.out}", file=sys.stderr)

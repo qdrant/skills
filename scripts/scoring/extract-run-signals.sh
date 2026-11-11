@@ -2,8 +2,9 @@
 # Enrich a weekly manifest with the per-run signals derived from each captured
 # transcript, producing the manifest.csv schema SCORING.md describes.
 #
-# Reads the base manifest written by run-eval-matrix.sh (first 10 columns) and,
-# for each run's stdout.txt (stream-json), adds:
+# Reads the base manifest written by run-eval-matrix.sh (first 11 columns,
+# including "agent" since run-eval-matrix.sh gained --agent support) and, for
+# each run's stdout.txt, adds:
 #
 #   skill_available   1 if the run's init skill list contains the mapped family.
 #                     For with-skill runs, 0 is a hard harness failure (the run
@@ -21,7 +22,20 @@
 #   model_snapshot    the exact model string from init (e.g. claude-haiku-...).
 #   cli_version       claude_code_version from init.
 #
-# Idempotent: re-reads only the 10 base columns, so it can be run repeatedly.
+# IMPORTANT -- agent scope: everything below this comment still only
+# understands Claude's stream-json event shape. For a codex row, every
+# Claude-specific marker (the init event, the result event) is simply absent
+# from stdout.txt, so this degrades safely to signals_ok=0 (the existing
+# "transcript didn't parse to the expected shape" tripwire) rather than
+# producing plausible-looking wrong numbers -- confirmed, not assumed. But a
+# codex row's activation/availability/cost are NOT actually computed yet;
+# that is separate, not-yet-landed work (a real "Skill tool" doesn't exist
+# for Codex, and Codex's exec stream has no skills-inventory event the way
+# Claude's init event does, so skill_available in particular needs a new
+# mechanism, not just a parser). Until that lands, every codex row will show
+# up in the "signals_ok=0" warning below and should be treated as unscored.
+#
+# Idempotent: re-reads only the 11 base columns, so it can be run repeatedly.
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -57,15 +71,15 @@ done
 [[ -z "$MANIFEST" ]] && MANIFEST="$OUT_DIR/manifest.csv"
 [[ -f "$MANIFEST" ]] || { echo "Manifest not found: $MANIFEST" >&2; exit 66; }
 
-OUT_HEADER="prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp,skill_available,skill_activation,reached_leaf,fetched_site,fetched_count,model_snapshot,cli_version,total_cost_usd,num_turns,result_subtype,budget_hit,signals_ok,duration_ms"
+OUT_HEADER="prompt,skill_family,skill_leaf,model,agent,condition,rep,run_id,exit_code,skills_sha,timestamp,skill_available,skill_activation,reached_leaf,fetched_site,fetched_count,model_snapshot,cli_version,total_cost_usd,num_turns,result_subtype,budget_hit,signals_ok,duration_ms"
 
 tmp="$(mktemp)"
 echo "$OUT_HEADER" > "$tmp"
 
 tail -n +2 "$MANIFEST" | while IFS= read -r line; do
   [[ -z "$line" ]] && continue
-  base="$(printf '%s' "$line" | cut -d, -f1-10)"
-  IFS=, read -r prompt family leaf model condition rep run_id exit_code skills_sha timestamp <<< "$base"
+  base="$(printf '%s' "$line" | cut -d, -f1-11)"
+  IFS=, read -r prompt family leaf model agent condition rep run_id exit_code skills_sha timestamp <<< "$base"
 
   stdout="$OUT_DIR/$run_id/stdout.txt"
 
@@ -83,7 +97,109 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
   signals_ok=1
   duration_ms=""
 
-  if [[ -f "$stdout" ]]; then
+  if [[ "$agent" == "codex" ]]; then
+    # --- Codex signal extraction ---
+    # Confirmed limitations (see the file header), reflected directly below
+    # rather than worked around with a guess:
+    #   - model_snapshot: left blank. Unlike Claude's init event, nothing in
+    #     Codex's stream reports a *resolved* model build; the "model" column
+    #     already has the requested alias, and duplicating it into
+    #     model_snapshot under the "confirmed resolved snapshot" label would
+    #     misrepresent what that column means for Claude rows.
+    #   - total_cost_usd: left blank. turn.completed.usage has token counts
+    #     only; estimating dollars needs a maintained per-model price table,
+    #     which does not exist yet -- a guessed number here would look as
+    #     authoritative as Claude's real, billing-derived figure.
+    #   - no "skill_tool" category: Codex has no dedicated Skill tool: a
+    #     SKILL.md is read via a plain shell command_execution item.
+    #   - no permission_denials netting: Codex cells always run under full
+    #     bypass (see run-codex-prompt.sh), so there is nothing to net out.
+    metadata="$OUT_DIR/$run_id/metadata.json"
+    if [[ -f "$metadata" ]]; then
+      cli_version="$(jq -r '.cli_version // ""' "$metadata" 2>/dev/null || echo "")"
+      # run-codex-prompt.sh only ever writes this key when the probe actually
+      # ran (there is no separate "requested" field -- its presence already
+      # means "requested"), so checking the value alone is correct and
+      # complete; checking for a nonexistent "requested" field here as well
+      # would make this never match (jq's null == true is false) -- caught
+      # by actually running this against a real matrix output, not review.
+      if jq -e '.skill_probe_available == true' "$metadata" >/dev/null 2>&1; then
+        skill_available=1
+      fi
+      # No duration field in the event stream; the harness's own wall-clock
+      # timestamps (already recorded for every run) stand in instead.
+      started="$(jq -r '.started_at // ""' "$metadata" 2>/dev/null || echo "")"
+      finished_ts="$(jq -r '.finished_at // ""' "$metadata" 2>/dev/null || echo "")"
+      if [[ -n "$started" && -n "$finished_ts" ]]; then
+        start_epoch="$(date -u -d "$started" +%s 2>/dev/null || date -u -jf "%Y-%m-%dT%H:%M:%SZ" "$started" +%s 2>/dev/null || echo "")"
+        end_epoch="$(date -u -d "$finished_ts" +%s 2>/dev/null || date -u -jf "%Y-%m-%dT%H:%M:%SZ" "$finished_ts" +%s 2>/dev/null || echo "")"
+        if [[ -n "$start_epoch" && -n "$end_epoch" ]]; then
+          duration_ms=$(( (end_epoch - start_epoch) * 1000 ))
+        fi
+      fi
+      # Codex has no server-side spend cap (no --max-budget-usd equivalent),
+      # so there is no "error_max_budget_usd" to key on. The harness's own
+      # wall-clock timeout is the only early-stop signal available -- map it
+      # onto budget_hit so a truncated run is excluded from scoring and the
+      # cost mean the same way a budget-capped Claude run already is, per the
+      # forward-looking note left in run-codex-prompt.sh when timed_out was
+      # first added.
+      timed_out_flag="$(jq -r '.timed_out // 0' "$metadata" 2>/dev/null || echo 0)"
+      [[ "$timed_out_flag" == "1" ]] && budget_hit=1
+    fi
+
+    if [[ -f "$stdout" ]]; then
+      thread_started="$(grep -m1 '"type":"thread.started"' "$stdout" || true)"
+      turn_terminal="$(grep -E '"type":"turn\.(completed|failed)"' "$stdout" | tail -1 || true)"
+      # Mirrors the Claude block's family/leaf regex exactly (same
+      # "skills/<x>" suffix structure on disk for both agents -- confirmed),
+      # just reading a shell command instead of a Read tool's file_path, and
+      # reading a web_search item's query instead of a WebFetch tool's url.
+      # The fetch count also nets in a command_execution hitting
+      # skills.qdrant.tech directly (e.g. curl), the way the Claude block
+      # already counts both WebFetch and a Bash curl to that site -- without
+      # this, a Codex cell that fetches the published skill via a shell
+      # command instead of its web_search tool would silently undercount
+      # fetched_site/fetched_count relative to a Claude cell doing the same
+      # thing (caught on PR review, not by the original live test, since that
+      # test's codex run happened to use web_search).
+      # tool_calls counts every tool-call item as the closest analog to
+      # Claude's num_turns (there is no literal turn counter in the stream).
+      codex_sig="$(jq -rs --arg fam "$family" --arg leaf "$leaf" '
+        [ .. | objects | select(.type == "item.completed") | .item ] as $items
+        | [ ([$items[]|select(.type=="command_execution")|select((.command // "")|test("skills/"+$fam+"/.*SKILL\\.md"))]|length),
+            ([$items[]|select(.type=="command_execution")|select((.command // "")|contains("skills/"+$leaf))]|length),
+            ([$items[]|select((.type=="web_search" and (((.query // "") + (.action.query // ""))|contains("skills.qdrant.tech"))) or (.type=="command_execution" and ((.command // "")|contains("skills.qdrant.tech"))))]|length),
+            ([$items[]|select(.type=="command_execution" or .type=="web_search" or .type=="file_change" or .type=="mcp_tool_call")]|length)
+          ] | @tsv' "$stdout" 2>/dev/null)"
+      if [[ -n "$codex_sig" && -n "$thread_started" && -n "$turn_terminal" ]]; then
+        IFS=$'\t' read -r read_family read_leaf web_fetch tool_calls <<< "$codex_sig"
+      else
+        signals_ok=0
+        read_family=0; read_leaf=0; web_fetch=0; tool_calls=0
+      fi
+
+      num_turns="$tool_calls"
+      [[ "$read_leaf" -gt 0 ]] && reached_leaf=1
+      if [[ "$web_fetch" -gt 0 ]]; then
+        fetched_site=1
+        fetched_count="$web_fetch"
+      fi
+
+      if [[ "$read_family" -gt 0 ]]; then
+        activation="file_read"
+      elif [[ "$web_fetch" -gt 0 ]]; then
+        activation="web_fetch"
+      else
+        activation="none"
+      fi
+
+      result_subtype="$(printf '%s' "$turn_terminal" | jq -r '.type // ""' 2>/dev/null || echo "")"
+    else
+      model_snapshot="MISSING_TRANSCRIPT"
+      signals_ok=0
+    fi
+  elif [[ -f "$stdout" ]]; then
     init="$(grep -m1 '"subtype":"init"' "$stdout" || true)"
     if [[ -n "$init" ]]; then
       model_snapshot="$(printf '%s' "$init" | jq -r '.model // ""' 2>/dev/null || echo "")"
@@ -96,7 +212,14 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
     # Per-run cost/effort and denials all come from the terminal result event.
     # Cost + turns are the efficiency companions to lift: a skill can be worth it
     # by reaching the answer sooner/cheaper even when quality lift is small.
-    result_ev="$(grep '"type":"result"' "$stdout" 2>/dev/null | tail -1)"
+    # `|| true` matters now in a way it didn't before codex existed: a Claude
+    # transcript always has a "type":"result" event, so grep here always
+    # matched (exit 0) and pipefail never fired. A Codex transcript never has
+    # one (it uses turn.completed/turn.failed instead), so grep exits 1, and
+    # without this guard `set -e` aborted the whole script mid-loop on the
+    # very first codex row -- found by actually running this against a
+    # synthetic codex transcript, not by inspection.
+    result_ev="$(grep '"type":"result"' "$stdout" 2>/dev/null | tail -1 || true)"
     total_cost_usd="$(printf '%s' "$result_ev" | jq -r '.total_cost_usd // ""' 2>/dev/null || echo "")"
     num_turns="$(printf '%s' "$result_ev" | jq -r '.num_turns // ""' 2>/dev/null || echo "")"
     duration_ms="$(printf '%s' "$result_ev" | jq -r '.duration_ms // ""' 2>/dev/null || echo "")"
@@ -166,14 +289,16 @@ mv "$tmp" "$MANIFEST"
 echo "Enriched manifest: $MANIFEST"
 
 # Surface invalid with-skill runs (availability check failed) — the one hard gate.
-invalid="$(awk -F, 'NR>1 && $5=="with-skill" && $11==0 {print $7}' "$MANIFEST")"
+# ($6 = condition, $12 = skill_available, $8 = run_id -- shifted by the new
+# "agent" column at $5)
+invalid="$(awk -F, 'NR>1 && $6=="with-skill" && $12==0 {print $8}' "$MANIFEST")"
 if [[ -n "$invalid" ]]; then
   echo "WARNING: with-skill runs where the skill was NOT available (invalid, exclude from scoring):" >&2
   printf '  %s\n' $invalid >&2
 fi
 
-# Budget-capped runs: truncated, excluded from scoring and the cost mean. ($21 = budget_hit)
-capped="$(awk -F, 'NR>1 && $21==1 {print $7}' "$MANIFEST")"
+# Budget-capped runs: truncated, excluded from scoring and the cost mean. ($22 = budget_hit)
+capped="$(awk -F, 'NR>1 && $22==1 {print $8}' "$MANIFEST")"
 if [[ -n "$capped" ]]; then
   echo "NOTE: budget-capped runs (hit the per-run \$ cap, truncated, excluded):" >&2
   printf '  %s\n' $capped >&2
@@ -182,8 +307,8 @@ fi
 # Signals tripwire: a transcript we could not parse into the expected shape. Its
 # activation/fetch numbers are NOT trustworthy (a format break, not a real
 # activation=none) — surface it rather than let it read as a silent trigger miss.
-# ($22 = signals_ok)
-bad_signals="$(awk -F, 'NR>1 && $22==0 {print $7}' "$MANIFEST")"
+# ($23 = signals_ok)
+bad_signals="$(awk -F, 'NR>1 && $23==0 {print $8}' "$MANIFEST")"
 if [[ -n "$bad_signals" ]]; then
   echo "WARNING: runs whose transcript did not parse to the expected shape" >&2
   echo "         (signals_ok=0 — activation/fetch numbers unreliable, investigate the format):" >&2

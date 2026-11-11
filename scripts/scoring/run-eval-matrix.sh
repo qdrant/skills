@@ -4,7 +4,10 @@
 # manifest row. Signals (availability/activation/fetches) are added afterwards by
 # extract-run-signals.sh, which reads this manifest and the captured transcripts.
 #
-#   models      default sonnet,haiku
+#   models      default claude:sonnet,claude:haiku. Each entry is "agent:model";
+#               a bare entry with no colon defaults to agent "claude", so every
+#               existing invocation (--models sonnet,haiku) keeps working
+#               unchanged. See parse_agent_model below.
 #   conditions  no-skill (nothing installed) and with-skill (isolated family)
 #   reps        default 2 (see SCORING.md: cost-first, raise later)
 #
@@ -12,7 +15,14 @@
 # to, so lift is attributable to that skill. It stages the family into a temp dir
 # and mounts that, so the container's per-child install path registers it under
 # its real name (not "mounted-skill") — which is what the availability check and
-# activation detection key on.
+# activation detection key on. Skill staging itself is agent-agnostic (confirmed:
+# --skills-dir works identically for both agents), so no per-agent branching is
+# needed there.
+#
+# Codex support here (this script) is no longer partial -- extract-run-signals.sh
+# now has a Codex-side signal extraction path too (activation, skill_available
+# via a side-channel probe, cost left blank pending a price table). See
+# SCORING.md's Codex Cells section for exactly what is and isn't scored yet.
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +30,30 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # shellcheck source=resolve-skill.sh
 source "$SCRIPT_DIR/resolve-skill.sh"
+
+# Splits an "agent:model" --models entry. A bare entry (no colon) means agent
+# claude, so every pre-existing --models sonnet,haiku invocation is unchanged.
+# Sets the globals PARSED_AGENT / PARSED_MODEL rather than echoing+subshelling
+# (same reasoning as run-codex-prompt.sh's permission-mode case: a function
+# called via command substitution runs in a subshell, so validation/exit
+# there wouldn't actually abort the script).
+parse_agent_model() {
+  local entry="$1"
+  if [[ "$entry" == *:* ]]; then
+    PARSED_AGENT="${entry%%:*}"
+    PARSED_MODEL="${entry#*:}"
+  else
+    PARSED_AGENT="claude"
+    PARSED_MODEL="$entry"
+  fi
+  case "$PARSED_AGENT" in
+    claude|codex) ;;
+    *)
+      echo "Invalid agent in --models entry '$entry' (want claude or codex)" >&2
+      exit 64
+      ;;
+  esac
+}
 
 MODELS="sonnet,haiku"
 CONDITIONS="no-skill,with-skill"
@@ -60,7 +94,13 @@ Usage: scripts/scoring/run-eval-matrix.sh [options]
 Runs the 2x2xk scoring matrix over the scored (non-discord) test-prompts.
 
 Options:
-  --models LIST         Comma list of models. Default: sonnet,haiku
+  --models LIST         Comma list of "agent:model" entries (bare "model" means
+                        agent claude, for backward compatibility). Default:
+                        claude:sonnet,claude:haiku. Codex cells get --agent/
+                        --model threaded through; Claude-only flags
+                        (--allowed-tools, --max-turns, --max-budget-usd) are
+                        suppressed for them. See SCORING.md's Codex Cells
+                        section for what's scored and what isn't yet.
   --conditions LIST     Comma list of no-skill,with-skill. Default: both
   --reps N              Repetitions per cell. Default: 2
   --jobs N              Runs to execute concurrently. Default: 1 (sequential).
@@ -175,12 +215,12 @@ if [[ "$DRY_RUN" != "1" ]]; then
   STAGE_BASE="$(mktemp -d "${TMPDIR:-/tmp}/skill-eval-stage.XXXXXX")"
   mkdir -p "$OUT_DIR" "$MANIFEST_DIR"
   if [[ ! -f "$MANIFEST" ]]; then
-    echo "prompt,skill_family,skill_leaf,model,condition,rep,run_id,exit_code,skills_sha,timestamp" > "$MANIFEST"
+    echo "prompt,skill_family,skill_leaf,model,agent,condition,rep,run_id,exit_code,skills_sha,timestamp" > "$MANIFEST"
   fi
 fi
 
 run_one() {
-  local prompt_file="$1" model="$2" condition="$3" rep="$4"
+  local prompt_file="$1" model_entry="$2" condition="$3" rep="$4"
   local name url resolved family leaf
   name="$(jq -r '.name // empty' "$prompt_file")"
   [[ -n "$name" ]] || name="$(basename "$prompt_file" .json)"
@@ -193,31 +233,36 @@ run_one() {
   family="${resolved%%$'\t'*}"
   leaf="${resolved#*$'\t'}"
 
+  parse_agent_model "$model_entry"
+  local agent="$PARSED_AGENT" model="$PARSED_MODEL"
+
   local args=(
-    # Explicit, not just the harness's own default: this matrix only knows
-    # how to drive and parse Claude Code output. If SKILL_TEST_AGENT=codex
-    # happened to be set in the caller's shell, an implicit default would
-    # silently send Claude model names to `codex -m` and build a scorecard
-    # from parsers that can't read Codex's event shape -- wrong results with
-    # no visible failure, rather than this being a hard requirement.
-    --agent claude
+    --agent "$agent"
     --model "$model"
     --permission-mode "$PERMISSION_MODE"
-    --max-turns "$MAX_TURNS"
     --runs-dir "$OUT_DIR"
     --no-render
   )
-  # Trailing `--` ends the variadic --allowedTools list so the container's prompt
-  # positional (claude ... "$prompt") is not swallowed as a tool name.
-  [[ -n "$ALLOWED_TOOLS" ]] && args+=(--extra-args "--allowedTools $ALLOWED_TOOLS --")
-  [[ -n "$MAX_BUDGET_USD" ]] && args+=(--max-budget-usd "$MAX_BUDGET_USD")
+  if [[ "$agent" == "claude" ]]; then
+    args+=(--max-turns "$MAX_TURNS")
+    # Trailing `--` ends the variadic --allowedTools list so the container's
+    # prompt positional (claude ... "$prompt") is not swallowed as a tool name.
+    # Claude-only: Codex's exec has no --allowedTools equivalent, so there is
+    # currently no tool-parity mechanism for codex cells (see SCORING.md's
+    # Codex Cells section) -- passing this through would error on an
+    # unrecognized flag.
+    [[ -n "$ALLOWED_TOOLS" ]] && args+=(--extra-args "--allowedTools $ALLOWED_TOOLS --")
+    [[ -n "$MAX_BUDGET_USD" ]] && args+=(--max-budget-usd "$MAX_BUDGET_USD")
+  fi
 
   # Descriptive, unique-per-invocation run id. Slugified so an odd char in the
   # prompt .name (space, :, /) can't reach --run-id raw; RUN_STAMP makes it unique
   # across invocations so a re-run into the same out-dir never clobbers a prior
-  # run's transcript or double-counts its manifest row.
+  # run's transcript or double-counts its manifest row. Uses the raw
+  # "agent:model" entry (not just $model) so two agents sharing a model name
+  # can never collide.
   local run_id
-  run_id="$(printf '%s' "$name-$model-$condition-r$rep-$RUN_STAMP" | tr -c 'A-Za-z0-9._-' '_')"
+  run_id="$(printf '%s' "$name-$model_entry-$condition-r$rep-$RUN_STAMP" | tr -c 'A-Za-z0-9._-' '_')"
   # The harness requires the id to start with a letter/digit (Docker's --name
   # rule); slugify keeps a leading -/. so guard it here.
   [[ "$run_id" =~ ^[A-Za-z0-9] ]] || run_id="r-$run_id"
@@ -225,8 +270,8 @@ run_one() {
   # Dry-run needs only $family for the printout — return before any staging so no
   # mktemp/cp runs (STAGE_BASE isn't even created in dry mode).
   if [[ "$DRY_RUN" == "1" ]]; then
-    printf '  DRY  %-42s %-7s %-11s rep=%s  install=%s\n' \
-      "$name" "$model" "$condition" "$rep" \
+    printf '  DRY  %-42s %-7s:%-10s %-11s rep=%s  install=%s\n' \
+      "$name" "$agent" "$model" "$condition" "$rep" \
       "$([[ "$condition" == with-skill ]] && echo "$family" || echo none)"
     return 0
   fi
@@ -238,6 +283,10 @@ run_one() {
     # relative links resolve and the container installs it as ~/.claude/skills/<family>.
     cp -R "$SKILLS_ROOT/$family" "$stage/$family"
     args+=(--skills-dir "$stage")
+    # Codex has no init-event skill list to confirm availability from, unlike
+    # Claude (see SCORING.md's Codex Cells section); --probe-skill runs the
+    # side-channel check instead. No-op for --agent claude.
+    [[ "$agent" == "codex" ]] && args+=(--probe-skill "$family")
   fi
 
   args+=(--run-id "$run_id")
@@ -260,12 +309,12 @@ run_one() {
   [[ -n "$stage" ]] && rm -rf "$stage"
 
   # One row per task, written to its own file — concatenated after the pool drains.
-  echo "$name,$family,$leaf,$model,$condition,$rep,$run_id,$exit_code,$skills_sha,$ts" \
+  echo "$name,$family,$leaf,$model,$agent,$condition,$rep,$run_id,$exit_code,$skills_sha,$ts" \
     > "$MANIFEST_DIR/$run_id.row"
   local status_word="ok  "
   [[ "$exit_code" -ne 0 ]] && status_word="FAIL"
-  printf '  %s %-42s %-7s %-11s rep=%s  run_id=%s exit=%s\n' \
-    "$status_word" "$name" "$model" "$condition" "$rep" "$run_id" "$exit_code"
+  printf '  %s %-42s %-7s:%-10s %-11s rep=%s  run_id=%s exit=%s\n' \
+    "$status_word" "$name" "$agent" "$model" "$condition" "$rep" "$run_id" "$exit_code"
   return 0
 }
 

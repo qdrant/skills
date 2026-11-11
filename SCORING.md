@@ -46,6 +46,43 @@ Every prompt is run across a 2×2 matrix, `k` times per cell:
   over the `k` reps and we also report spread.
 - **Volume:** `26 prompts × 2 models × 2 conditions × 2 reps = 208` runs/week.
 
+### Codex Cells (New, Partial)
+
+`--models` accepts `agent:model` entries (e.g. `--models claude:sonnet,codex:gpt-6-sol`;
+a bare entry still means `claude:`, so every existing invocation is unchanged).
+Codex cells run and are scored, but **lift is still computed within one agent**
+— a Claude cell's lift and a Codex cell's lift are each `with-skill −
+no-skill` for that agent alone. "Is Codex better than Claude Code at using
+this skill" is a different question this harness does not yet answer, and
+blending the two into one cross-agent number would misrepresent what either
+lift means.
+
+Two real, current gaps, not cosmetic ones, read the scorecard with these in mind:
+
+- **No tool-allow-list parity.** The Tool Parity section below describes
+  `dontAsk` plus a shared `--allowedTools` allow-list as how both Claude arms
+  get an identical toolset. Codex's `exec` has no `--allowedTools` equivalent,
+  so a Codex cell has no comparable "nothing relevant blocked" guarantee —
+  it runs under a full bypass instead (see `skill-test/README.md`'s
+  Permission Modes section for why). Treat a Codex lift number as measured
+  under a looser, not-yet-equivalent condition than a Claude one.
+- **No cost.** Codex's token-usage reporting has no accompanying dollar
+  figure the way Claude's billing-aware CLI provides, and there is no
+  maintained price table yet to estimate one — `total_cost_usd` is simply
+  blank for Codex rows rather than a guessed number dressed up as a real one.
+  `num_turns` is unaffected and, per this doc's own cost-and-time guidance
+  below, is in some ways the more durable "sooner" signal anyway, since unlike
+  cost it isn't inflated by a skill's context footprint.
+
+`skill_available` — the one hard gate described in Thresholds And Gating — has
+no direct equivalent for Codex either: unlike Claude's `init` event, nothing in
+Codex's `exec --json` stream reports an installed-skill inventory. The with-skill
+matrix instead runs a side-channel preflight (`codex debug prompt-input`, no
+auth or network needed) immediately before the real call and records its result
+as `skill_probe_available` in `metadata.json`; `extract-run-signals.sh` reads
+that instead of an init event for Codex rows. This preserves the same hard
+gate, just sourced differently.
+
 The `with skill` arm **explicitly installs** the skill into the container — its
 `SKILL.md` and files are placed under `~/.claude/skills/<name>/` before the run,
 so Claude Code registers it at startup. The `no skill` arm runs the same prompt
@@ -61,7 +98,10 @@ Two things about the skill are recorded per run:
 - **Activation** (recorded, never gated). *How* the model reached the skill:
   `skill_tool` (invoked via progressive disclosure), `file_read` (read the
   installed `SKILL.md` directly), `web_fetch` (pulled the published copy from
-  `skills.qdrant.tech` instead), or `none`. Because install is guaranteed, a
+  `skills.qdrant.tech` instead), or `none`. Codex cells use a narrower
+  vocabulary — `file_read`/`web_fetch`/`none` only, never `skill_tool` — since
+  Codex has no dedicated skill-invocation tool; a `SKILL.md` there is read via
+  a plain shell command (see Codex Cells above). Because install is guaranteed, a
   `none` is unambiguous: the skill was present and the model did not reach for it.
   That is a **trigger miss** — a real signal about the skill's description, not a
   harness bug — so the run stays in scoring and the miss is flagged. Persistent
@@ -384,13 +424,18 @@ For a plain-language glossary of every number in `scorecard.md` and `scores.csv`
 Under `evals/weekly/<date>/`:
 
 - **`manifest.csv`** — one row per run: `prompt, skill_family, skill_leaf, model,
-  condition, rep, run_id, exit_code, skills_sha, timestamp, skill_available,
+  agent, condition, rep, run_id, exit_code, skills_sha, timestamp, skill_available,
   skill_activation, reached_leaf, fetched_site, fetched_count, model_snapshot,
   cli_version, total_cost_usd, num_turns, result_subtype, budget_hit, signals_ok,
-  duration_ms`. The runner writes the first ten (base) columns;
-  `extract-run-signals.sh` derives the rest from each transcript. `budget_hit` is `1` when the run hit the per-run
-  spend cap (`result_subtype = error_max_budget_usd`): such a run is truncated, so
-  it is excluded from scoring and the cost mean and reported as budget-capped.
+  duration_ms`. The runner writes the first eleven (base) columns;
+  `extract-run-signals.sh` derives the rest from each transcript. `agent` is
+  `claude` or `codex` (see Codex Cells above for what differs per agent in the
+  derived columns). `budget_hit` is `1` when the run hit the per-run
+  spend cap (`result_subtype = error_max_budget_usd`) for Claude, or when the
+  harness's own wall-clock timeout fired (`metadata.timed_out`) for Codex,
+  which has no server-side spend cap of its own: either way, such a run is
+  truncated, so it is excluded from scoring and the cost mean and reported as
+  budget-capped.
   `signals_ok` is `0` when the transcript did not parse into the expected shape (a
   format break, not a real `activation=none`): the run's activation/fetch fields
   are then untrustworthy and the run is surfaced in Run health for investigation
@@ -402,7 +447,7 @@ Under `evals/weekly/<date>/`:
   `num_turns` are the per-run efficiency signals, straight from the result event;
   `duration_ms` is the run's wall-clock duration (also from the result event),
   aggregated into the scorecard's generation-time stats.
-- **`scores.csv`** — one row per graded rubric item: `prompt, skill, model,
+- **`scores.csv`** — one row per graded rubric item: `prompt, skill, model, agent,
   condition, rep, item_type, item_text, verdict, credit, contribution,
   contested, evidence_quote`. This is the raw grade ledger; everything else is
   derived from it.
