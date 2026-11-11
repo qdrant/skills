@@ -18,7 +18,7 @@ Identify the user's problem and pick building blocks:
 - What can go into one prefetch, e.g. power one search, in [Search Types](search-types/SKILL.md)
 - How to combine results of these searches and tune the fusion (RRF, DBSF, FormulaQuery, reranking) in [Combining Searches](combining-searches/SKILL.md)
 
-The most common pattern is a dense and a sparse prefetch fused with RRF.
+A common pattern uses RRF to combine two prefetches: one on dense vectors and one on sparse vectors or a full-text query.
 
 Based on what you've picked, test your approach:
 1. Configure Qdrant collection with [named vectors](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=named-vectors), where each named vector usually corresponds to one representation (different embedding models or different vector types) of a data point.
