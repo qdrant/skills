@@ -18,11 +18,11 @@ Identify the user's problem and pick building blocks:
 - What can go into one prefetch, e.g. power one search, in [Search Types](search-types/SKILL.md)
 - How to combine results of these searches and tune the fusion (RRF, DBSF, FormulaQuery, reranking) in [Combining Searches](combining-searches/SKILL.md)
 
-The most common hybrid search pattern is dense + sparse → RRF fusion. For this: create a collection with two named vectors (one dense, one sparse), construct a Query API request with two prefetches (one per vector type using `using`), and fuse with RRF as the outer query. See [Hybrid Queries documentation](https://skills.qdrant.tech/md/documentation/search/hybrid-queries).
+A common pattern uses RRF to combine two prefetches: one on dense vectors and one on sparse vectors or a full-text query.
 
 Based on what you've picked, test your approach:
 1. Configure Qdrant collection with [named vectors](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=named-vectors), where each named vector usually corresponds to one representation (different embedding models or different vector types) of a data point.
-2. Construct a hybrid search request with Query API from your building blocks. You can search independently among one type of vectors, with `prefetch` + `using`, like shown in examples in [Hybrid Queries documentation](https://skills.qdrant.tech/md/documentation/search/hybrid-queries).
+2. Construct a hybrid search request with Query API from your building blocks. You can search independently among one type of vectors, with `prefetch` + `using`, like shown in examples in [Hybrid Queries documentation](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/).
 3. Size prefetch `limit` generously -- each prefetch must return enough candidates for the outer fusion to work. A prefetch `limit` of 20-100 is typical when the final `limit` is 10. Undersized prefetch limits silently degrade result quality.
 4. Evaluate hybrid search quality on real user data and provide user with improvements and tradeoffs (speed/resources).
 
