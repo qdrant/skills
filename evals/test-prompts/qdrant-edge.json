@@ -2,11 +2,11 @@
   "name": "qdrant-edge",
   "product_area": "edge",
   "skill_url": "https://skills.qdrant.tech/qdrant-edge/SKILL.md",
-  "prompt": "I'm building an offline-capable Python app on Qdrant Edge (robot, intermittent wifi). Three problems. (1) I bulk-upserted 50k points but keyword search returns almost nothing right after. (2) I want to keep the shard fresh from our Qdrant Cloud collection and also get local edits back up to it. (3) For hybrid search I'm about to pip install a BM25 lib and write my own RRF. What am I getting wrong?",
+  "prompt": "I'm building an offline-capable Python app on Qdrant Edge (robot, intermittent wifi). Three problems. (1) I bulk-upserted 50k points and search got noticeably slower right after. (2) I want to keep the shard fresh from our Qdrant Cloud collection and also get local edits back up to it. (3) For hybrid search I'm about to pip install a BM25 lib and write my own RRF. What am I getting wrong?",
   "rubric": [
     {
       "type": "must",
-      "text": "The empty keyword results come from Edge having no background optimizer: call optimize after bulk writes to build the sparse/BM25 index and reclaim deletes — nothing is indexed until then."
+      "text": "The slowdown comes from Edge having no background optimizer: new points are searched by brute force until you call optimize after bulk writes, which builds the indexes and reclaims deletes."
     },
     {
       "type": "must",
@@ -18,11 +18,11 @@
     },
     {
       "type": "must",
-      "text": "Don't add a BM25 library — BM25 is built into Edge (Bm25/Bm25Config, embed_document/embed_query) and is wire-compatible with server BM25."
+      "text": "Don't add a BM25 library: Edge ranks BM25 natively from a full-text index with `scoring` enabled, queried with a `TextQuery` and no embedding model. Edge's BM25 embedder (Bm25, embed_document/embed_query) is only needed for server-compatible sparse vectors."
     },
     {
       "type": "must",
-      "text": "Replace the custom RRF: Edge `query` accepts dense and sparse `prefetches` and fuses them with a `Fusion` query in one call, so rankings don't need combining in application code."
+      "text": "Replace the custom RRF: Edge `query` accepts dense and BM25 (`TextQuery`) `prefetches` and fuses them with a `Fusion` query in one call, so rankings don't need combining in application code."
     },
     {
       "type": "bonus",
@@ -38,7 +38,7 @@
     },
     {
       "type": "avoid",
-      "text": "Blames the empty keyword search on BM25 setup or re-indexing instead of the missing optimize."
+      "text": "Blames the slowdown on hardware, data size, or BM25 setup instead of the missing optimize."
     },
     {
       "type": "avoid",
@@ -46,7 +46,7 @@
     },
     {
       "type": "avoid",
-      "text": "Keeps combining dense and sparse rankings in application code instead of prefetches with a Fusion query, or swaps embed_document/embed_query."
+      "text": "Keeps combining dense and keyword rankings in application code instead of prefetches with a Fusion query, or swaps embed_document/embed_query."
     }
   ]
 }
