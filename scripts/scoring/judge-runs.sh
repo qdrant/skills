@@ -66,12 +66,25 @@ C_EXIT=$(col exit_code); C_AVAIL=$(col skill_available); C_BUDGET=$(col budget_h
 # Fresh start deletes the ledger; otherwise resume (keep it, skip graded runs).
 [[ "$FRESH" == "1" ]] && rm -f "$SCORES"
 
+# Column indices (1-based) in scores.csv, looked up by name rather than
+# hardcoded -- judge.py's CSV_COLUMNS gained an "agent" column between
+# "model" and "condition", which silently broke a previous hardcoded-position
+# version of this check (condition/rep read from the wrong columns, so a
+# resumed run never matched and re-graded everything). Read fresh each call
+# since scores.csv may not exist yet on the first already_graded() call of a
+# run and gets created partway through this script's own loop.
+scol() { [[ -f "$SCORES" ]] || return 1; head -1 "$SCORES" | tr ',' '\n' | grep -nx "$1" | cut -d: -f1; }
+
 # A run counts as already graded if a scores.csv row matches its
 # (prompt, model, condition, rep) exactly. Exact field compare (quoting-safe).
 already_graded() {
   [[ -f "$SCORES" ]] || return 1
+  local c_prompt c_model c_cond c_rep
+  c_prompt=$(scol prompt); c_model=$(scol model); c_cond=$(scol condition); c_rep=$(scol rep)
+  [[ -n "$c_prompt" && -n "$c_model" && -n "$c_cond" && -n "$c_rep" ]] || return 1
   awk -F, -v p="$1" -v m="$2" -v c="$3" -v r="$4" \
-    'NR>1 && $1==p && $3==m && $4==c && $5==r {found=1; exit} END{exit !found}' "$SCORES"
+    -v cp="$c_prompt" -v cm="$c_model" -v cc="$c_cond" -v cr="$c_rep" \
+    'NR>1 && $(cp)==p && $(cm)==m && $(cc)==c && $(cr)==r {found=1; exit} END{exit !found}' "$SCORES"
 }
 
 graded=0; skip_invalid=0; skip_error=0; skip_noanswer=0
@@ -118,7 +131,8 @@ echo
 echo "Scores ledger: $SCORES"
 if [[ -f "$SCORES" ]]; then
   n_rows=$(( $(wc -l < "$SCORES") - 1 ))
-  n_runs=$(tail -n +2 "$SCORES" | cut -d, -f1,3,4,5 | sort -u | wc -l | tr -d ' ')
+  c_prompt=$(scol prompt); c_model=$(scol model); c_cond=$(scol condition); c_rep=$(scol rep)
+  n_runs=$(tail -n +2 "$SCORES" | cut -d, -f"$c_prompt,$c_model,$c_cond,$c_rep" | sort -u | wc -l | tr -d ' ')
   echo "Graded $n_rows rubric items across $n_runs runs."
 else
   echo "No runs graded." >&2

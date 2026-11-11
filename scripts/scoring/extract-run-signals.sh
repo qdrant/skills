@@ -155,13 +155,21 @@ tail -n +2 "$MANIFEST" | while IFS= read -r line; do
       # "skills/<x>" suffix structure on disk for both agents -- confirmed),
       # just reading a shell command instead of a Read tool's file_path, and
       # reading a web_search item's query instead of a WebFetch tool's url.
+      # The fetch count also nets in a command_execution hitting
+      # skills.qdrant.tech directly (e.g. curl), the way the Claude block
+      # already counts both WebFetch and a Bash curl to that site -- without
+      # this, a Codex cell that fetches the published skill via a shell
+      # command instead of its web_search tool would silently undercount
+      # fetched_site/fetched_count relative to a Claude cell doing the same
+      # thing (caught on PR review, not by the original live test, since that
+      # test's codex run happened to use web_search).
       # tool_calls counts every tool-call item as the closest analog to
       # Claude's num_turns (there is no literal turn counter in the stream).
       codex_sig="$(jq -rs --arg fam "$family" --arg leaf "$leaf" '
         [ .. | objects | select(.type == "item.completed") | .item ] as $items
         | [ ([$items[]|select(.type=="command_execution")|select((.command // "")|test("skills/"+$fam+"/.*SKILL\\.md"))]|length),
             ([$items[]|select(.type=="command_execution")|select((.command // "")|contains("skills/"+$leaf))]|length),
-            ([$items[]|select(.type=="web_search")|select(((.query // "") + (.action.query // ""))|contains("skills.qdrant.tech"))]|length),
+            ([$items[]|select((.type=="web_search" and (((.query // "") + (.action.query // ""))|contains("skills.qdrant.tech"))) or (.type=="command_execution" and ((.command // "")|contains("skills.qdrant.tech"))))]|length),
             ([$items[]|select(.type=="command_execution" or .type=="web_search" or .type=="file_change" or .type=="mcp_tool_call")]|length)
           ] | @tsv' "$stdout" 2>/dev/null)"
       if [[ -n "$codex_sig" && -n "$thread_started" && -n "$turn_terminal" ]]; then
