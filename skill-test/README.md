@@ -487,3 +487,18 @@ breakdown, `avoid`-violation detail for each version, and a coverage section
 listing any dropped runs — the same shape as the periodic `scorecard.md`, just
 diffing two named versions instead of two conditions. Nothing here gates; it's
 a report to read before deciding whether to merge.
+
+The per-prompt table and the per-model summary also show skill activation for
+each version, counted over the graded runs from `manifest.csv`:
+
+- **activated**: runs that read the local `SKILL.md` of that version
+  (`skill_activation` is `skill_tool` or `file_read`). Runs that fetched
+  `skills.qdrant.tech` instead (`web_fetch`) read the published skill from
+  `main`, not the version under test, so they're listed next to the count and
+  never counted as activated. Runs whose transcript didn't parse
+  (`signals_ok=0`) are listed as unparsed.
+- **reached leaf**: runs that read the prompt's target leaf `SKILL.md`.
+
+A prompt whose runs never activated the skill in either version is marked
+`never activated`, and a line under the lift table counts these prompts. A
+delta on such a prompt comes from run-to-run noise, not from the skill edit.

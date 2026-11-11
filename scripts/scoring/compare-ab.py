@@ -161,6 +161,74 @@ def aggregate_cost(manifest):
     return out, excluded
 
 
+LOCAL_ACTIVATION = {"skill_tool", "file_read"}
+
+
+def activation_by_prompt(manifest, scores):
+    """Per (model, prompt): how the graded runs reached the skill.
+
+    Counts only runs that were graded (present in scores.csv), so the rates
+    describe the same runs the must score comes from. `activated` means the run
+    read the local SKILL.md of the version under test (skill_tool or
+    file_read). `web_fetch` is counted apart: the site serves the published
+    skill from main, so a web_fetch run never saw this version's edit. Runs
+    whose transcript did not parse (signals_ok=0) are `unknown`, not misses.
+    """
+    graded = {(r["prompt"], r["model"], r["rep"]) for r in scores}
+    out = defaultdict(lambda: {"n": 0, "activated": 0, "leaf": 0, "web_fetch": 0, "unknown": 0})
+    for r in manifest:
+        key = (r.get("prompt"), r.get("model"), r.get("rep"))
+        if key not in graded:
+            continue
+        c = out[(r.get("model"), r.get("prompt"))]
+        c["n"] += 1
+        if r.get("signals_ok", "1") == "0":
+            c["unknown"] += 1
+            continue
+        act = r.get("skill_activation")
+        if act in LOCAL_ACTIVATION:
+            c["activated"] += 1
+        elif act == "web_fetch":
+            c["web_fetch"] += 1
+        if r.get("reached_leaf") == "1":
+            c["leaf"] += 1
+    return dict(out)
+
+
+def activation_by_model(act):
+    out = defaultdict(lambda: {"n": 0, "activated": 0, "leaf": 0, "web_fetch": 0, "unknown": 0})
+    for (model, _prompt), c in act.items():
+        for k, v in c.items():
+            out[model][k] += v
+    return dict(out)
+
+
+def fmt_activation(c):
+    """`activated/n`, plus web_fetch and unparsed runs when present."""
+    if not c or not c["n"]:
+        return "n/a"
+    s = f"{c['activated']}/{c['n']}"
+    extra = []
+    if c["web_fetch"]:
+        extra.append(f"{c['web_fetch']} web_fetch")
+    if c["unknown"]:
+        extra.append(f"{c['unknown']} unparsed")
+    return s + (f" ({', '.join(extra)})" if extra else "")
+
+
+def fmt_leaf(c):
+    if not c or not c["n"]:
+        return "n/a"
+    return f"{c['leaf']}/{c['n']}"
+
+
+def never_activated(ca, cb):
+    """True when neither version read the local skill in any parseable graded
+    run, so the prompt's delta can't come from the skill edit."""
+    runs = [c for c in (ca, cb) if c and c["n"]]
+    return bool(runs) and all(c["activated"] == 0 and c["unknown"] < c["n"] for c in runs)
+
+
 def paired_se(prompt_q_a, prompt_q_b, models):
     """Paired within-run SE of the must_coverage delta (B - A), per model. Same
     math as summarize-eval.py's within_week_se, but pairing A/B per prompt
@@ -245,6 +313,9 @@ def build_scorecard(dir_a, dir_b, label_a, label_b,
                      manifest_a, manifest_b, scores_a, scores_b):
     models = models_present(mq_a, mq_b)
     se_info = paired_se(pq_a, pq_b, models)
+    act_a = activation_by_prompt(manifest_a, scores_a)
+    act_b = activation_by_prompt(manifest_b, scores_b)
+    mact_a, mact_b = activation_by_model(act_a), activation_by_model(act_b)
 
     L = [f"# Skill A/B Scorecard\n",
          f"**A** = `{label_a}` (`{dir_a}`)  \n**B** = `{label_b}` (`{dir_b}`)\n"]
@@ -286,6 +357,13 @@ def build_scorecard(dir_a, dir_b, label_a, label_b,
              "delta (B - A) - sampling uncertainty from this prompt set and rep/judge noise, not "
              "a claim about generalization beyond the matched prompts. '!= 0?' asks whether the "
              "95% CI (t*SE) excludes zero. Reported, not gated._\n")
+    pairs = {(m, p) for (m, p) in set(pq_a) | set(pq_b) if m in models}
+    silent = sorted(p for (m, p) in pairs if never_activated(act_a.get((m, p)), act_b.get((m, p))))
+    if pairs:
+        L.append(f"**Activation:** {len(silent)} of {len(pairs)} prompt/model pairs never read the "
+                 "local skill in either version, so their deltas can't come from the skill edit"
+                 + (f" ({', '.join(f'`{p}`' for p in sorted(set(silent)))})." if silent else ".")
+                 + " See the per-prompt table.\n")
 
     L.append("## Per-model summary\n")
     rows = []
@@ -294,12 +372,14 @@ def build_scorecard(dir_a, dir_b, label_a, label_b,
         ca, cb = cost_a.get(m, {}), cost_b.get(m, {})
         rows.append([m, "A", fmt(a.get("must_coverage")), fmt(a.get("bonus_rate")),
                      fmt(a.get("avoid_violations"), 2), fmt(a.get("composite")),
+                     fmt_activation(mact_a.get(m)), fmt_leaf(mact_a.get(m)),
                      fmt(ca.get("cost"), 4), fmt(ca.get("turns"), 1), a.get("n_prompts", 0)])
         rows.append([m, "B", fmt(b.get("must_coverage")), fmt(b.get("bonus_rate")),
                      fmt(b.get("avoid_violations"), 2), fmt(b.get("composite")),
+                     fmt_activation(mact_b.get(m)), fmt_leaf(mact_b.get(m)),
                      fmt(cb.get("cost"), 4), fmt(cb.get("turns"), 1), b.get("n_prompts", 0)])
     L += md_table(["model", "version", "must_cov", "bonus_rate", "avoid_viol",
-                   "composite", "mean cost", "mean turns", "n"], rows)
+                   "composite", "activated", "reached leaf", "mean cost", "mean turns", "n"], rows)
     L.append("")
 
     L.append("## Per-prompt (must_coverage; A -> B)\n")
@@ -313,10 +393,18 @@ def build_scorecard(dir_a, dir_b, label_a, label_b,
             mc_b = b.get("must_coverage") if b else None
             cp_a = a.get("composite") if a else None
             cp_b = b.get("composite") if b else None
+            aa, ab = act_a.get((m, prompt)), act_b.get((m, prompt))
+            note = "never activated" if never_activated(aa, ab) else ""
             rows.append([prompt, m, f"{fmt(mc_a)} -> {fmt(mc_b)}",
-                         signed(delta(mc_b, mc_a)), f"{fmt(cp_a)} -> {fmt(cp_b)}"])
-    L += md_table(["prompt", "model", "must A->B", "delta", "composite A->B"], rows)
-    L.append("")
+                         signed(delta(mc_b, mc_a)), f"{fmt(cp_a)} -> {fmt(cp_b)}",
+                         f"{fmt_activation(aa)} -> {fmt_activation(ab)}",
+                         f"{fmt_leaf(aa)} -> {fmt_leaf(ab)}", note])
+    L += md_table(["prompt", "model", "must A->B", "delta", "composite A->B",
+                   "activated A->B", "reached leaf A->B", "note"], rows)
+    L.append("\n_activated: graded runs that read the local SKILL.md of that version (Skill tool "
+             "or file read). web_fetch runs read the published skill from main, so they are listed "
+             "apart and never count as activated; unparsed runs (signals_ok=0) are neither. "
+             "reached leaf: graded runs that read the prompt's target leaf SKILL.md._\n")
 
     L.append("## `avoid` violations\n")
     L += avoid_lines("A", scores_a)
