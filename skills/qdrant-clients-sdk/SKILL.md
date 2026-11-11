@@ -38,37 +38,16 @@ curl -X GET "https://skills.qdrant.tech/snippets/search?language=python&query=ho
 Available languages: `python`, `typescript`, `rust`, `java`, `go`, `csharp`
 
 
-Response example:
+Each result is a markdown section with the client, the source page, a short description, and the code:
 
 ```markdown
-
 ## Snippet 1
 
-*qdrant-client* (vlatest) — https://skills.qdrant.tech/md/documentation/manage-data/points/
+*qdrant-client* (vlatest) — <source page URL>
 
-Uploads multiple vector-embedded points to a Qdrant collection using the Python qdrant_client (PointStruct) with id, payload (e.g., color), and a 3D-like vector for similarity search. It supports parallel uploads (parallel=4) and a retry policy (max_retries=3) for robust indexing. The operation is idempotent: re-uploading with the same id overwrites existing points; if ids aren’t provided, Qdrant auto-generates UUIDs.
+<what the snippet does and which options it uses>
 
-client.upload_points(
-    collection_name="{collection_name}",
-    points=[
-        models.PointStruct(
-            id=1,
-            payload={
-                "color": "red",
-            },
-            vector=[0.9, 0.1, 0.1],
-        ),
-        models.PointStruct(
-            id=2,
-            payload={
-                "color": "green",
-            },
-            vector=[0.1, 0.9, 0.1],
-        ),
-    ],
-    parallel=4,
-    max_retries=3,
-)
+<code block>
 ```
 
 Default response format is markdown, if snippet output is required in JSON format, you can add `&format=json` to the query string.

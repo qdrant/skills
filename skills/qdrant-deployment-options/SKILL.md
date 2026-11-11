@@ -29,7 +29,7 @@ Use when: you need full control over infrastructure or custom configuration, and
 
 ## Going to Production (Zero-Ops)
 
-Use when: you want managed infrastructure with zero-downtime updates, automatic backups, and resharding without operating clusters yourself — including when data-residency or compliance rules mean the data can't sit on Qdrant-operated infrastructure.
+Use when: you want managed infrastructure with rolling updates (zero-downtime on multi-node clusters where every collection has a replication factor of 2 or more), automatic backups, and resharding without operating clusters yourself — including when data-residency or compliance rules mean the data can't sit on Qdrant-operated infrastructure.
 
 - Qdrant Cloud handles upgrades, scaling, backups, and monitoring [Qdrant Cloud](https://skills.qdrant.tech/md/documentation/cloud-quickstart/)
 - Chose Qdrant Cloud? See the [Managed Cloud quickstart skill](../qdrant-managed-cloud-quickstart/SKILL.md) to create and connect your first cluster.

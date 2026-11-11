@@ -1,6 +1,6 @@
 ---
 name: qdrant-edge
-description: "Guides building on Qdrant Edge, the embedded in-process shard. Use when someone asks 'how to sync Edge with the server', 'keep a local shard in sync with Qdrant Cloud', 'BM25 or keyword search on Edge', 'hybrid search on Edge', 'embeddings on device', 'Edge snapshots', 'apply a partial snapshot', 'why is my Edge search empty after inserts', or is writing custom sync, BM25, or fusion code against qdrant-edge. Also use when deciding what Edge ships built-in versus what you must implement."
+description: "Guides building on Qdrant Edge, the embedded in-process shard. Use when someone asks 'how to sync Edge with the server', 'keep a local shard in sync with Qdrant Cloud', 'BM25 or keyword search on Edge', 'hybrid search on Edge', 'embeddings on device', 'Edge snapshots', 'apply a partial snapshot', 'why is my Edge search slow after inserts', or is writing custom sync, BM25, or fusion code against qdrant-edge. Also use when deciding what Edge ships built-in versus what you must implement."
 ---
 
 # Building on Qdrant Edge
@@ -26,16 +26,17 @@ There is no built-in `.sync()`. Sync is a pattern you assemble from shard helper
 
 Use when: you need exact-term or BM25 matching, alone or alongside vectors.
 
-- BM25 is built into Edge (`Bm25`, `Bm25Config`, `embed_document`, `embed_query`) with the IDF `Modifier` on `EdgeSparseVectorParams`, and is wire-compatible with the server's sparse vector BM25 model (Edge BM25 docs cover only the sparse vector variant): a shard seeded from a server snapshot answers local BM25 queries without re-indexing. Do not ship a second BM25 library [Edge BM25](https://skills.qdrant.tech/md/documentation/edge/edge-bm25/)
+- BM25 is built into Edge: create a full-text index with `scoring` enabled on the payload field (with the stemmer and stopwords for your language) and rank with a `TextQuery`. It needs no embedding model and derives document lengths from your data. Do not ship a second BM25 library [Edge BM25](https://skills.qdrant.tech/md/documentation/edge/edge-bm25/)
+- Need sparse BM25 vectors instead, for example to match a server collection that uses sparse vector BM25? Edge's BM25 embedder (`Bm25` in Python, `EdgeBm25` in Rust) produces server-compatible sparse vectors: `embed_document` for documents, `embed_query` for queries [Edge BM25](https://skills.qdrant.tech/md/documentation/edge/edge-bm25/)
 - Dense embeddings are NOT in Edge: generate them on device with the separate `fastembed` package [FastEmbed embeddings](https://skills.qdrant.tech/md/documentation/edge/edge-fastembed-embeddings/)
-- For hybrid search, run the dense and sparse legs as `prefetches` and fuse them with a `Fusion` query in a single `query` call, instead of combining rankings in application code [Reading data](https://skills.qdrant.tech/md/documentation/edge/edge-api/reading-data/)
+- For hybrid search, run the dense and keyword legs as `prefetches` (a `TextQuery`, or a sparse vector query) and fuse them with a `Fusion` query in a single `query` call, instead of combining rankings in application code [Reading data](https://skills.qdrant.tech/md/documentation/edge/edge-api/reading-data/)
 
 
 ## Operating the Shard
 
-Use when: writes have accumulated, search looks stale after inserts, or a backup is larger than the data.
+Use when: writes have accumulated, search is slow after inserts, or a backup is larger than the data.
 
-- Edge has NO background optimizer. Call `optimize` after bulk writes: it builds indexes (including the sparse index) and reclaims deleted points. Skip it and that data stays unindexed [Edge quickstart](https://skills.qdrant.tech/md/documentation/edge/edge-quickstart/)
+- Edge has NO background optimizer. Call `optimize` after bulk writes: it builds indexes and reclaims deleted points. Until then, new points are searched by brute force [Edge quickstart](https://skills.qdrant.tech/md/documentation/edge/edge-quickstart/)
 - Faceting, counting, and enumeration are built in (`facet`, `count`, `scroll`); index the fields you filter or facet with `create_field_index` rather than aggregating in application code [Edge quickstart](https://skills.qdrant.tech/md/documentation/edge/edge-quickstart/)
 - The write-ahead log is pre-allocated to 32 MB and inflates apparent disk and backup size. Shrink it with `wal_options` (Rust), and do not treat raw file size as real usage [Edge quickstart](https://skills.qdrant.tech/md/documentation/edge/edge-quickstart/)
 
@@ -45,8 +46,9 @@ Use when: writes have accumulated, search looks stale after inserts, or a backup
 - Expect a bidirectional `.sync()` or a built-in push path: Edge gives you snapshot apply, you own the transport and the dual-write
 - Untar or merge snapshot segments by hand instead of using `unpack_snapshot` and `update_from_snapshot`
 - Ship a custom or third-party BM25 when Edge has one built in
-- Use `embed_document` for queries or `embed_query` for documents: the weighting differs and results go wrong
-- Combine dense and sparse rankings in application code: Edge `query` accepts `prefetches` and fuses them with a `Fusion` query
+- Run a `TextQuery` on a full-text index created without `scoring`: BM25 ranking needs it enabled
+- Use the BM25 embedder's `embed_document` for queries or `embed_query` for documents: the weighting differs and results go wrong
+- Combine dense and keyword rankings in application code: Edge `query` accepts `prefetches` and fuses them with a `Fusion` query
 - Assume a background optimizer like the server's: nothing is indexed or compacted until you call `optimize`
 - Reach for Edge when you need distributed or multi-node search: it is single-node [Qdrant Edge](https://skills.qdrant.tech/md/documentation/edge/)
 - Claim support for a language beyond Python and Rust, or an OS or accelerator the Edge docs do not state

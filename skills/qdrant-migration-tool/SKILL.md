@@ -1,6 +1,6 @@
 ---
 name: qdrant-migration-tool
-description: "Guides use of the Qdrant Migration Tool CLI to move vectors, metadata, and sparse embeddings from another vector database into Qdrant. Use when someone asks 'how do I migrate from Pinecone/Weaviate/Milvus/Elasticsearch/OpenSearch/pgvector/s3/Azure/Chroma/Redis/MongoDB/FAISS/Solr to Qdrant', 'move my vector database to Qdrant', 'is there a migration tool for Qdrant', 'my migration got interrupted, how do I resume it', 'migration is too slow', or 'collection wasn't created after migration'. Also use when picking migration batch size, deciding on `--net=host`, or verifying data after a migration."
+description: "Guides use of the Qdrant Migration Tool CLI to move vectors, metadata, and sparse embeddings from another vector database into Qdrant. Use when someone asks 'how do I migrate from Pinecone/Weaviate/Milvus/Elasticsearch/OpenSearch/pgvector/s3/Azure/DynamoDB/Turbopuffer/Chroma/Redis/MongoDB/FAISS/Solr to Qdrant', 'move my vector database to Qdrant', 'is there a migration tool for Qdrant', 'my migration got interrupted, how do I resume it', 'migration is too slow', or 'collection wasn't created after migration'. Also use when picking migration batch size, deciding on `--net=host`, or verifying data after a migration."
 ---
 
 # Qdrant Migration Tool
@@ -11,9 +11,9 @@ The tool is a Docker container (`registry.cloud.qdrant.io/library/qdrant-migrati
 
 Use when: starting a new migration and choosing the source-specific CLI subcommand.
 
-- Match the source to its subcommand: `pinecone`, `weaviate`, `milvus`, `elasticsearch`, `opensearch`, `pg` (pgvector), `s3` (S3 Vectors), `azure` (Azure AI Search), `chroma`, `redis`, `mongodb`, `faiss`, `solr`, or `qdrant`. [Migrate to Qdrant](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/)
+- Each source has its own subcommand, listed in the [Supported Sources](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/?s=supported-sources) table; most are named after the source, the non-obvious ones are `pg` (pgvector), `s3` (S3 Vectors), and `azure` (Azure AI Search).
 - Weaviate, Redis, MongoDB, and Apache Solr do not auto-create the target collection; create it in Qdrant first with matching vector size and distance metric before running the migration. All other sources auto-create it.
-- Each source has its own credential and mapping guide; read it before running the migration, since concept mapping (namespaces, indexes, metadata fields) is source-specific. [Pinecone](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-pinecone/) [Weaviate](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-weaviate/) [Milvus](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-milvus/) [Elasticsearch](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-elasticsearch/) [OpenSearch](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-opensearch/) [Azure AI search](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-azure-search/) [pgvector](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-pgvector/) [S3 Vectors](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-s3-vectors/) [Chroma](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-chroma/) [Redis](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-redis/) [MongoDB](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-mongodb/) [FAISS](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-faiss/) [Apache Solr](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-solr/) [Qdrant-to-Qdrant](https://skills.qdrant.tech/md/documentation/migrate-to-qdrant/from-qdrant/)
+- Read the source's guide (linked from the same table) before running the migration: credentials and concept mapping (namespaces, indexes, metadata fields) are source-specific.
 - Source not listed? Point to the GitHub issue tracker rather than improvising a custom pipeline. [Open an issue](https://github.com/qdrant/migration/issues)
 
 ## Running Against Local Instances
@@ -38,7 +38,6 @@ Use when: throughput is too low for the size of the source dataset.
 - Raise `--migration.batch-size` from the default of 50 to 256 or 512 for large migrations; small batches under-use each upsert round trip.
 - `--migration.num-workers` only exists for the `pg` and `qdrant` subcommands; other sources have no parallel-worker flag, so throughput there is bounded by batch size and network proximity alone.
 - `--migration.batch-delay` defaults to 0; only raise it deliberately to throttle load on a source database that can't absorb full-speed reads, not as a default tuning knob.
-- Run the container close to both databases rather than over a slow network path, since the tool has no way to compensate for source/target latency.
 
 ## After Migration
 

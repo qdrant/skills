@@ -13,7 +13,7 @@ Use when: about to create the environment, or the install/cluster provisioning f
 
 - Qdrant needs a block-storage CSI driver. Network storage (NFS) and object storage (S3) are unsupported: a cluster wired to those will fail, not degrade [Prerequisites](https://skills.qdrant.tech/md/documentation/hybrid-cloud/hybrid-cloud-setup/).
 - Create the `StorageClass` (with `allowVolumeExpansion: true`) and the `VolumeSnapshotClass` *beforehand*, not after. Without volume expansion you can't grow disk later; without a `VolumeSnapshotClass` and the CSI snapshot controller you can't take backups.
-- Any standards-compliant Kubernetes works, and there's platform-specific setup guidance for the managed ones: Akamai (Linode/LKE), AWS (EKS), Civo, DigitalOcean (DOKS), Gcore, GCP (GKE), Azure (AKS), Oracle (OKE), OVHcloud, Red Hat OpenShift, Scaleway, STACKIT, and Vultr [Deployment Platforms](https://skills.qdrant.tech/md/documentation/hybrid-cloud/platform-deployment-options/).
+- Any standards-compliant Kubernetes works; check the [Deployment Platforms](https://skills.qdrant.tech/md/documentation/hybrid-cloud/platform-deployment-options/) page for your managed provider's setup guidance.
 - Platform matters for what storage supports: some (e.g. Linode/LKE, Vultr) don't support CSI volume snapshots at all, so backups are unavailable there. Check your provider's snapshot page and prefer its recommended instance and disk types (e.g. gp3 on EKS, Premium SSD v2 on AKS) before committing.
 - Confirm outbound connectivity: the agent opens connections to `grpc.cloud.qdrant.io` and `api.cloud.qdrant.io` on 443. Firewalls/egress proxies block this silently: a "stuck installing" agent is usually this.
 - You need `cluster-admin` plus `kubectl` and `helm` configured against the target cluster.
@@ -23,7 +23,7 @@ Use when: about to create the environment, or the install/cluster provisioning f
 Use when: running the install wizard in the Cloud Console.
 
 - The **Kubernetes namespace is permanent**: it's the one choice you can't change later. Everything else (node selectors, tolerations, registry URLs, proxy) is editable after creation, so don't over-think them now.
-- The wizard generates a one-time install command that creates secrets and installs the agent + operator via Helm. You only need it for the initial install; updates happen from the Console afterward [Setup guide](https://skills.qdrant.tech/md/documentation/hybrid-cloud/hybrid-cloud-setup/).
+- The wizard's install command is for the initial install only; update the agent and operator from the Console afterward [Generate installation command](https://skills.qdrant.tech/md/documentation/hybrid-cloud/hybrid-cloud-setup/?s=generate-installation-command).
 - Advanced operator behavior (pod scheduling, security context, ingress, networking, and snapshot management) is tuned in the operator configuration at the environment level, and can be changed after install [Operator configuration](https://skills.qdrant.tech/md/documentation/hybrid-cloud/operator-configuration/).
 - Air-gapped or registry-restricted? Mirror the `/qdrant/` images and `/qdrant-charts/` charts into your own registry and set the container + chart URLs in the environment's advanced section. Sync *all* architectures (or the right one) or ARM/x86 nodes will fail to pull.
 
@@ -39,7 +39,7 @@ Use when: the environment exists and you're provisioning a database.
 
 Use when: apps outside the Kubernetes cluster need to reach Qdrant, or asked about API keys/TLS.
 
-- Default is a `ClusterIP` service: internal-only, **no API key**. The moment you expose it (LoadBalancer, NodePort, or Ingress) you MUST configure an API key, supplied as a Kubernetes secret referenced in the cluster config [Networking & security](https://skills.qdrant.tech/md/documentation/hybrid-cloud/networking-logging-monitoring/).
+- Default is a `ClusterIP` service: internal-only, **no API key**. The moment you expose it (LoadBalancer, NodePort, or Ingress) you MUST configure an API key, supplied as a Kubernetes secret referenced in the cluster config [Authentication](https://skills.qdrant.tech/md/documentation/hybrid-cloud/hybrid-cloud-cluster-creation/?s=authentication-to-your-qdrant-clusters).
 - Internal node-to-node gRPC uses port 6335 and is never protected by API key or TLS. It must never be publicly reachable; Hybrid Cloud ships a NetworkPolicy restricting it, so don't loosen that.
 - TLS: offload at the ingress/LB, or terminate in Qdrant via a TLS secret. Don't do both by accident.
 
