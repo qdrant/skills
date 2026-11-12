@@ -12,6 +12,9 @@ python3 scripts/make_links_absolute.py
 
 python3 scripts/generate_llms_txt.py public
 
+# Which docs pages each skill draws on, for the docs-to-skills automation (qdrant/documentation#167).
+python3 scripts/build_docs_map.py --output public/docs-map.json
+
 python3 scripts/generate_breadcrumbs.py public
 
 # Last of the SKILL.md steps: the index carries a digest of each served file.
