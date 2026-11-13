@@ -26,6 +26,7 @@ Use when: current node resources (RAM, CPU, disk) are insufficient, but the work
 - Resize in the [Qdrant Cloud Console](https://cloud.qdrant.io/) or with the [CLI tool](https://github.com/qdrant/qcloud-cli). Every node in the cluster is scaled to the same size [Vertical scaling](https://skills.qdrant.tech/md/documentation/cloud/cluster-scaling/?s=vertical-scaling)
 - The upgrade process involves a rolling restart with no downtime if replication is configured
 - Ensure `replication_factor: 2` or higher before resizing to maintain availability during the rolling restart
+- If disk I/O is the bottleneck (write-heavy load, bulk loads, or vectors in the `cold` memory tier), switch to a faster disk speed tier on AWS instead of a bigger node. The default Cost-Optimized tier is enough when disk I/O isn't the bottleneck. Changing the tier doesn't restart the nodes [Changing disk speed](https://skills.qdrant.tech/md/documentation/cloud/cluster-scaling/?s=changing-disk-speed)
 
 **Important:** Scaling up is straightforward. Scaling down requires care -- if the working set no longer fits in RAM after downsizing, performance will degrade severely due to cache eviction. Always load test before scaling down.
 
