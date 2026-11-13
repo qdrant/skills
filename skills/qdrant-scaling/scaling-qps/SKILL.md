@@ -43,6 +43,7 @@ If it is not possible to keep all vectors in RAM, disk I/O can become the bottle
 In this case:
 
 - Upgrade to provisioned IOPS or local NVMe first. See impact of disk performance to vector search in [Disk performance article](https://skills.qdrant.tech/md/articles/memory-consumption/)
+- On Qdrant Cloud (AWS), raise IOPS and throughput by switching the cluster to a faster disk speed tier (Balanced or Performance). It doesn't restart the nodes [Changing disk speed](https://skills.qdrant.tech/md/documentation/cloud/cluster-scaling/?s=changing-disk-speed)
 - Enable async I/O: `storage.performance.io_uring: auto` on Qdrant 1.19 or newer, `async_scorer: true` on 1.18 or older. Requires Linux with a kernel that supports `io_uring` [Async I/O](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=async-io)
 - On v1.19+, store vectors as `datatype: turbo4` (4-bit, about 8x smaller) to cut disk reads. Lossy: the originals are no longer full precision, so check recall. It needs a new collection or a new named vector, so existing data must be re-ingested [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - In case of quantized vectors, prefer global rescoring over per-segment rescoring to reduce disk reads. Example in the [tutorial](https://skills.qdrant.tech/md/documentation/tutorials-operations/large-scale-search/?s=search-query)
