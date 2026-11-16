@@ -42,7 +42,10 @@ Use when: HNSW index build dominates total indexing time.
 - Reduce `m` (default 16, good for most cases, 32+ rarely needed) [HNSW params](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Reduce `ef_construct` (100-200 sufficient) [HNSW params](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=vector-index)
 - Leave `max_indexing_threads` at 0 (auto) or cap it; the configuration reference suggests 8 to 16 [Configuration](https://skills.qdrant.tech/md/documentation/ops-configuration/configuration/)
-- Use GPU for indexing (v1.13+): run a `gpu-nvidia` or `gpu-amd` image tag (e.g. `qdrant/qdrant:gpu-nvidia-latest`) on a Vulkan 1.3 GPU and set `gpu.indexing: true` [GPU indexing](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
+- Use GPU for indexing (v1.13+), which helps most with write-heavy workloads such as a large initial upload. How to enable it depends on the deployment [GPU indexing](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/)
+  - Managed Cloud: add a GPU to each node when creating a standard cluster on AWS; Qdrant Cloud configures the GPU settings [Cluster options](https://skills.qdrant.tech/md/documentation/cloud/create-cluster/?s=cluster-options)
+  - Private Cloud (1.6.1+): set `spec.gpu.gpuType` to `nvidia` or `amd` on the `QdrantCluster` [Private Cloud GPU support](https://skills.qdrant.tech/md/documentation/private-cloud/qdrant-cluster-management/?s=gpu-support)
+  - Self-hosted: run a `gpu-nvidia` or `gpu-amd` image tag (e.g. `qdrant/qdrant:gpu-nvidia-latest`) on a Vulkan 1.3 GPU and set `gpu.indexing: true` [Self-hosted GPU](https://skills.qdrant.tech/md/documentation/ops-configuration/running-with-gpu/?s=self-hosted)
 
 ## HNSW Index for Multi-Tenant Collections
 
