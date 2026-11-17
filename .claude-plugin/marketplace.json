@@ -1,5 +1,6 @@
 {
   "name": "qdrant",
+  "description": "Official Qdrant agent skills and the Qdrant Advisor for vector search",
   "owner": {
     "name": "Qdrant",
     "url": "https://qdrant.tech"
@@ -9,6 +10,11 @@
       "name": "qdrant",
       "source": "./",
       "description": "Agent skills for Qdrant vector search"
+    },
+    {
+      "name": "qdrant-advisor",
+      "source": "./plugins/qdrant-advisor",
+      "description": "Diagnose and advise on Qdrant deployments using live skills from skills.qdrant.tech"
     }
   ]
 }

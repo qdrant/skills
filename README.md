@@ -129,6 +129,12 @@ Add the marketplace, then install all Qdrant skills:
 /plugin install qdrant@qdrant
 ```
 
+To install only the Qdrant Advisor, which loads the latest skills live from [skills.qdrant.tech](https://skills.qdrant.tech) instead of bundling them:
+
+```
+/plugin install qdrant-advisor@qdrant
+```
+
 ### Cursor
 
 Install from the Cursor Marketplace or add manually via **Settings > Rules > Add Rule > Remote Rule (GitHub)** with `qdrant/skills`.
