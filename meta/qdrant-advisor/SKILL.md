@@ -57,6 +57,13 @@ Synthesize an answer strictly from the loaded context:
 - **Cite the canonical Qdrant doc URLs** you relied on so the user can go deeper.
 - If the loaded context does **not** cover the case, say so plainly and either run a different search or fall back to the root index at `https://skills.qdrant.tech` — do not paper over the gap with remembered guesses.
 
+## Optional: Qdrant MCP tools
+
+If Qdrant MCP tools are connected, use them to supplement the skills. They never replace the skill guidance or its ordered diagnostic steps. If a tool is not available, skip it and continue with the workflow above.
+
+- **Qdrant Docs MCP** (`search_docs`, `get_page`, `search_snippets`, `list_docs`): search the documentation and fetch pages as Markdown, and find code examples by language. This also works where you cannot fetch `skills.qdrant.tech` directly.
+- **Qdrant Cloud MCP**: when the user runs on Qdrant Cloud, read cluster health, metrics, and logs instead of asking the user to paste them. Read state freely, but ask the user before any change such as restarting, suspending, or deleting a cluster. It manages clusters, backups, and access, not collection data.
+
 ## Operating notes
 
 - **Always fetch fresh** every session. Never reuse a previously cached copy of a skill; the registry updates and staleness is exactly what this approach avoids.
