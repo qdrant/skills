@@ -63,7 +63,9 @@ def collect_skills(public_dir):
     """Return a sorted list of (depth, name, url_path, description) for every skill.
 
     depth 0 is a top-level skill; deeper values are sub-skills nested under a
-    hub, derived from how many directories sit between the file and public/.
+    hub, derived from how many ancestor directories are themselves skills. A
+    plain container directory without a SKILL.md (e.g. meta/) adds no depth,
+    since there's no parent entry in the map to nest under.
     """
     base_url = _site_url()
     skills = []
@@ -77,7 +79,6 @@ def collect_skills(public_dir):
         if rel_dir == os.curdir:
             continue
         segments = rel_dir.split(os.sep)
-        depth = len(segments) - 1
         with open(filepath) as f:
             fm = parse_frontmatter(f.read())
         name = fm.get("name") or segments[-1]
@@ -85,9 +86,14 @@ def collect_skills(public_dir):
         url = f"{base_url}/{rel_dir.replace(os.sep, '/')}/SKILL.md"
         # Sort key keeps children directly beneath their parent while ordering
         # each level alphabetically by path.
-        skills.append((tuple(segments), depth, name, url, description))
+        skills.append((tuple(segments), name, url, description))
     skills.sort(key=lambda s: s[0])
-    return [(depth, name, url, desc) for _segments, depth, name, url, desc in skills]
+    skill_dirs = {s[0] for s in skills}
+    result = []
+    for segments, name, url, desc in skills:
+        depth = sum(1 for i in range(1, len(segments)) if segments[:i] in skill_dirs)
+        result.append((depth, name, url, desc))
+    return result
 
 
 def render(title, blurb, skills):
