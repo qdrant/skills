@@ -135,6 +135,8 @@ To install only the Qdrant Advisor, which loads the latest skills live from [ski
 /plugin install qdrant-advisor@qdrant
 ```
 
+The plugin also bundles two hosted MCP servers: [Qdrant Docs](https://qdrant.tech/documentation/qdrant-mcp/docs/) (no sign-in) and [Qdrant Cloud](https://qdrant.tech/documentation/qdrant-mcp/cloud/) (OAuth, run `/mcp` and select `qdrant-cloud` to sign in).
+
 ### Cursor
 
 Install from the Cursor Marketplace or add manually via **Settings > Rules > Add Rule > Remote Rule (GitHub)** with `qdrant/skills`.
