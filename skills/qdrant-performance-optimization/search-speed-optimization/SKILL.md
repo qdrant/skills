@@ -5,7 +5,7 @@ description: "Diagnoses and fixes slow Qdrant search. Use when someone reports '
 
 # Diagnose a problem
 
-There the multiple possible reasons for search performance degradation. The most common ones are:
+There are multiple possible reasons for search performance degradation. The most common ones are:
 
 * Memory pressure: if the working set exceeds available RAM
 * Complex requests (e.g. high `hnsw_ef`, complex filters without payload index)
@@ -19,6 +19,7 @@ Use when: individual queries take too long regardless of load.
 
 ### Diagnostic steps:
 
+- Read the slow request log (v1.16+, always on, per node) to find the slowest unique operations over 50 ms [Slow request log](https://skills.qdrant.tech/md/documentation/ops-monitoring/slow-request-log/)
 - Check if second run of the same request is significantly faster (indicates memory pressure)
 - Try the same query with `with_payload: false` and `with_vectors: false` to see if payload retrieval is the bottleneck
 - If request uses filters, try to remove them one by one to identify if a specific filter condition is the bottleneck
@@ -27,9 +28,10 @@ Use when: individual queries take too long regardless of load.
 
 - Tune HNSW parameters: [Fine-tuning search](https://skills.qdrant.tech/md/documentation/ops-optimization/optimize/?s=fine-tuning-search-parameters)
 - Enable in-memory quantization: [Scalar quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=scalar-quantization)
+- On v1.19+, store vectors as `datatype: turbo4` (4-bit, about 8x smaller) to cut disk reads. Lossy: the originals are no longer full precision, so check recall. Set it when creating the collection or adding a new named vector, so existing data must be re-ingested [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
-- Enable io_uring for disk-heavy workloads on Linux [io_uring](https://skills.qdrant.tech/md/articles/io_uring/)
+- Enable async I/O (`io_uring`) for disk-heavy workloads on Linux: `storage.performance.io_uring: auto` on Qdrant 1.19 or newer, `async_scorer: true` on 1.18 or older [Async I/O](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=async-io)
 
 
 ## Can't Handle Enough QPS (Throughput)
@@ -49,7 +51,8 @@ Use when: filtered search is significantly slower than unfiltered. Most common S
 - Create payload index on the filtered field [Payload index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=payload-index)
 - Use `is_tenant=true` for primary filtering condition: [Tenant index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=tenant-index)
 - Try ACORN algorithm for complex filters: [ACORN](https://skills.qdrant.tech/md/documentation/search/search/?s=acorn-search-algorithm)
-- Avoid using `nested` filtering conditions as a primary filter. It might force qdrant to read raw payload values instead of using index.
+- `nested` filter conditions check each remaining candidate's payload element by element, which is slow when many candidates remain. On Qdrant 1.20 or newer, create per-element indexes (the `nested` parameter of the payload index) on every field the nested filter uses, so Qdrant answers it from the indexes without reading payload [Per-element index](https://skills.qdrant.tech/md/documentation/manage-data/indexing/?s=per-element-index-for-arrays-of-objects).
+- Substring match (`match` with `substring`, 1.20+) is expensive: it checks every distinct value of the field, and Qdrant rejects it whenever strict mode is enabled (the Qdrant Cloud default). Prefer prefix match (keyword index with `prefix: true`) or full-text match where the use case allows. A keyword index, especially with `prefix`, speeds it up; a full-text index doesn't help [Substring match](https://skills.qdrant.tech/md/documentation/search/filtering/?s=substring-match)
 - If payload index was added after HNSW build, trigger re-index to create filterable subgraph links
 
 
@@ -63,9 +66,9 @@ Use when: filtered search is significantly slower than unfiltered. Most common S
 ### Recommended configuration changes
 
 - reduce `optimizer_cpu_budget` to reserve more CPU for queries
-- Use `prevent_unoptimized=true` to prevent creating segments with a large amount of unindexed data for searches. Instead, once a segment reaches the so called indexing_threshold, all additional points will be added in ‘deferred state’. 
+- As an alternative to `indexed_only`, set `prevent_unoptimized: true` (v1.17.1+, experimental) to prevent searching over unindexed data. When it's on, set `wait=false` on all write requests, or writes block until indexing catches up.
 
-Learn more [here](https://skills.qdrant.tech/md/documentation/search/low-latency-search/?s=query-indexed-data-only)
+Learn more in the [read-write contention guide](https://skills.qdrant.tech/md/documentation/ops-optimization/read-write-contention/)
 
 
 ## What NOT to Do

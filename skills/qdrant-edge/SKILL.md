@@ -26,7 +26,7 @@ There is no built-in `.sync()`. Sync is a pattern you assemble from shard helper
 
 Use when: you need exact-term or BM25 matching, alone or alongside vectors.
 
-- BM25 is built into Edge (`Bm25`, `Bm25Config`, `embed_document`, `embed_query`) with the IDF `Modifier` on `EdgeSparseVectorParams`, and is wire-compatible with server BM25: a shard seeded from a server snapshot answers local BM25 queries without re-indexing. Do not ship a second BM25 library [Edge BM25](https://skills.qdrant.tech/md/documentation/edge/edge-bm25/)
+- BM25 is built into Edge (`Bm25`, `Bm25Config`, `embed_document`, `embed_query`) with the IDF `Modifier` on `EdgeSparseVectorParams`, and is wire-compatible with the server's sparse vector BM25 model (Edge BM25 docs cover only the sparse vector variant): a shard seeded from a server snapshot answers local BM25 queries without re-indexing. Do not ship a second BM25 library [Edge BM25](https://skills.qdrant.tech/md/documentation/edge/edge-bm25/)
 - Dense embeddings are NOT in Edge: generate them on device with the separate `fastembed` package [FastEmbed embeddings](https://skills.qdrant.tech/md/documentation/edge/edge-fastembed-embeddings/)
 - For hybrid search, run the dense and sparse legs as `prefetches` and fuse them with a `Fusion` query in a single `query` call, instead of combining rankings in application code [Reading data](https://skills.qdrant.tech/md/documentation/edge/edge-api/reading-data/)
 

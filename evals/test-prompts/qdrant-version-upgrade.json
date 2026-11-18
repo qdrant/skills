@@ -10,7 +10,7 @@
     },
     {
       "type": "must",
-      "text": "Recommends upgrading the SDK to the next minor before the server, stepwise (client/server within one minor)"
+      "text": "Recommends upgrading the cluster first and the client SDK after it (for this multi-minor jump, once the cluster reaches 1.17), keeping the SDK within one minor version of the server"
     },
     {
       "type": "must",
@@ -22,7 +22,7 @@
     },
     {
       "type": "bonus",
-      "text": "Notes server and SDK major/minor are expected to match (1.17.x server <-> 1.17.x SDK)"
+      "text": "Notes the client SDK should stay within one minor version of the cluster (larger gaps are untested), so the 1.15-pinned client must be updated after the cluster reaches 1.17"
     },
     {
       "type": "avoid",

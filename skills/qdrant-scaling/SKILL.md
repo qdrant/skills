@@ -25,7 +25,7 @@ Do not answer from this page alone: it contains routing only, not the guidance. 
 | Many tenants or customers, one collection each, tenant isolation | `scaling-data-volume/tenant-scaling/SKILL.md` |
 | Only recent data matters, retention, expiring old vectors, time-based rotation | `scaling-data-volume/sliding-time-window/SKILL.md` |
 | Single node no longer fits the workload, before deciding to shard | `scaling-data-volume/vertical-scaling/SKILL.md` |
-| Already vertically maxed out, need more nodes, resharding | `scaling-data-volume/horizontal-scaling/SKILL.md` |
+| Already vertically maxed out, need more nodes, resharding, changing replication factor or removing replicas | `scaling-data-volume/horizontal-scaling/SKILL.md` |
 
 Latency and throughput pull opposite ways on segment count.
 For latency, increase segments toward the CPU core count (`default_segment_number: 16`).

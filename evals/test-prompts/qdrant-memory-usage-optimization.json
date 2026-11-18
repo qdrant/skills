@@ -14,7 +14,7 @@
     },
     {
       "type": "must",
-      "text": "Since quantization is already enabled, recommends further footprint levers: original vectors / HNSW / payload indexes on disk, float16 or int8 datatypes (2x/4x reduction), or MRL to keep only small vectors in RAM"
+      "text": "Since quantization is already enabled, recommends further footprint levers: original vectors / HNSW / payload indexes on disk, datatypes, or MRL to keep only small vectors in RAM"
     },
     {
       "type": "bonus",
@@ -22,7 +22,7 @@
     },
     {
       "type": "bonus",
-      "text": "Mentions async_scorer (io_uring, Linux 5.11+) and moving sparse/text payload to disk to keep on-disk performance acceptable"
+      "text": "Mentions async I/O (io_uring: auto on 1.19+, async_scorer on older) and keeping payloads and the sparse vector index on disk to keep on-disk performance acceptable"
     },
     {
       "type": "bonus",

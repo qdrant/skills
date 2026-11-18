@@ -20,7 +20,7 @@ Use when: searches produce scores on different scales, like BM25 and cosine on d
 - Add per-prefetch **weights** when one search should dominate, using [Weighted RRF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=weighted-rrf). Weights should be customized per collection and retrievers' score distributions. [Tune weights last](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=tune-weights-last).
 
 ### DBSF
-- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion): normalizes score distributions per prefetch before fusing them, for that, instead of min-max, uses mean +- 3 deviations on prefetched list of scores. Avoid relying on resulting absolute scores, as scores in DBSF are normalized per prefetch (aka per a retrieved list of search results), and might be uncomparable across queries.
+- **[DBSF](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=distribution-based-score-fusion-dbsf)** (Distribution-Based Score Fusion): normalizes each prefetch's scores (mean ± 3 standard deviations) before fusing, so pick it when you trust the retrievers' raw scores to carry magnitude. Normalization is per query, so don't compare absolute DBSF scores across queries, and raise the prefetch `limit` if one outlier makes rankings unstable.
 - DBSF has no parameters to tune, so compare it before hand-tuning RRF `k` and weights. Confirm on your own labels [Compare RRF and DBSF on your labels](https://skills.qdrant.tech/md/documentation/search-tuning/how-to-tune-hybrid-search/?s=compare-rrf-and-dbsf-on-your-labels)
 
 ## Need Custom Fusion
@@ -37,6 +37,8 @@ If you want to implement custom fusion on `score` of each prefetch:
 When using `FormulaQuery` over multiple prefetches (e.g. per-representation weighting):
 - `$score[i]` indexes prefetches in declaration order. Reordering the `prefetch=` list silently shifts which weight applies to which retriever.
 - Provide `defaults` for every `$score[i]` so the formula still evaluates for candidates that surfaced from only a subset of prefetches.
+- On Qdrant 1.19.1 or newer, `max` and `min` expressions take the best or worst of several `$score[i]` (for example, keep each point's best score across per-field BM25 prefetches), cap a boost (`min(cap, boost)`), or clamp a value with `max(lo, min(hi, x))`. A point absent from a prefetch has `$score[i]` of `0.0`, which wins `max` over negative scores and `min` over positive ones, so set `defaults` (keys include the `$`, placed beside `formula`, never inside it) to a value outside the expected score range such as `-1e30` for `max` or `1e30` for `min` [Max and min](https://skills.qdrant.tech/md/documentation/search/search-relevance/?s=max-and-min).
+- On 1.19.1 or newer, `acosh` supports exact geodesic-distance rescoring for hyperbolic embeddings (Lorentz model with `Dot` distance, `acosh(-$score)`, negated so closest ranks first). The input must be at least 1 [Hyperbolic distance](https://skills.qdrant.tech/md/documentation/search/search-relevance/?s=hyperbolic-distance).
 - Start with RRF when scores are on incomparable scales (e.g. BM25 + cosine). Reach for `FormulaQuery` only when explicit per-representation weighting or payload-driven boosts are required, and normalize each `$score[i]` (decay or min-max on a sampled distribution) before combining linearly.
 
 ## Need Good Ranking of Fused Candidates and Ready To Spend More Resources
