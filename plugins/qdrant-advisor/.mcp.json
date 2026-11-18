@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "qdrant-docs": {
+      "type": "http",
+      "url": "https://search.qdrant.tech/mcp"
+    },
+    "qdrant-cloud": {
+      "type": "http",
+      "url": "https://api.cloud.qdrant.io/mcp"
+    }
+  }
+}

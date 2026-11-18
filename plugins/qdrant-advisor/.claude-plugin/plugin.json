@@ -1,0 +1,19 @@
+{
+  "name": "qdrant-advisor",
+  "description": "Diagnose, troubleshoot, and advise on Qdrant deployments by loading the latest official Qdrant skills live from skills.qdrant.tech, with the Qdrant Docs and Qdrant Cloud MCP servers",
+  "version": "1.0.0",
+  "author": {
+    "name": "Qdrant",
+    "url": "https://qdrant.tech"
+  },
+  "homepage": "https://skills.qdrant.tech",
+  "repository": "https://github.com/qdrant/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "qdrant",
+    "vector-search",
+    "troubleshooting",
+    "advisor",
+    "mcp"
+  ]
+}
