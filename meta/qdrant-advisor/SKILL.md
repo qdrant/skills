@@ -55,13 +55,13 @@ Synthesize an answer strictly from the loaded context:
 - Give **concrete, ordered steps**: the endpoints to hit, the metrics to read and their thresholds, the config to change.
 - Surface the skill's **"what NOT to do"** warnings explicitly — they prevent common self-inflicted damage.
 - **Cite the canonical Qdrant doc URLs** you relied on so the user can go deeper.
-- If the loaded context does **not** cover the case, say so plainly and either run a different search or fall back to the catalog — do not paper over the gap with remembered guesses.
+- If the loaded context does **not** cover the case, say so plainly and either run a different search or fall back to the root index at `https://skills.qdrant.tech` — do not paper over the gap with remembered guesses.
 
 ## Operating notes
 
 - **Always fetch fresh** every session. Never reuse a previously cached copy of a skill; the registry updates and staleness is exactly what this approach avoids.
 - **Do not install** anything. You are loading context only.
-- **Fetching:** every URL you need is either in this skill (root index, search base) or surfaced by a page you already fetched (links inside a `SKILL.md` or the root index), so each is fetchable as-is. If a *constructed* search-query URL is ever rejected, fall back to fetching the root index and navigate from its absolute links.
+- **Fetching:** every URL you need is either in this skill (root index `https://skills.qdrant.tech`, search base) or surfaced by a page you already fetched (links inside a `SKILL.md` or the root index), so each is fetchable as-is. If a *constructed* search-query URL is ever rejected, fall back to fetching the root index (`https://skills.qdrant.tech`) and navigate from its absolute links.
 
 ## Example Workflow
 

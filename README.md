@@ -110,7 +110,7 @@ If you want a single, always-current skill instead of the full set, install only
 npx skills add qdrant/skills/meta/qdrant-advisor
 ```
 
-This installs just the `qdrant-advisor` meta-skill. It ships no static content of its own, it loads the relevant Qdrant skills live from [skills.qdrant.tech](https://skills.qdrant.tech) on demand, so you always get the latest guidance without reinstalling. It is not part of the `npx skills add qdrant/skills` bundle.
+This installs just the `qdrant-advisor` meta-skill. It ships no static content of its own, it loads the relevant Qdrant skills live from [skills.qdrant.tech](https://skills.qdrant.tech) on demand, so you always get the latest guidance without reinstalling. It is a separate install, not part of the `npx skills add qdrant/skills` bundle. In Claude Code, install it as the `qdrant-advisor` plugin instead (see [Claude Code](#claude-code)).
 
 ### npx skills
 
