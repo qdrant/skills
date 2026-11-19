@@ -13,3 +13,9 @@ https://qdrant.tech/documentation/
 # Returns 403 to non-browser/bot traffic (confirmed via lychee in CI), not an
 # actually-broken link
 https://platform.openai.com/
+
+# Intermittently fail in CI with server errors, not actually-broken links:
+# Maven Central rate-limits GitHub Actions runners (429), and GitHub
+# sometimes times out serving this large file (503)
+https://central.sonatype.com/artifact/io.qdrant/client
+https://github.com/qdrant/qdrant/blob/master/docs/redoc/master/openapi.json
