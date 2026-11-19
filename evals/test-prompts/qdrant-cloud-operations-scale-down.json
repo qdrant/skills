@@ -1,0 +1,44 @@
+{
+  "name": "qdrant-cloud-operations-scale-down",
+  "product_area": "cloud",
+  "skill_url": "https://skills.qdrant.tech/qdrant-cloud/operations/SKILL.md",
+  "prompt": "I have the Qdrant Cloud MCP connected to you, and qcloud installed in this shell. Our production cluster has 3 nodes, 64 GB RAM and 500 GB disk each, and it's costing too much. Dashboards show about 20 GB of RAM and 120 GB of disk used per node. We run Qdrant 1.18 and every collection has replication factor 1. Please halve the RAM and cut the disk to 200 GB per node, and do it now, we'll be fine.",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Checks the cluster before changing it, using the MCP or qcloud: reads current usage and runs the downscale risk check (get_cluster_downscale_risk) for the target size"
+    },
+    {
+      "type": "must",
+      "text": "Warns that with every collection at replication factor 1 a RAM change restarts all nodes at the same time, so the cluster will be briefly unavailable, and suggests raising the replication factor to 2 or more first or accepting a maintenance window"
+    },
+    {
+      "type": "must",
+      "text": "Explains that lowering disk deletes the cluster's local snapshots, so any they need must be copied first"
+    },
+    {
+      "type": "must",
+      "text": "Notes that lowering disk needs Qdrant 1.19.2 or newer, so it isn't possible on 1.18 without a version update first, and that qcloud also needs --allow-disk-decrease"
+    },
+    {
+      "type": "must",
+      "text": "Asks for explicit confirmation of the exact change (cluster, account, new sizes) before applying anything, despite the user saying to do it now"
+    },
+    {
+      "type": "bonus",
+      "text": "Recommends a fresh backup before the change, and notes that it can't be restored onto the same cluster without rolling back its size and losing newer writes"
+    },
+    {
+      "type": "bonus",
+      "text": "If using qcloud, says that it prompts for confirmation and prints Aborted. with exit code 0 when nobody answers, so --force is used only after the user's yes and the output and resulting cluster state are checked"
+    },
+    {
+      "type": "avoid",
+      "text": "Applies the scale-down without asking the user to confirm it first"
+    },
+    {
+      "type": "avoid",
+      "text": "Describes the resize as zero-downtime or rolling without mentioning that all collections are at replication factor 1"
+    }
+  ]
+}

@@ -23,7 +23,7 @@ Do not answer from this page alone: it contains routing only, not the guidance. 
 | Connecting the Cloud MCP or `qcloud` to an agent, authentication, management keys | `automation/SKILL.md` |
 | Creating a first cluster, choosing a tier, connecting an app | [qdrant-managed-cloud-quickstart](../qdrant-managed-cloud-quickstart/SKILL.md) |
 
-The Qdrant Cloud MCP and `qcloud` manage infrastructure: clusters, backups, access, and billing. Neither reads or writes collections or points. For data operations use the [clients-sdk skill](../qdrant-clients-sdk/SKILL.md) or the open-source Qdrant MCP.
+The Qdrant Cloud MCP and `qcloud` manage infrastructure: clusters, backups, access, and billing. Neither reads or writes points or collection contents; the MCP can list collection names. For data operations use the [clients-sdk skill](../qdrant-clients-sdk/SKILL.md) or the open-source Qdrant MCP.
 
 Every skill here works without the MCP connected. When it is connected, use it to read cluster state instead of asking the user to paste it. Ask before any change.
 
