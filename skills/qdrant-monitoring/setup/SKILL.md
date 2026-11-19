@@ -41,6 +41,7 @@ Use when: configuring Kubernetes health checks.
 Use when: setting up alerts for production or Hybrid Cloud deployments.
 
 - Qdrant Cloud provides pre-configured email alerts for 11 cluster issues. Use scraped metrics when you need custom alerts or routing to other targets. See [Cloud cluster monitoring](https://skills.qdrant.tech/md/documentation/cloud/cluster-monitoring/)
+- If the Cloud MCP is connected, `list_cluster_alerts` shows which of those Cloud alerts are firing now, most recent first [Cloud alerts](https://skills.qdrant.tech/md/documentation/cloud/cluster-alerts/)
 - Use AlertmanagerConfig to route alerts to Slack, PagerDuty, or other targets based on labels
 - At minimum, alert on: optimizer errors, node not ready, replication factor below target, disk usage >80%
 
