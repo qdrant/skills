@@ -10,7 +10,7 @@
     },
     {
       "type": "must",
-      "text": "Warns that with every collection at replication factor 1 a RAM change restarts all nodes at the same time, so the cluster will be briefly unavailable, and suggests raising the replication factor to 2 or more first or accepting a maintenance window"
+      "text": "Warns that with every collection at replication factor 1 a RAM change restarts all nodes at the same time, so the cluster will be briefly unavailable, and recommends a maintenance window (or another way to accept the downtime)"
     },
     {
       "type": "must",
@@ -18,7 +18,7 @@
     },
     {
       "type": "must",
-      "text": "Notes that lowering disk needs Qdrant 1.19.2 or newer, so it isn't possible on 1.18 without a version update first, and that qcloud also needs --allow-disk-decrease"
+      "text": "Notes that lowering disk needs Qdrant 1.19.2 or newer, so it isn't possible on 1.18 without a version update first"
     },
     {
       "type": "must",
@@ -30,7 +30,7 @@
     },
     {
       "type": "bonus",
-      "text": "If using qcloud, says that it prompts for confirmation and prints Aborted. with exit code 0 when nobody answers, so --force is used only after the user's yes and the output and resulting cluster state are checked"
+      "text": "If using qcloud, notes that lowering disk also needs --allow-disk-decrease, and that qcloud prompts for confirmation and prints Aborted. with exit code 0 when nobody answers, so --force is used only after the user's yes and the output and resulting cluster state are checked"
     },
     {
       "type": "avoid",
@@ -39,6 +39,10 @@
     {
       "type": "avoid",
       "text": "Describes the resize as zero-downtime or rolling without mentioning that all collections are at replication factor 1"
+    },
+    {
+      "type": "avoid",
+      "text": "Suggests raising the replication factor to 2 as the way to avoid downtime without noting that it roughly doubles the data on each node (about 240 GB of disk and 40 GB of RAM), which no longer fits the 200 GB and 32 GB targets"
     }
   ]
 }

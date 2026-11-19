@@ -24,7 +24,7 @@ Use when: the user asks how to create or manage clusters, or an agent must choos
 Use when: the user wants an agent to manage Cloud, or the MCP shows no tools.
 
 - Claude Code needs `--transport http` when adding the server, then `/mcp` to sign in. Claude Desktop, Codex, and Copilot CLI each have their own steps, listed in the docs [Qdrant Cloud MCP](https://skills.qdrant.tech/md/documentation/qdrant-mcp/cloud/)
-- Access starts read-only. Changes need re-authorization with manage access, so grant that only for the task at hand
+- Start read-only: the docs recommend escalating to manage access only when a change is needed. A read-only connection must be re-authorized before it can change anything, so grant manage access only for the task at hand
 - Some clients cache tool lists, so restart the assistant if tools are missing after sign-in
 - The MCP manages infrastructure only, and its docs say it doesn't create Database API keys; `qcloud cluster key create`, the Cloud API, Terraform, and the Console all do. For points and collection contents, use the open-source Qdrant MCP or the [clients-sdk skill](../../qdrant-clients-sdk/SKILL.md)
 

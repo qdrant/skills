@@ -24,7 +24,8 @@ Use when: the user wants to scale a Cloud cluster up or down.
 
 - Before scaling down, call `get_cluster_downscale_risk` with the target properties. It changes nothing and checks against current measurements, so call it again if load has moved
 - Scale with `update_cluster` or `qcloud cluster scale`. Reducing RAM is always allowed, even when the data no longer fits and the cluster can run out of memory [Cluster scaling](https://skills.qdrant.tech/md/documentation/cloud/cluster-scaling/)
-- Lowering disk replaces nodes one at a time and deletes the cluster's local snapshots, so have the user copy any they need first. It needs Qdrant 1.19.2 or newer, and `qcloud` refuses it without `--allow-disk-decrease`, even with `--force` [Cloud CLI](https://skills.qdrant.tech/md/documentation/cloud-cli/)
+- Lowering disk replaces nodes one at a time without downtime, but it takes a while and adds disk I/O load [Scaling down disk](https://skills.qdrant.tech/md/documentation/cloud/cluster-scaling/?s=scaling-down-disk-space)
+- Per `qcloud cluster scale --help`, lowering disk deletes the cluster's local snapshots, so have the user copy any they need first. It needs Qdrant 1.19.2 or newer, and `qcloud` refuses it without `--allow-disk-decrease`, even with `--force`
 - Changing CPU or RAM restarts the nodes. Increasing only the disk, or changing the disk speed tier, restarts nothing. With at least one collection at a replication factor of 2 or higher the restart is rolling and the replicated collections stay available. If every collection is at 1, all nodes restart at the same time and the cluster is briefly down. Check the replication factors, and take a backup, before starting [Restarts and downtime](https://skills.qdrant.tech/md/documentation/cloud/configure-cluster/?s=restarts-and-downtime)
 
 ## Backups and Restores
@@ -40,7 +41,7 @@ Use when: the user wants scheduled backups, or needs to recover data.
 Use when: the user wants to move a Cloud cluster to a newer Qdrant version.
 
 - List targets with `list_qdrant_releases` or `qcloud cluster version list`, then apply the version through `update_cluster`. This restarts the nodes, rolling only if some collection has a replication factor of 2 or higher [Updating clusters](https://skills.qdrant.tech/md/documentation/cloud/cluster-upgrades/)
-- Follow the [version upgrade skill](../../qdrant-version-upgrade/SKILL.md) checklist first, and confirm with `get_cluster` that the cluster reports the target version afterward
+- Follow the [version upgrade skill](../../qdrant-version-upgrade/SKILL.md) checklist first, and afterward poll `get_cluster` until the cluster reports the target version and a healthy status
 
 ## Auditing Access
 
