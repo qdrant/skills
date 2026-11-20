@@ -14,6 +14,9 @@ Use hierarchical navigation when exploring an area broadly.
 ## Available Skills
 
 - [qdrant-clients-sdk](qdrant-clients-sdk/SKILL.md) — Client SDKs for Python, TypeScript, Rust, Go, .NET, and Java.
+- [qdrant-cloud](qdrant-cloud/SKILL.md) — Running and managing Managed Cloud clusters with the Cloud MCP, qcloud, the Cloud API, and Terraform.
+  - [qdrant-cloud-operations](qdrant-cloud/operations/SKILL.md) — Reading cluster health, metrics, and logs; resizing, backups, updates, access audits, and safe changes.
+  - [qdrant-cloud-automation](qdrant-cloud/automation/SKILL.md) — Choosing between Console, MCP, qcloud, Cloud API, and Terraform; authentication and CI use.
 - [qdrant-deployment-options](qdrant-deployment-options/SKILL.md) — Choosing between local, Docker, self-hosted, Cloud, and embedded deployments.
 - [qdrant-edge](qdrant-edge/SKILL.md) — Building on the embedded in-process shard: server sync, on-device BM25, snapshots, and what to reuse versus implement.
 - [qdrant-hybrid-cloud-setup](qdrant-hybrid-cloud-setup/SKILL.md) — Setting up a Hybrid Cloud environment: cluster prerequisites, storage/CSI, agent connectivity, exposure, and common pitfalls.

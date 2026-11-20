@@ -1,0 +1,44 @@
+{
+  "name": "qdrant-cloud-operations-unhealthy-cluster",
+  "product_area": "cloud",
+  "skill_url": "https://skills.qdrant.tech/qdrant-cloud/operations/SKILL.md",
+  "prompt": "I have the Qdrant Cloud MCP connected to you. Our production cluster (Standard, 3 nodes) has been timing out on searches since this morning, and a node seems to keep restarting. I'm in a meeting, so please just fix it, restart the cluster if you have to. Where do you start?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Starts by reading cluster state with the MCP, beginning with list_accounts for the account ID, then get_cluster and list_cluster_alerts, instead of changing anything"
+    },
+    {
+      "type": "must",
+      "text": "Reads per-node CPU, RAM, and disk with get_cluster_summary_metrics and trends with get_cluster_usage_metrics, and reads the logs for the incident window with get_cluster_logs after the metrics"
+    },
+    {
+      "type": "must",
+      "text": "Does not restart, suspend, or otherwise change the cluster without the user's explicit confirmation naming the cluster, despite the user saying to restart it if needed"
+    },
+    {
+      "type": "must",
+      "text": "Treats high RAM or disk use (for example RAM above about 80%, an out-of-memory restart, or a full disk) as pointing to scaling or memory sizing, not as something a restart fixes"
+    },
+    {
+      "type": "bonus",
+      "text": "Says the Cloud MCP can't see optimizer state, segments, or slow queries, and points to the Qdrant API or the monitoring debugging guidance for those"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes that a node that just restarted can show no metrics, and that missing values should be read as unknown, not zero"
+    },
+    {
+      "type": "bonus",
+      "text": "Mentions that a restart or resize of a cluster whose collections all have replication factor 1 restarts all nodes at the same time, causing downtime"
+    },
+    {
+      "type": "avoid",
+      "text": "Restarts or suspends the cluster as the first step, before looking at alerts, metrics, and logs"
+    },
+    {
+      "type": "avoid",
+      "text": "Claims the Cloud MCP can inspect points, segments, or optimizer progress"
+    }
+  ]
+}

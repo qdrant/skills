@@ -41,6 +41,10 @@ skills/
     SKILL.md
     debugging/
     setup/
+  qdrant-cloud/
+    SKILL.md
+    operations/
+    automation/
   qdrant-clients-sdk/
   qdrant-deployment-options/
   qdrant-edge/

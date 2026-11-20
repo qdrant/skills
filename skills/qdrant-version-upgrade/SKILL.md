@@ -13,7 +13,7 @@ Qdrant has the following version compatibility rules [Upgrading Qdrant](https://
 
 - A rolling upgrade (one node at a time) is zero-downtime only if every collection has a replication factor of 2 or higher. A single-node cluster, or any collection with a replication factor of 1, needs a short downtime window [Replication factor](https://skills.qdrant.tech/md/documentation/scaling/distributed_deployment/?s=replication-factor).
 
-For managing Qdrant version upgrades in Qdrant Cloud, you can use the [qcloud](https://github.com/qdrant/qcloud-cli) CLI tool.
+For managing Qdrant version upgrades in Qdrant Cloud, you can use the [qcloud](https://github.com/qdrant/qcloud-cli) CLI tool. If the Qdrant Cloud MCP is connected, use `list_qdrant_releases` to see target versions and `get_cluster` to read the running version and status, and confirm the update with the user before calling `update_cluster`. See the [Cloud operations skill](../qdrant-cloud/operations/SKILL.md).
 
 ## Pre-Upgrade Checklist
 
