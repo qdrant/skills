@@ -7,6 +7,8 @@
     "url": "https://qdrant.tech"
   },
   "homepage": "https://skills.qdrant.tech",
+  "icon": "./.claude-plugin/icon.png",
+  "privacyPolicyUrl": "https://qdrant.tech/legal/privacy-policy/",
   "repository": "https://github.com/qdrant/skills",
   "license": "Apache-2.0",
   "keywords": [

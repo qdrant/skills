@@ -21,4 +21,4 @@ The plugin does not store data or read credentials from your environment.
 
 ## Source
 
-The skill is maintained in [qdrant/skills](https://github.com/qdrant/skills) under `meta/qdrant-advisor` and copied into this plugin by `scripts/sync_advisor_plugin.py`. Licensed under Apache-2.0.
+The skill is maintained in the [qdrant/skills repository](https://github.com/qdrant/skills/tree/main/meta/qdrant-advisor) and copied into this plugin by a sync script. Licensed under Apache-2.0.
