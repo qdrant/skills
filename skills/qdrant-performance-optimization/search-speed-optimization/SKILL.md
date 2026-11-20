@@ -31,7 +31,7 @@ Use when: individual queries take too long regardless of load.
 - On v1.19+, store vectors as `datatype: turbo4` (4-bit, about 8x smaller) to cut disk reads. Lossy: the originals are no longer full precision, so check recall. Set it when creating the collection or adding a new named vector, so existing data must be re-ingested [turbo4](https://skills.qdrant.tech/md/documentation/manage-data/vectors/?s=turbo4)
 - Reduce Vector Dimensionality with Matryoshka Models: [Matryoshka Models](https://skills.qdrant.tech/md/documentation/inference/matryoshka-models/?s=reduce-vector-dimensionality-with-matryoshka-models)
 - Use oversampling + rescore for high-dimensional vectors [Search with quantization](https://skills.qdrant.tech/md/documentation/manage-data/quantization/?s=searching-with-quantization)
-- Enable async I/O (`io_uring`) for disk-heavy workloads on Linux: `storage.performance.io_uring: auto` on Qdrant 1.19 or newer, `async_scorer: true` on 1.18 or older [Async I/O](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=async-io)
+- Enable async I/O (`io_uring`) for disk-heavy workloads on Linux: `storage.performance.io_uring: auto` on Qdrant 1.19 or newer, `async_scorer: true` on 1.18 or older. Managed Qdrant Cloud enables it automatically from 1.20, so there is nothing to set there [Async I/O](https://skills.qdrant.tech/md/documentation/ops-configuration/memory-tiers/?s=async-io)
 
 
 ## Can't Handle Enough QPS (Throughput)
