@@ -1,6 +1,6 @@
 ---
 name: qdrant-search-strategies
-description: "Guides Qdrant search strategy selection. Use when someone asks 'should I use hybrid search?', 'how to rerank?', 'results are not relevant', 'I don't get needed results from my dataset but they're there', 'retrieval quality is not good enough', 'results too similar', 'need diversity', 'MMR', 'relevance feedback', 'recommendation API', 'discovery API', or 'missing keyword matches'"
+description: "Guides Qdrant search strategy selection. Use when someone asks 'should I use hybrid search?', 'how to rerank?', 'results are not relevant', 'I don't get needed results from my dataset but they're there', 'retrieval quality is not good enough', 'results too similar', 'need diversity', 'MMR', 'relevance feedback', 'recommendation API', 'discovery API', 'sort search results by price', or 'missing keyword matches'"
 allowed-tools:
   - Read
   - Grep
@@ -66,7 +66,12 @@ Use when: results should be additionally ranked according to some business logic
 
 Check how to set up in [Score Boosting docs](https://skills.qdrant.tech/md/documentation/search/search-relevance/?s=score-boosting)
 
+When the user wants relevant results sorted strictly by a payload field (for example "cheapest matching products first"), keep the vector search with its filter in a prefetch and use `order_by` as the main query [Sort results by a payload field](https://skills.qdrant.tech/md/documentation/search/hybrid-queries/?s=sort-results-by-a-payload-field).
+- `order_by` sorts only the prefetched candidates, so the prefetch `limit` decides which points can reach the top. Set it from how many relevant candidates should compete, not from the final `limit`.
+- `order_by` needs a range-capable payload index (`integer` or `float`) on the field. A formula query that ranks by the field (for example `-price`) gives the same order and also works without an index.
+
 ## What NOT to Do
 
 - Use hybrid search before verifying pure vector search quality (adds complexity, may mask model issues)
+- Sort the final top-k client-side by a payload field: it reorders only those few results. Sort a larger prefetch pool server-side with `order_by` instead
 - Skip evaluation when adding relevance feedback: score the end-to-end pipeline to confirm it actually helps [Pipeline Output Quality](https://skills.qdrant.tech/md/documentation/search-evaluation/pipeline-output-quality/)
