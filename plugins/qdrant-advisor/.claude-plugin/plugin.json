@@ -1,5 +1,6 @@
 {
   "name": "qdrant-advisor",
+  "displayName": "Qdrant",
   "description": "Diagnose, troubleshoot, and advise on Qdrant deployments by loading the latest official Qdrant skills live from skills.qdrant.tech, with the Qdrant Docs and Qdrant Cloud MCP servers",
   "version": "1.0.0",
   "author": {
