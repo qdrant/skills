@@ -19,3 +19,8 @@ https://platform.openai.com/
 # sometimes times out serving this large file (503)
 https://central.sonatype.com/artifact/io.qdrant/client
 https://github.com/qdrant/qdrant/blob/master/docs/redoc/master/openapi.json
+
+# MCP endpoints are not web pages: a plain GET returns 401 (Cloud, needs OAuth)
+# or 405 (Docs, POST only). Expected, not broken links.
+https://api.cloud.qdrant.io/mcp
+https://search.qdrant.tech/mcp
