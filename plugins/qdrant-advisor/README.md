@@ -1,4 +1,4 @@
-# Qdrant Advisor
+# Qdrant
 
 Diagnose, troubleshoot, and advise on Qdrant deployments from your coding agent. The Advisor skill loads the latest official Qdrant skills live from [skills.qdrant.tech](https://skills.qdrant.tech), follows only the branch that matches your problem, and grounds its answer in current guidance instead of memory. It covers slow or degraded search, memory and OOM issues, indexing, scaling and sharding, search quality, hybrid search, model migration, version upgrades, monitoring, deployment choices, and client SDKs.
 
