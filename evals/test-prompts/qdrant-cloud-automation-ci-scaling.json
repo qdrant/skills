@@ -1,0 +1,44 @@
+{
+  "name": "qdrant-cloud-automation-ci-scaling",
+  "product_area": "cloud",
+  "skill_url": "https://skills.qdrant.tech/qdrant-cloud/automation/SKILL.md",
+  "prompt": "We manage our Qdrant Cloud production cluster with Terraform. For a nightly bulk ingest we want a GitHub Actions job that scales the cluster up to bigger nodes before the load and back down after, using qcloud. The simplest plan we came up with: use my personal qcloud login on the runner, share the same management key with the other two pipelines so we only have one secret to rotate, and add --force everywhere so the job never blocks. Also, can the job create the Database API key for the ingest service through the Cloud MCP? Does this plan work?",
+  "rubric": [
+    {
+      "type": "must",
+      "text": "Warns that scaling a Terraform-managed cluster with qcloud (or the MCP or Console) makes the cluster drift from the Terraform state, so the next apply reverts the size or conflicts, and suggests changing the size through Terraform instead"
+    },
+    {
+      "type": "must",
+      "text": "Advises against a personal login on the runner, and recommends a dedicated Cloud Management Key for this pipeline, kept in the CI secret store, so it can be revoked on its own"
+    },
+    {
+      "type": "must",
+      "text": "Advises against sharing one management key across the three pipelines, because one leak or one revocation affects all of them"
+    },
+    {
+      "type": "must",
+      "text": "States that the Cloud MCP isn't the right tool for a CI job and that its docs say it doesn't create Database API keys, and names an option that does, such as qcloud cluster key create, the Cloud API, Terraform, or the Console"
+    },
+    {
+      "type": "bonus",
+      "text": "Explains that without --force qcloud prompts and, with no one at the terminal, prints Aborted. and exits 0, so --force is needed in an unattended job, but only in a reviewed job and never on delete, suspend, or restore commands"
+    },
+    {
+      "type": "bonus",
+      "text": "Suggests --json for parsing output and --wait or qcloud cluster wait with --timeout before the ingest starts, because scaling takes time"
+    },
+    {
+      "type": "bonus",
+      "text": "Notes that changing CPU or RAM restarts nodes, so the nightly resize needs a replication factor of 2 or more on the collections to avoid downtime"
+    },
+    {
+      "type": "avoid",
+      "text": "Endorses the plan as written, including the personal login, the shared management key, and --force everywhere"
+    },
+    {
+      "type": "avoid",
+      "text": "Suggests using a Cloud Management Key as the Database API key for the ingest service, or the reverse"
+    }
+  ]
+}

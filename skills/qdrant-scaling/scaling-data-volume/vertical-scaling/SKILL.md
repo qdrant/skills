@@ -41,6 +41,7 @@ Use when: current node resources (RAM, CPU, disk) are insufficient, but the work
 - Add overhead for the HNSW index (about 150 bytes per point at the default `m: 16`) and payload indexes; the WAL counts against disk, not RAM [Capacity planning](https://skills.qdrant.tech/md/documentation/capacity-planning/)
 - Reserve 20% headroom for optimizer operations and OS cache
 - Monitor actual usage via Grafana/Prometheus before and after resizing [Monitoring](../../../qdrant-monitoring/SKILL.md)
+- If the Qdrant Cloud MCP is connected, read per-node CPU, RAM, and disk with `get_cluster_summary_metrics` and trends with `get_cluster_usage_metrics` instead of asking the user for numbers, and run `get_cluster_downscale_risk` before any scale-down. See the [Cloud operations skill](../../../qdrant-cloud/operations/SKILL.md) [Qdrant Cloud MCP](https://skills.qdrant.tech/md/documentation/qdrant-mcp/cloud/)
 
 
 ## When Vertical Scaling Is No Longer Enough

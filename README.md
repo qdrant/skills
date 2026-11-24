@@ -93,6 +93,7 @@ Prefer the URL method? Add `Use skills.qdrant.tech` to the same prompts:
 | qdrant-monitoring | Metrics, health checks, debugging optimizer and cluster issues |
 | qdrant-multitenancy | Isolating multiple tenants within a Qdrant deployment: payload partitioning, tiered multitenancy, and region-based data isolation |
 | qdrant-deployment-options | Choosing between local, self-hosted, cloud, and hybrid |
+| qdrant-cloud | Running and managing Managed Cloud clusters with the Cloud MCP, qcloud, the Cloud API, and Terraform: health, scaling, backups, updates, and choosing an interface |
 | qdrant-managed-cloud-quickstart | Getting a first Managed Cloud cluster running and connected: free vs standard, API keys, strict mode, Cloud Inference, and choices you can't undo |
 | qdrant-hybrid-cloud-setup | Setting up Hybrid Cloud on your own Kubernetes: prerequisites, storage/CSI, agent/operator install, exposure, and pitfalls |
 | qdrant-edge | Building on the embedded shard: server sync, on-device BM25, snapshots, reuse vs reimplement |
