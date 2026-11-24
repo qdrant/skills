@@ -18,6 +18,9 @@
   to = "https://search.qdrant.tech/md/:splat"
   status = 200
   force = true
+  # Tell the service the page was read here, so its links point back here.
+  [redirects.headers]
+    Forwarded = "host=skills.qdrant.tech;proto=https"
 
 [[redirects]]
   from = "/api-reference.md"
