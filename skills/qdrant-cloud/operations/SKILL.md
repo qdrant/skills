@@ -5,7 +5,7 @@ description: "Operating a running Qdrant Managed Cloud cluster: reading health, 
 
 # Operating a Qdrant Cloud Cluster
 
-Read cluster state through the Qdrant Cloud MCP when it is connected, otherwise through `qcloud` with `--json`, otherwise ask the user to paste it from the Console. Tool names below come from the Cloud public API; use what the client lists and don't assume a tool exists [Qdrant Cloud MCP](https://skills.qdrant.tech/md/documentation/qdrant-mcp/cloud/) [Cloud CLI](https://skills.qdrant.tech/md/documentation/cloud-cli/)
+Read cluster state through the Qdrant Cloud MCP when it is connected, otherwise through `qcloud` with `--json`, otherwise ask the user to paste it from the Console. Tool names below come from the Cloud public API; use what the client lists and don't assume a tool exists [Qdrant Cloud MCP](https://skills.qdrant.tech/md/documentation/qdrant-mcp/cloud/) [Cloud CLI](https://skills.qdrant.tech/md/documentation/cloud-automation/cloud-cli/)
 
 ## Cluster Is Unhealthy, Restarting, or Slow
 
@@ -47,7 +47,7 @@ Use when: the user wants to move a Cloud cluster to a newer Qdrant version.
 
 Use when: the user asks who can reach the account or a cluster.
 
-- List people and permissions with `list_account_members`, `list_users_with_roles`, and `list_roles`. The MCP doesn't list Cloud Management Keys; use `qcloud iam key list` or the Console. They keep working after their creator leaves [Removing a user](https://skills.qdrant.tech/md/documentation/cloud-rbac/user-management/?s=removing-a-user-from-an-account)
+- List people and permissions with `list_account_members`, `list_users_with_roles`, and `list_roles`. The MCP doesn't list Cloud Management Keys; use `qcloud iam key list` or the Console. They keep working after their creator leaves [Removing a user](https://skills.qdrant.tech/md/documentation/cloud-account-setup/user-management/?s=removing-a-user-from-an-account)
 - The MCP docs say it doesn't create Database API keys. Create them in the Cloud Console, with `qcloud cluster key create`, or through the Cloud API or Terraform [Authentication](https://skills.qdrant.tech/md/documentation/cloud/authentication/)
 
 ## Making Changes Safely
