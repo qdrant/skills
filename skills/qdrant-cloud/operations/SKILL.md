@@ -56,7 +56,7 @@ Use when: about to run anything other than a read.
 
 - Read freely. For every change, state the account, cluster, and action, and wait for the user's yes. A read-only MCP connection must be re-authorized with manage access before it can change anything
 - `delete_cluster` and enabling JWT RBAC can't be undone. `suspend_cluster` and `restart_cluster` interrupt service. Ask for explicit confirmation naming the cluster, and never run them as a side effect of a diagnosis
-- `qcloud` asks for confirmation on scale, update, restart, suspend, delete, and backup restore. With no one at the terminal it prints `Aborted.` and exits 0, which looks like success. After the user says yes in chat, run that one command with `--force`, then check the output for `Aborted.` and confirm the change with `get_cluster` or `qcloud cluster describe`
+- `qcloud` asks for confirmation on scale, restart, suspend, delete, and backup restore. With no one at the terminal it prints `Aborted.` and exits 0, which looks like success. After the user says yes in chat, run that one command with `--force`, then check the output for `Aborted.` and confirm the change with `get_cluster` or `qcloud cluster describe`
 - When the user has several accounts, confirm which one before changing anything
 - Free clusters are suspended after 1 week idle and deleted after 4 weeks, so a missing free cluster may be lifecycle, not an incident [Free clusters](https://skills.qdrant.tech/md/documentation/cloud/create-cluster/?s=free-clusters)
 

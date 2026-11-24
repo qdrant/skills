@@ -10,7 +10,7 @@
     },
     {
       "type": "must",
-      "text": "Reads per-node CPU, RAM, and disk with get_cluster_summary_metrics and trends with get_cluster_usage_metrics, and reads the logs for the incident window with get_cluster_logs after the metrics"
+      "text": "Reads per-node CPU, RAM, and disk with get_cluster_summary_metrics and trends with get_cluster_usage_metrics, and reads the logs for the incident window with get_cluster_logs"
     },
     {
       "type": "must",

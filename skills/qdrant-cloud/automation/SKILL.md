@@ -43,7 +43,7 @@ Use when: running `qcloud` unattended or from an agent.
 
 - Add `--json` and parse the output. Don't scrape the table view
 - Creation takes time, so use `--wait` on create or `qcloud cluster wait` with `--timeout` (default 10 minutes) before the next step [Quick start](https://skills.qdrant.tech/md/documentation/cloud-cli/?s=quick-start)
-- Without `--force`, `qcloud` asks for confirmation on scale, update, restart, suspend, delete, and backup restore. With no one at the terminal it prints `Aborted.` and exits 0, so a script or agent sees success when nothing ran. Check the output for `Aborted.`
+- Without `--force`, `qcloud` asks for confirmation on scale, restart, suspend, delete, and backup restore. With no one at the terminal it prints `Aborted.` and exits 0, so a script or agent sees success when nothing ran. Check the output for `Aborted.`
 - For an agent, get the user's yes in chat first, then run that one command with `--force`. In a pipeline, use `--force` only in jobs a person reviewed, and never on delete, suspend, or restore
 - Version, replication factor, and vectors-on-disk changes restart the nodes. The restart is rolling only if some collection has a replication factor of 2 or higher, so schedule them like any other restart [Restarts and downtime](https://skills.qdrant.tech/md/documentation/cloud/configure-cluster/?s=restarts-and-downtime)
 
