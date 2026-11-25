@@ -2,6 +2,14 @@
 
 Agent skills encoding deep Qdrant knowledge for coding agents.
 
+## Get started
+
+Give this to your agent:
+
+```
+set up qdrant with https://qdrant.tech/llms.txt
+```
+
 ## Start with search
 
 For specific tasks, symptoms, or troubleshooting questions, start with the [skills search](https://skills.qdrant.tech/search?query=your+query+here).

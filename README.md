@@ -32,9 +32,19 @@ These skills are under active development. Skill content and structure may chang
 
 Qdrant maintains a growing set of skills, and their content changes as Qdrant evolves. There are a few ways to give your agent access to them.
 
-### Recommended: install the Qdrant Advisor
+### Start here: give this to your agent
 
-Install one skill — the **Qdrant Advisor** — and your agent always has the freshest, most relevant Qdrant guidance, with nothing to manage as the skills change:
+Paste this into your coding agent:
+
+```
+set up qdrant with https://qdrant.tech/llms.txt
+```
+
+The agent reads the Qdrant `llms.txt` and sets up Qdrant for you. By default, it recommends a free Qdrant Cloud cluster, or Docker if you ask for a local setup. It asks before it creates anything, and you never paste a key into the chat. The same file points it to the documentation and to these skills.
+
+### Install the Qdrant Advisor
+
+To keep Qdrant guidance available in every session, install one skill, the **Qdrant Advisor**. Your agent then always has the freshest, most relevant Qdrant guidance, with nothing to manage as the skills change:
 
 ```bash
 npx skills add qdrant/skills/meta/qdrant-advisor
@@ -103,7 +113,7 @@ Prefer the URL method? Add `Use skills.qdrant.tech` to the same prompts:
 
 ## Installation
 
-### Qdrant Advisor (recommended)
+### Qdrant Advisor
 
 If you want a single, always-current skill instead of the full set, install only the **Qdrant Advisor**:
 
