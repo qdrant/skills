@@ -33,10 +33,11 @@ Small tenants share a fallback shard and large tenants get dedicated shards, all
 
 - Create the collection with custom sharding and `shard_number: 1`, add a fallback shard for the small tenants, and keep the `is_tenant` payload index from payload partitioning [Configure tiered multitenancy](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=configure-tiered-multitenancy).
 - Promote a tenant to a dedicated shard once it approaches the indexing threshold, about 20,000 points. Qdrant moves its data with a shard transfer and keeps serving reads and writes [Promote tenant to dedicated shard](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=promote-tenant-to-dedicated-shard).
+- **Isolate tenant vector indexes:** Sharding isolates storage, but continuous write and indexing volume from large accounts will still cause search latency creep for smaller tenants if a global HNSW graph is shared. Build per-tenant HNSW graphs instead of a global one: explicitly set `payload_m` to a non-zero value (e.g., matching desired `m`), then set `m=0`. This completely isolates indexing load per tenant [Calibrate performance](https://skills.qdrant.tech/md/documentation/manage-data/multitenancy/?s=calibrate-performance).
 - Keep in mind that re-sharding can be an expensive and time-consuming process, so consider your tenant growth patterns carefully when deciding which tenants should receive dedicated shards.
 - It's not recommended to exceed ~1000 dedicated shards per cluster (resource overhead).
 - The fallback shard (small tenants) must fit on a single node.
-- Sharding method is fixed at collection creation: an auto-sharded collection (default) cannot be converted to custom sharding in place. If there is any realistic chance you will need to isolate a large tenant later, create the collection with custom sharding up front and put every tenant in the fallback shard.  
+- Sharding method is fixed at collection creation: an auto-sharded collection (default) cannot be converted to custom sharding in place. If there is any realistic chance you will need to isolate a large tenant later, create the collection with custom sharding up front and put every tenant in the fallback shard. Switching an existing auto-sharded collection requires creating a new collection and migrating data.  
 
 
 ## Few Non-Homogenous Tenants (Collection per Tenant)
@@ -57,3 +58,5 @@ Use when: data must be physically pinned to a location, e.g. regional compliance
 
 ## What NOT to Do
 - Treat a payload filter as your whole security model. In Qdrant, (unless you're using per-tenant collections), tenant isolation is payload-based. It is an application-layer responsibility, and the filter is only one small part of it.
+- Leave a global HNSW graph enabled (`m > 0`) when high-write enterprise accounts share a collection with latency-sensitive tenants. Isolate tenant vector indexes by setting `payload_m` to a non-zero value and `m=0` so continuous indexing contention does not degrade search across tenants.
+- Recommend collection-per-tenant for thousands of tenants: per-collection overhead (memory, open file handles, cluster state) makes this unscalable compared to tiered multitenancy with isolated tenant indexes.
